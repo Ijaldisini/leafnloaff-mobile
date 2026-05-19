@@ -247,7 +247,7 @@ class AdminDashboardView extends StatelessWidget {
                           Shadow(
                             offset: const Offset(2, 2),
                             blurRadius: 4,
-                            color: const Color(0xFF000000).withOpacity(0.25),
+                            color: const Color(0xFF000000).withValues(alpha: 0.25),
                           ),
                         ],
                       ),
@@ -274,7 +274,7 @@ class AdminDashboardView extends StatelessWidget {
                             Shadow(
                               offset: const Offset(2, 2),
                               blurRadius: 4,
-                              color: const Color(0xFF000000).withOpacity(0.25),
+                              color: const Color(0xFF000000).withValues(alpha: 0.25),
                             ),
                           ],
                         ),

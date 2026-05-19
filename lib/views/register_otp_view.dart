@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../viewmodels/register_otp_viewmodel.dart';
 import '../models/user_model.dart';
-import 'login_view.dart';
 
 class RegisterOtpView extends StatefulWidget {
   final UserModel user;

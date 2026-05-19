@@ -87,7 +87,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                                     blurRadius: 2,
                                     color: const Color(
                                       0xFF000000,
-                                    ).withOpacity(0.25),
+                                    ).withValues(alpha: 0.25),
                                   ),
                                 ],
                               ),
@@ -150,7 +150,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                                     blurRadius: 4,
                                     color: const Color(
                                       0xFF000000,
-                                    ).withOpacity(0.50),
+                                    ).withValues(alpha: 0.50),
                                   ),
                                 ],
                               ),
@@ -178,7 +178,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                                     blurRadius: 4,
                                     color: const Color(
                                       0xFF000000,
-                                    ).withOpacity(0.50),
+                                    ).withValues(alpha: 0.50),
                                   ),
                                 ],
                               ),
@@ -212,7 +212,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                                     blurRadius: 4,
                                     color: const Color(
                                       0xFF000000,
-                                    ).withOpacity(0.50),
+                                    ).withValues(alpha: 0.50),
                                   ),
                                 ],
                               ),
