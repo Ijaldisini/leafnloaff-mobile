@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../views/register_otp_view.dart';
 
@@ -12,16 +13,10 @@ class RegisterViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  void navigateToRegisterOtp(
-    BuildContext context,
-    String email,
-    String secret,
-  ) {
+  void navigateToRegisterOtp(BuildContext context, UserModel user) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => RegisterOtpView(email: email, otpSecret: secret),
-      ),
+      MaterialPageRoute(builder: (context) => RegisterOtpView(user: user)),
     );
   }
 
@@ -42,11 +37,21 @@ class RegisterViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final String secret = await _authService.register(
-        email,
-        password,
-        name,
-        username,
+      final newUser = UserModel(
+        id: '',
+        fullName: name,
+        username: username,
+        email: email,
+      );
+
+      final String secret = await _authService.register(newUser, password);
+
+      final completedUser = UserModel(
+        id: '',
+        fullName: name,
+        username: username,
+        email: email,
+        otpSecret: secret,
       );
 
       debugPrint("Register Berhasil!");
@@ -56,7 +61,7 @@ class RegisterViewModel extends ChangeNotifier {
             content: Text('Register Berhasil! Silakan scan QR Code.'),
           ),
         );
-        navigateToRegisterOtp(context, email, secret);
+        navigateToRegisterOtp(context, completedUser);
       }
     } catch (e) {
       if (context.mounted) {
@@ -68,5 +73,14 @@ class RegisterViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    usernameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 }

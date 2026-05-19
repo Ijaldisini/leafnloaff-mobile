@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../models/user_model.dart';
 import '../views/register_view.dart';
+import '../views/home_view.dart';
+import '../views/admin/admin_dashboard_view.dart';
 
 class LoginViewModel extends ChangeNotifier {
   final TextEditingController emailController = TextEditingController();
@@ -36,17 +39,38 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _authService.login(email, password);
-      debugPrint("Login Berhasil!");
+      final UserModel loggedInUser = await _authService.login(email, password);
+
+      debugPrint("Login Berhasil! Role: ${loggedInUser.role}");
+
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Login Berhasil!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Selamat datang, ${loggedInUser.fullName}!')),
+        );
+
+        if (loggedInUser.role == 'admin') {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const AdminDashboardView()),
+            (route) => false,
+          );
+        } else {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomeView(user: loggedInUser),
+            ),
+            (route) => false,
+          );
+        }
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {

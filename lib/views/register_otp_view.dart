@@ -2,17 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../viewmodels/register_otp_viewmodel.dart';
+import '../models/user_model.dart';
 import 'login_view.dart';
 
 class RegisterOtpView extends StatefulWidget {
-  final String email;
-  final String otpSecret;
+  final UserModel user;
 
-  const RegisterOtpView({
-    super.key,
-    required this.email,
-    required this.otpSecret,
-  });
+  const RegisterOtpView({super.key, required this.user});
 
   @override
   State<RegisterOtpView> createState() => _RegisterOtpViewState();
@@ -24,7 +20,7 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
   @override
   Widget build(BuildContext context) {
     final String otpUri =
-        'otpauth://totp/LeafNLoaf:${widget.email}?secret=${widget.otpSecret}&issuer=LeafNLoaf';
+        'otpauth://totp/LeafNLoaf:${widget.user.email}?secret=${widget.user.otpSecret}&issuer=LeafNLoaf';
 
     return Scaffold(
       body: AnimatedBuilder(
@@ -122,7 +118,7 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                     child: GestureDetector(
                       onTap: _viewModel.isLoading
                           ? null
-                          : () => _viewModel.verifyOtp(context, widget.otpSecret),
+                          : () => _viewModel.verifyOtp(context, widget.user),
                       child: Container(
                         width: 189,
                         height: 38,

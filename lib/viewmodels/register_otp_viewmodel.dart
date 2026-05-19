@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:otp/otp.dart';
+import '../models/user_model.dart';
 import '../views/home_view.dart';
 
 class RegisterOtpViewModel extends ChangeNotifier {
@@ -14,7 +15,7 @@ class RegisterOtpViewModel extends ChangeNotifier {
 
   String get otpCode => otpControllers.map((c) => c.text).join();
 
-  void verifyOtp(BuildContext context, String otpSecret) async {
+  void verifyOtp(BuildContext context, UserModel user) async {
     final code = otpCode;
 
     if (code.length < 6) {
@@ -24,12 +25,21 @@ class RegisterOtpViewModel extends ChangeNotifier {
       return;
     }
 
+    if (user.otpSecret == null || user.otpSecret!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Kode Rahasia tidak ditemukan pada akun ini'),
+        ),
+      );
+      return;
+    }
+
     _isLoading = true;
     notifyListeners();
 
     try {
       final String expectedCode = OTP.generateTOTPCodeString(
-        otpSecret,
+        user.otpSecret!,
         DateTime.now().millisecondsSinceEpoch,
         length: 6,
         interval: 30,
@@ -40,9 +50,7 @@ class RegisterOtpViewModel extends ChangeNotifier {
       debugPrint("Kode diinput: $code");
       debugPrint("Kode diharapkan: $expectedCode");
 
-      await Future.delayed(
-        const Duration(milliseconds: 500),
-      );
+      await Future.delayed(const Duration(milliseconds: 500));
 
       if (code == expectedCode) {
         if (context.mounted) {
@@ -52,7 +60,7 @@ class RegisterOtpViewModel extends ChangeNotifier {
 
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const HomeView()),
+            MaterialPageRoute(builder: (context) => HomeView(user: user)),
             (route) => false,
           );
         }

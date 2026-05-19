@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/user_model.dart';
 import 'login_view.dart';
 
 class HomeView extends StatelessWidget {
-  const HomeView({super.key});
+  final UserModel user;
+
+  const HomeView({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
-    final user = Supabase.instance.client.auth.currentUser;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -42,8 +43,8 @@ class HomeView extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Selamat Datang!',
-              style: TextStyle(
+              'Selamat Datang, ${user.fullName}!',
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF2D4839),
@@ -51,14 +52,14 @@ class HomeView extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              user?.email ?? 'User',
+              user.email,
               style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 30),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 40),
               child: Text(
-                'Akun kamu telah berhasil diverifikasi dengan Google Authenticator.',
+                'Akun kamu telah berhasil login sebagai Customer.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14),
               ),

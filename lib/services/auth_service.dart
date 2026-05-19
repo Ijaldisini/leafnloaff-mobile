@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/user_model.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -13,28 +14,25 @@ class AuthService {
     }).join();
   }
 
-  Future<String> register(
-    String email,
-    String password,
-    String fullName,
-    String username,
-  ) async {
+  Future<String> register(UserModel user, String password) async {
     try {
       final otpSecret = _generateTOTPSecret();
 
       final response = await _supabase.auth.signUp(
-        email: email,
+        email: user.email,
         password: password,
       );
 
       if (response.user != null) {
-        await _supabase.from('profiles').insert({
-          'id': response.user!.id,
-          'full_name': fullName,
-          'username': username,
-          'email': email,
-          'otp_secret': otpSecret,
-        });
+        final completedUser = UserModel(
+          id: response.user!.id,
+          fullName: user.fullName,
+          username: user.username,
+          email: user.email,
+          otpSecret: otpSecret,
+        );
+
+        await _supabase.from('profiles').insert(completedUser.toMap());
       }
 
       return otpSecret;
@@ -43,12 +41,24 @@ class AuthService {
     }
   }
 
-  Future<AuthResponse> login(String email, String password) async {
+  Future<UserModel> login(String email, String password) async {
     try {
-      return await _supabase.auth.signInWithPassword(
+      final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
+
+      if (response.user != null) {
+        final profileData = await _supabase
+            .from('profiles')
+            .select()
+            .eq('id', response.user!.id)
+            .single();
+
+        return UserModel.fromMap(profileData);
+      }
+
+      throw Exception('User tidak ditemukan');
     } catch (e) {
       throw Exception('Gagal login: ${e.toString()}');
     }
