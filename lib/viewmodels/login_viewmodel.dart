@@ -3,7 +3,8 @@ import '../services/auth_service.dart';
 import '../models/user_model.dart';
 import '../views/register_view.dart';
 import '../views/home_view.dart';
-import '../views/admin/admin_dashboard_view.dart';
+import '../views/admin/admin_main_view.dart';
+import 'package:flutter/scheduler.dart';
 
 class LoginViewModel extends ChangeNotifier {
   final TextEditingController emailController = TextEditingController();
@@ -43,7 +44,9 @@ class LoginViewModel extends ChangeNotifier {
 
       debugPrint("Login Berhasil! Role: ${loggedInUser.role}");
 
-      if (context.mounted) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Selamat datang, ${loggedInUser.fullName}!')),
         );
@@ -51,7 +54,7 @@ class LoginViewModel extends ChangeNotifier {
         if (loggedInUser.role == 'admin') {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const AdminDashboardView()),
+            MaterialPageRoute(builder: (context) => const AdminMainView()),
             (route) => false,
           );
         } else {
@@ -63,7 +66,7 @@ class LoginViewModel extends ChangeNotifier {
             (route) => false,
           );
         }
-      }
+      });
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

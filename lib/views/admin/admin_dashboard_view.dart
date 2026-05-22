@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 
 class AdminDashboardView extends StatefulWidget {
   const AdminDashboardView({super.key});
@@ -40,13 +41,15 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF3D5A4A),
-      body: SingleChildScrollView(
+    return Container(
+      color: const Color(0xFF3D5A4A),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 100),
         child: Center(
           child: Container(
             width: 390,
-            height: 1080,
+            height:
+                950,
             clipBehavior: Clip.antiAlias,
             decoration: const BoxDecoration(color: Color(0xFF3D5A4A)),
             child: Stack(
@@ -115,9 +118,17 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                   left: 0,
                   right: 0,
                   top: 127,
-                  height: 139,
+                  height: 145,
                   child: PageView.builder(
                     controller: _pageController,
+                    physics: const BouncingScrollPhysics(),
+                    scrollBehavior: const MaterialScrollBehavior().copyWith(
+                      dragDevices: {
+                        PointerDeviceKind.mouse,
+                        PointerDeviceKind.touch,
+                        PointerDeviceKind.trackpad,
+                      },
+                    ),
                     onPageChanged: (index) {
                       setState(() {
                         _currentPage = index;
@@ -126,11 +137,14 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                     itemCount: _dashboardStats.length,
                     itemBuilder: (context, index) {
                       final stat = _dashboardStats[index];
-                      return _buildTopCard(
-                        title: stat["title"],
-                        value: stat["value"],
-                        subtitle: stat["subtitle"],
-                        percent: stat["percent"],
+                      return Container(
+                        color: Colors.transparent,
+                        child: _buildTopCard(
+                          title: stat["title"],
+                          value: stat["value"],
+                          subtitle: stat["subtitle"],
+                          percent: stat["percent"],
+                        ),
                       );
                     },
                   ),
@@ -139,8 +153,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                 Positioned(
                   left: 0,
                   right: 0,
-                  top:
-                      252,
+                  top: 252,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
@@ -153,9 +166,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                           shape: BoxShape.circle,
                           color: _currentPage == index
                               ? const Color(0xFF1C3628)
-                              : const Color(
-                                  0xFF3D5A4A,
-                                ),
+                              : const Color(0xFF3D5A4A),
                         ),
                       ),
                     ),
@@ -214,73 +225,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                 _buildOrderCard(topPosition: 610, status: "Preparing"),
                 _buildOrderCard(topPosition: 770, status: "Delivered"),
 
-                Positioned(
-                  left: -12,
-                  top: 930,
-                  child: Container(
-                    width: 414,
-                    height: 130,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment(0.50, 0.60),
-                        end: Alignment(0.50, 0.00),
-                        colors: [Color(0xFF3D5A4A), Color(0x003E5A4A)],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 25,
-                  top: 984,
-                  child: Container(
-                    width: 340,
-                    height: 42,
-                    decoration: ShapeDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment(0.50, 0.00),
-                        end: Alignment(0.50, 1.00),
-                        colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(120),
-                      ),
-                      shadows: const [
-                        BoxShadow(
-                          color: Color(0x3F000000),
-                          blurRadius: 4,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 30,
-                  top: 988,
-                  child: Container(
-                    width: 105,
-                    height: 34.26,
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFFEED5DB),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(97.66),
-                      ),
-                    ),
-                  ),
-                ),
-                const Positioned(
-                  left: 67.07,
-                  top: 998,
-                  child: Text(
-                    'Home',
-                    style: TextStyle(
-                      color: Color(0xFFCA748D),
-                      fontSize: 18.22,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -330,16 +274,13 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
             left: 23,
             top: 43,
             child: SizedBox(
-              width:
-                  290,
+              width: 290,
               child: Text(
                 value,
                 maxLines: 2,
                 style: TextStyle(
                   color: const Color(0xFF2D4839),
-                  fontSize: isLongText
-                      ? 23
-                      : 35,
+                  fontSize: isLongText ? 23 : 35,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w700,
                   height: 1.1,
