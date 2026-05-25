@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart';
 
 class AdminDashboardView extends StatefulWidget {
   const AdminDashboardView({super.key});
@@ -10,49 +12,202 @@ class AdminDashboardView extends StatefulWidget {
 
 class _AdminDashboardViewState extends State<AdminDashboardView> {
   final PageController _pageController = PageController();
-  int _currentPage = 0;
+  final _supabase = Supabase.instance.client;
 
-  final List<Map<String, dynamic>> _dashboardStats = [
-    {
-      "title": "Today's Revenue",
-      "value": "Rp. 300000",
-      "subtitle": "+ Rp50.000 from yesterday",
-      "percent": "16,67%",
-    },
-    {
-      "title": "Today's Orders",
-      "value": "24 Orders",
-      "subtitle": "+ 4 orders from yesterday",
-      "percent": "20,0%",
-    },
-    {
-      "title": "New Customers",
-      "value": "8 Users",
-      "subtitle": "+ 2 users this week",
-      "percent": "33,3%",
-    },
-    {
-      "title": "Best Seller",
-      "value": "Chicken Teriyaki\nSandwich",
-      "subtitle": "12 sold today",
-      "percent": "33,3%",
-    },
-  ];
+  int _currentPage = 0;
+  bool _isLoading = true;
+
+  String _todayRevenue = "Rp. 0";
+  String _todayOrdersCount = "0 Orders";
+  String _newCustomersCount = "0 Users";
+  String _bestSellerItem = "-";
+
+  List<Map<String, dynamic>> _dashboardStats = [];
+  List<Map<String, dynamic>> _recentOrders = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDashboardData();
+  }
+
+  Future<void> _fetchDashboardData() async {
+    setState(() => _isLoading = true);
+
+    final now = DateTime.now();
+    final startOfDay = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).toUtc().toIso8601String();
+    final endOfDay = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      23,
+      59,
+      59,
+    ).toUtc().toIso8601String();
+    final startOfWeek = now
+        .subtract(Duration(days: now.weekday - 1))
+        .toUtc()
+        .toIso8601String();
+
+    double revenue = 0;
+    int totalOrdersToday = 0;
+    int newUsersCount = 0;
+    String bestSellerName = "Belum ada order";
+    int maxQty = 0;
+    List<Map<String, dynamic>> fetchedRecentOrders = [];
+
+    try {
+      final ordersToday = await _supabase
+          .from('orders')
+          .select('id, total_price, status, created_at')
+          .gte('created_at', startOfDay)
+          .lte('created_at', endOfDay);
+
+      totalOrdersToday = ordersToday.length;
+      for (var order in ordersToday) {
+        if (order['status'].toString().toLowerCase() != 'cancelled' &&
+            order['status'].toString().toLowerCase() != 'dibatalkan') {
+          revenue += (order['total_price'] as num).toDouble();
+        }
+      }
+    } catch (e) {
+      debugPrint("Error Fetching Orders Today: $e");
+    }
+
+    try {
+      final newUsers = await _supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', 'customer')
+          .gte('created_at', startOfWeek);
+      newUsersCount = newUsers.length;
+    } catch (e) {
+      debugPrint("Error Fetching Customers: $e");
+    }
+
+    try {
+      final orderItemsToday = await _supabase
+          .from('order_items')
+          .select('menu_id, quantity, menus(name)')
+          .gte('created_at', startOfDay)
+          .lte('created_at', endOfDay);
+
+      Map<String, int> itemCounts = {};
+      for (var item in orderItemsToday) {
+        final menuName = item['menus'] != null
+            ? item['menus']['name']
+            : 'Unknown';
+        final qty = item['quantity'] as int;
+        itemCounts[menuName] = (itemCounts[menuName] ?? 0) + qty;
+
+        if (itemCounts[menuName]! > maxQty) {
+          maxQty = itemCounts[menuName]!;
+          bestSellerName = menuName;
+        }
+      }
+    } catch (e) {
+      debugPrint("Error Fetching Best Seller: $e");
+    }
+
+    try {
+      final recentData = await _supabase
+          .from('orders')
+          .select('''
+            id,
+            status,
+            created_at,
+            total_price,
+            notes,
+            order_items (
+              quantity,
+              menus (name)
+            )
+          ''')
+          .order('created_at', ascending: false)
+          .limit(3);
+
+      fetchedRecentOrders = List<Map<String, dynamic>>.from(recentData);
+      debugPrint(
+        "BERHASIL MENARIK ${fetchedRecentOrders.length} RECENT ORDERS",
+      );
+    } catch (e) {
+      debugPrint("Error Fetching Recent Orders: $e");
+    }
+
+    if (mounted) {
+      setState(() {
+        _todayRevenue = NumberFormat.currency(
+          locale: 'id_ID',
+          symbol: 'Rp',
+          decimalDigits: 0,
+        ).format(revenue);
+        _todayOrdersCount = "$totalOrdersToday Orders";
+        _newCustomersCount = "$newUsersCount Users";
+        _bestSellerItem = bestSellerName.replaceAll(' ', '\n');
+
+        _recentOrders = fetchedRecentOrders;
+
+        _dashboardStats = [
+          {
+            "title": "Today's Revenue",
+            "value": _todayRevenue,
+            "subtitle": "Updated just now",
+            "percent": "0,0%",
+          },
+          {
+            "title": "Today's Orders",
+            "value": _todayOrdersCount,
+            "subtitle": "Updated just now",
+            "percent": "0,0%",
+          },
+          {
+            "title": "New Customers",
+            "value": _newCustomersCount,
+            "subtitle": "New this week",
+            "percent": "0,0%",
+          },
+          {
+            "title": "Best Seller",
+            "value": _bestSellerItem,
+            "subtitle": "$maxQty sold today",
+            "percent": "0,0%",
+          },
+        ];
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _getTimeAgo(String timestamp) {
+    final date = DateTime.parse(timestamp);
+    final diff = DateTime.now().difference(date);
+    if (diff.inMinutes < 1) return "Just now";
+    if (diff.inMinutes < 60) return "${diff.inMinutes} Mins Ago";
+    if (diff.inHours < 24) return "${diff.inHours} Hours Ago";
+    return "${diff.inDays} Days Ago";
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF3D5A4A),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: 100),
-        child: Center(
-          child: Container(
-            width: 390,
-            height:
-                950,
-            clipBehavior: Clip.antiAlias,
-            decoration: const BoxDecoration(color: Color(0xFF3D5A4A)),
-            child: Stack(
+    final todayDateStr = DateFormat('EEEE, MMM d, yyyy').format(DateTime.now());
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF3D5A4A),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFFD699AB)),
+            )
+          : Stack(
               children: [
                 Positioned(
                   left: -17,
@@ -71,166 +226,227 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                     height: 114,
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
-                        begin: Alignment(0.50, -0.00),
-                        end: Alignment(0.50, 1.00),
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                         colors: [Color(0x003D5A4A), Color(0xFF3D5A4A)],
                       ),
                     ),
                   ),
                 ),
 
-                const Positioned(
-                  left: 25,
-                  top: 67,
-                  child: SizedBox(
-                    width: 181,
-                    child: Text(
-                      'Today’s Overview',
-                      style: TextStyle(
-                        color: Color(0xFFFDFDFD),
-                        fontSize: 19.17,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w800,
-                        height: 1.10,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 25,
-                  top: 93,
-                  child: Opacity(
-                    opacity: 0.70,
-                    child: const Text(
-                      'Sunday, May 3, 2026',
-                      style: TextStyle(
-                        color: Color(0xFFFDFDFD),
-                        fontSize: 15,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w600,
-                        height: 1.10,
-                      ),
-                    ),
-                  ),
-                ),
-
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 127,
-                  height: 145,
-                  child: PageView.builder(
-                    controller: _pageController,
+                SafeArea(
+                  child: ListView(
+                    padding: const EdgeInsets.only(bottom: 100),
                     physics: const BouncingScrollPhysics(),
-                    scrollBehavior: const MaterialScrollBehavior().copyWith(
-                      dragDevices: {
-                        PointerDeviceKind.mouse,
-                        PointerDeviceKind.touch,
-                        PointerDeviceKind.trackpad,
-                      },
-                    ),
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentPage = index;
-                      });
-                    },
-                    itemCount: _dashboardStats.length,
-                    itemBuilder: (context, index) {
-                      final stat = _dashboardStats[index];
-                      return Container(
-                        color: Colors.transparent,
-                        child: _buildTopCard(
-                          title: stat["title"],
-                          value: stat["value"],
-                          subtitle: stat["subtitle"],
-                          percent: stat["percent"],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 252,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      _dashboardStats.length,
-                      (index) => Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
-                        width: 5,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _currentPage == index
-                              ? const Color(0xFF1C3628)
-                              : const Color(0xFF3D5A4A),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(25, 20, 25, 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Today’s Overview',
+                              style: TextStyle(
+                                color: Color(0xFFFDFDFD),
+                                fontSize: 19.17,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w800,
+                                height: 1.10,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Opacity(
+                              opacity: 0.70,
+                              child: Text(
+                                todayDateStr,
+                                style: const TextStyle(
+                                  color: Color(0xFFFDFDFD),
+                                  fontSize: 15,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.10,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ),
-                ),
 
-                Positioned(
-                  left: 25,
-                  top: 310,
-                  child: _buildActionButton(
-                    title: 'Create a new\ncatalog',
-                    showIcon: true,
-                  ),
-                ),
-                Positioned(
-                  left: 201,
-                  top: 310,
-                  child: _buildActionButton(
-                    title: 'See all\nreviews',
-                    showIcon: false,
-                  ),
-                ),
-
-                const Positioned(
-                  left: 25,
-                  top: 410,
-                  child: Text(
-                    'Recent Order',
-                    style: TextStyle(
-                      color: Color(0xFFFDFDFD),
-                      fontSize: 19.17,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 184,
-                  top: 415,
-                  child: Opacity(
-                    opacity: 0.70,
-                    child: const Text(
-                      'View All',
-                      textAlign: TextAlign.right,
-                      style: TextStyle(
-                        color: Color(0xFFFDFDFD),
-                        fontSize: 14,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w600,
+                      SizedBox(
+                        height: 145,
+                        child: PageView.builder(
+                          controller: _pageController,
+                          physics: const BouncingScrollPhysics(),
+                          scrollBehavior: const MaterialScrollBehavior()
+                              .copyWith(
+                                dragDevices: {
+                                  PointerDeviceKind.mouse,
+                                  PointerDeviceKind.touch,
+                                  PointerDeviceKind.trackpad,
+                                },
+                              ),
+                          onPageChanged: (index) {
+                            setState(() {
+                              _currentPage = index;
+                            });
+                          },
+                          itemCount: _dashboardStats.length,
+                          itemBuilder: (context, index) {
+                            final stat = _dashboardStats[index];
+                            return _buildTopCard(
+                              title: stat["title"],
+                              value: stat["value"],
+                              subtitle: stat["subtitle"],
+                              percent: stat["percent"],
+                            );
+                          },
+                        ),
                       ),
-                    ),
+
+                      const SizedBox(height: 15),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          _dashboardStats.length,
+                          (index) => Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            width: 5,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _currentPage == index
+                                  ? const Color(0xFF1C3628)
+                                  : const Color(
+                                      0xFFEED5DB,
+                                    ).withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 25),
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _buildActionButton(
+                                title: 'Create a new\ncatalog',
+                                showIcon: true,
+                              ),
+                            ),
+                            const SizedBox(width: 15),
+                            Expanded(
+                              child: _buildActionButton(
+                                title: 'See all\nreviews',
+                                showIcon: false,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text(
+                              'Recent Order',
+                              style: TextStyle(
+                                color: Color(0xFFFDFDFD),
+                                fontSize: 19.17,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            Opacity(
+                              opacity: 0.70,
+                              child: const Text(
+                                'View All',
+                                style: TextStyle(
+                                  color: Color(0xFFFDFDFD),
+                                  fontSize: 14,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 15),
+
+                      if (_recentOrders.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 25),
+                          child: Text(
+                            "Belum ada order hari ini.",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                        )
+                      else
+                        ..._recentOrders.map((order) {
+                          final items =
+                              order['order_items'] as List<dynamic>? ?? [];
+                          String productName = "Unknown Item";
+                          int qty = 0;
+
+                          if (items.isNotEmpty) {
+                            qty = items[0]['quantity'] ?? 0;
+                            productName =
+                                items[0]['menus']?['name'] ?? "Unknown Item";
+                            if (items.length > 1) {
+                              productName += " +${items.length - 1} lainnya";
+                            }
+                          }
+
+                          final priceFormatted = NumberFormat.currency(
+                            locale: 'id_ID',
+                            symbol: 'Rp. ',
+                            decimalDigits: 0,
+                          ).format(order['total_price'] ?? 0);
+
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                              left: 25,
+                              right: 25,
+                              bottom: 15,
+                            ),
+                            child: _buildResponsiveOrderCard(
+                              orderId: order['id']
+                                  .toString()
+                                  .substring(0, 8)
+                                  .toUpperCase(),
+                              status: _capitalize(order['status'] ?? 'Unknown'),
+                              price: priceFormatted,
+                              productName: productName,
+                              qty: qty.toString(),
+                              timeAgo: _getTimeAgo(order['created_at']),
+                              notes: order['notes']?.toString() ?? '',
+                            ),
+                          );
+                        }),
+                    ],
                   ),
                 ),
-
-                _buildOrderCard(topPosition: 450, status: "Waiting"),
-                _buildOrderCard(topPosition: 610, status: "Preparing"),
-                _buildOrderCard(topPosition: 770, status: "Delivered"),
-
               ],
             ),
-          ),
-        ),
-      ),
     );
+  }
+
+  String _capitalize(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
   }
 
   Widget _buildTopCard({
@@ -243,6 +459,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 25),
+      padding: const EdgeInsets.all(20),
       decoration: ShapeDecoration(
         gradient: const LinearGradient(
           begin: Alignment(0.00, 0.00),
@@ -255,92 +472,77 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
         ),
         shadows: const [BoxShadow(color: Color(0xFF51725F), blurRadius: 5)],
       ),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Positioned(
-            left: 23,
-            top: 20,
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: Color(0xFF51725F),
-                fontSize: 16,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w600,
-              ),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontSize: 16,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w600,
             ),
           ),
-          Positioned(
-            left: 23,
-            top: 43,
-            child: SizedBox(
-              width: 290,
-              child: Text(
-                value,
-                maxLines: 2,
-                style: TextStyle(
-                  color: const Color(0xFF2D4839),
-                  fontSize: isLongText ? 23 : 35,
+          Text(
+            value,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: const Color(0xFF2D4839),
+              fontSize: isLongText ? 23 : 35,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w700,
+              height: 1.1,
+            ),
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  color: Color(0xFF848383),
+                  fontSize: 10,
                   fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w700,
-                  height: 1.1,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            left: 23,
-            bottom: 20,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Color(0xFF848383),
-                    fontSize: 10,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 2,
-                  ),
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFFFDFDFD),
-                    shape: RoundedRectangleBorder(
-                      side: const BorderSide(
-                        width: 0.80,
-                        color: Color(0xFF2D4839),
-                      ),
-                      borderRadius: BorderRadius.circular(29.21),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: ShapeDecoration(
+                  color: const Color(0xFFFDFDFD),
+                  shape: RoundedRectangleBorder(
+                    side: const BorderSide(
+                      width: 0.80,
+                      color: Color(0xFF2D4839),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.arrow_upward,
-                        size: 8,
-                        color: Color(0xFF51725F),
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        percent,
-                        style: const TextStyle(
-                          color: Color(0xFF51725F),
-                          fontSize: 6,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                    borderRadius: BorderRadius.circular(29.21),
                   ),
                 ),
-              ],
-            ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.arrow_upward,
+                      size: 8,
+                      color: Color(0xFF51725F),
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      percent,
+                      style: const TextStyle(
+                        color: Color(0xFF51725F),
+                        fontSize: 6,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -349,8 +551,8 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
 
   Widget _buildActionButton({required String title, required bool showIcon}) {
     return Container(
-      width: 164,
       height: 79,
+      padding: const EdgeInsets.all(12),
       decoration: ShapeDecoration(
         gradient: const LinearGradient(
           begin: Alignment(1.00, 1.00),
@@ -368,23 +570,18 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
       ),
       child: Stack(
         children: [
-          Positioned(
-            left: 12,
-            top: 12,
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: Color(0xFF2D4839),
-                fontSize: 15,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w700,
-              ),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Color(0xFF2D4839),
+              fontSize: 15,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w700,
             ),
           ),
           if (showIcon)
-            Positioned(
-              right: 12,
-              bottom: 12,
+            Align(
+              alignment: Alignment.bottomRight,
               child: Container(
                 width: 20,
                 height: 20,
@@ -400,174 +597,164 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     );
   }
 
-  Widget _buildOrderCard({
-    required double topPosition,
+  Widget _buildResponsiveOrderCard({
+    required String orderId,
     required String status,
+    required String price,
+    required String productName,
+    required String qty,
+    required String timeAgo,
+    required String notes,
   }) {
-    return Positioned(
-      left: 25,
-      top: topPosition,
-      child: Container(
-        width: 340,
-        height: 143,
-        decoration: ShapeDecoration(
-          color: const Color(0xFFFDFDFD),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.69),
-          ),
-          shadows: const [
-            BoxShadow(
-              color: Color(0x3F000000),
-              blurRadius: 4,
-              offset: Offset(0, 4),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: ShapeDecoration(
+        color: const Color(0xFFFDFDFD),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.69),
         ),
-        child: Stack(
-          children: [
-            const Positioned(
-              left: 13,
-              top: 10,
-              child: Text(
-                'Order’s ID',
-                style: TextStyle(
+        shadows: const [
+          BoxShadow(
+            color: Color(0x3F000000),
+            blurRadius: 4,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'ID: $orderId',
+                style: const TextStyle(
                   color: Color(0xFF2D4839),
                   fontSize: 16,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w800,
                 ),
               ),
-            ),
-            const Positioned(
-              left: 13,
-              top: 112,
-              child: Text(
-                'Rp. 12000',
-                style: TextStyle(
-                  color: Color(0xFF2D4839),
-                  fontSize: 18,
+              Text(
+                timeAgo,
+                style: const TextStyle(
+                  color: Color(0xFF51725F),
+                  fontSize: 8,
                   fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ),
-            const Positioned(
-              left: 13,
-              top: 58,
-              child: SizedBox(
-                width: 231,
-                child: Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Notes:',
-                        style: TextStyle(
-                          color: Color(0xFF51725F),
-                          fontSize: 10,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      TextSpan(
-                        text:
-                            ' Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-                        style: TextStyle(
-                          color: Color(0xFF51725F),
-                          fontSize: 10,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const Positioned(
-              left: 261,
-              top: 10,
-              child: SizedBox(
-                width: 63,
-                child: Text(
-                  '1 Minutes Ago',
-                  textAlign: TextAlign.center,
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          Text.rich(
+            TextSpan(
+              children: [
+                const TextSpan(
+                  text: 'Product: ',
                   style: TextStyle(
                     color: Color(0xFF51725F),
-                    fontSize: 8,
+                    fontSize: 10,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                TextSpan(
+                  text: productName,
+                  style: const TextStyle(
+                    color: Color(0xFF51725F),
+                    fontSize: 10,
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-              ),
+              ],
             ),
-            const Positioned(
-              left: 13,
-              top: 33,
-              child: SizedBox(
-                width: 231,
-                child: Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Product:',
-                        style: TextStyle(
-                          color: Color(0xFF51725F),
-                          fontSize: 10,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ' Lorem ipsum dolor sit amet...',
-                        style: TextStyle(
-                          color: Color(0xFF51725F),
-                          fontSize: 10,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+          ),
+
+          const SizedBox(height: 4),
+
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: 'Notes: ',
+                  style: TextStyle(
+                    color: Color(0xFF51725F),
+                    fontSize: 10,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              ),
-            ),
-            const Positioned(
-              left: 13,
-              top: 83,
-              child: SizedBox(
-                width: 172,
-                child: Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Qty:',
-                        style: TextStyle(
-                          color: Color(0xFF51725F),
-                          fontSize: 10,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ' 1',
-                        style: TextStyle(
-                          color: Color(0xFF51725F),
-                          fontSize: 10,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                TextSpan(
+                  text: notes.isEmpty || notes == 'null'
+                      ? 'Tidak ada catatan.'
+                      : ' $notes',
+                  style: const TextStyle(
+                    color: Color(0xFF51725F),
+                    fontSize: 10,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-              ),
+              ],
             ),
-            Positioned(
-              left: 261,
-              top: 23,
-              child: Container(
-                width: 63.20,
-                height: 20,
+          ),
+
+          const SizedBox(height: 12),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        const TextSpan(
+                          text: 'Qty: ',
+                          style: TextStyle(
+                            color: Color(0xFF51725F),
+                            fontSize: 10,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        TextSpan(
+                          text: qty,
+                          style: const TextStyle(
+                            color: Color(0xFF51725F),
+                            fontSize: 10,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    price,
+                    style: const TextStyle(
+                      color: Color(0xFF2D4839),
+                      fontSize: 18,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: ShapeDecoration(
                   color: const Color(0xFFEED5DB),
                   shape: RoundedRectangleBorder(
@@ -578,22 +765,20 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                     borderRadius: BorderRadius.circular(19.92),
                   ),
                 ),
-                child: Center(
-                  child: Text(
-                    status,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(0xFFCA748D),
-                      fontSize: 9.60,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w600,
-                    ),
+                child: Text(
+                  status,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFFCA748D),
+                    fontSize: 9.60,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }
