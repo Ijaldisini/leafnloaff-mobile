@@ -39,6 +39,7 @@ dependencies:
   url_launcher: ^6.3.2
   qr_flutter: ^4.1.0
   otp: ^3.2.0
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
