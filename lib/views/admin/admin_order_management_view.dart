@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart';
 
 class AdminOrderManagementView extends StatefulWidget {
   const AdminOrderManagementView({super.key});
@@ -9,153 +11,412 @@ class AdminOrderManagementView extends StatefulWidget {
 }
 
 class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
-  final List<Map<String, dynamic>> _todayOrders = [
-    {
-      "time": "1 Minutes Ago",
-      "price": "Rp. 14000",
-      "product": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-      "qty": 2,
-      "status": 0,
-      "isActive": true,
-    },
-    {
-      "time": "1 Minutes Ago",
-      "price": "Rp. 12000",
-      "product": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-      "qty": 1,
-      "status": 1,
-      "isActive": false,
-    },
-  ];
+  final _supabase = Supabase.instance.client;
+  bool _isLoading = true;
 
-  final List<Map<String, dynamic>> _yesterdayOrders = [
-    {
-      "time": "Saturday, May 2, 2026",
-      "price": "Rp. 12000",
-      "product": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-      "qty": 1,
-      "status": 3,
-      "isActive": false,
-    },
-    {
-      "time": "Saturday, May 2, 2026",
-      "price": "Rp. 12000",
-      "product": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-      "qty": 1,
-      "status": 3,
-      "isActive": false,
-      "hasCancel": true,
-    },
-  ];
+  final List<Map<String, dynamic>> _todayOrders = [];
+  final List<Map<String, dynamic>> _yesterdayOrders = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrders();
+  }
+
+  Future<void> _fetchOrders() async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await _supabase
+          .from('orders')
+          .select('''
+            id, total_price, status, created_at,
+            order_items ( quantity, menus (name) )
+          ''')
+          .order('created_at', ascending: false);
+
+      final List<Map<String, dynamic>> allOrders =
+          List<Map<String, dynamic>>.from(response);
+
+      final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day);
+      final yesterdayStart = todayStart.subtract(const Duration(days: 1));
+
+      _todayOrders.clear();
+      _yesterdayOrders.clear();
+
+      for (var order in allOrders) {
+        final createdAt = DateTime.parse(order['created_at']).toLocal();
+
+        if (createdAt.isAfter(todayStart) ||
+            createdAt.isAtSameMomentAs(todayStart)) {
+          _todayOrders.add(order);
+        } else {
+          _yesterdayOrders.add(order);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching admin orders: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  String _getTimeAgo(String timestamp) {
+    final date = DateTime.parse(timestamp).toLocal();
+    final diff = DateTime.now().difference(date);
+    if (diff.inMinutes < 1) return "Just now";
+    if (diff.inMinutes < 60) return "${diff.inMinutes} Mins Ago";
+    if (diff.inHours < 24) return "${diff.inHours} Hours Ago";
+    return DateFormat('EEEE, MMM d, yyyy').format(date);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-        children: [
-          Positioned(
-            left: -17,
-            top: -30,
-            child: Container(
-              width: 422,
-              height: 289,
-              decoration: const BoxDecoration(color: Color(0xFFD699AB)),
-            ),
-          ),
-          Positioned(
-            left: -17,
-            top: 147,
-            child: Container(
-              width: 422,
-              height: 114,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0x003D5A4A), Color(0xFF3D5A4A)],
-                ),
-              ),
-            ),
-          ),
+    final screenWidth = MediaQuery.of(context).size.width;
 
-          SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                25,
-                20,
-                25,
-                120, 
-              ),
-              physics: const BouncingScrollPhysics(),
+    return Scaffold(
+      backgroundColor: const Color(0xFF3D5A4A),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFFD699AB)),
+            )
+          : Stack(
               children: [
-                Text(
-                  'Order Management',
-                  style: TextStyle(
-                    color: const Color(0xFFFDFDFD),
-                    fontSize: 25,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w800,
-                    shadows: [
-                      Shadow(
-                        offset: const Offset(2, 2),
-                        blurRadius: 4,
-                        color: Colors.black.withOpacity(0.25),
-                      ),
-                    ],
+                Positioned(
+                  left: -17,
+                  top: -30,
+                  child: Container(
+                    width: screenWidth + 34,
+                    height: 289,
+                    decoration: const BoxDecoration(color: Color(0xFFD699AB)),
                   ),
                 ),
-                const SizedBox(height: 20),
-
-                Text(
-                  'Today',
-                  style: TextStyle(
-                    color: const Color(0xFFFDFDFD),
-                    fontSize: 17,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w800,
-                    shadows: [
-                      Shadow(
-                        offset: const Offset(2, 2),
-                        blurRadius: 4,
-                        color: Colors.black.withOpacity(0.25),
+                Positioned(
+                  left: -17,
+                  top: 147,
+                  child: Container(
+                    width: screenWidth + 34,
+                    height: 114,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0x003D5A4A), Color(0xFF3D5A4A)],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                ..._todayOrders.map((order) => _buildOrderCard(order)).toList(),
 
-                const SizedBox(height: 10),
-
-                Text(
-                  'Yesterday',
-                  style: TextStyle(
-                    color: const Color(0xFFFDFDFD),
-                    fontSize: 17,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w800,
-                    shadows: [
-                      Shadow(
-                        offset: const Offset(2, 2),
-                        blurRadius: 4,
-                        color: Colors.black.withOpacity(0.25),
+                SafeArea(
+                  child: RefreshIndicator(
+                    onRefresh: _fetchOrders,
+                    color: const Color(0xFFCA748D),
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(25, 20, 25, 120),
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
                       ),
-                    ],
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Order Management',
+                              style: TextStyle(
+                                color: const Color(0xFFFDFDFD),
+                                fontSize: 25,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w800,
+                                shadows: [
+                                  Shadow(
+                                    offset: const Offset(2, 2),
+                                    blurRadius: 4,
+                                    color: Colors.black.withOpacity(0.25),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            GestureDetector(
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Export PDF segera hadir! 🚀',
+                                    ),
+                                    backgroundColor: Color(0xFFCA748D),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 8,
+                                ),
+                                decoration: ShapeDecoration(
+                                  color: const Color(0xFFEED5DB),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(100),
+                                  ),
+                                  shadows: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.15),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.picture_as_pdf,
+                                      color: Color(0xFFCA748D),
+                                      size: 18,
+                                    ),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      'PDF',
+                                      style: TextStyle(
+                                        color: Color(0xFFCA748D),
+                                        fontSize: 14,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        Container(
+                          height: 36,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: ShapeDecoration(
+                            color: const Color(0xFFFDFDFD),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(103),
+                            ),
+                            shadows: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(left: 12),
+                                child: Text(
+                                  'Select period',
+                                  style: TextStyle(
+                                    color: Color(0xFF51725F),
+                                    fontSize: 14,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                width: 30,
+                                height: 30,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF426E55),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.calendar_month,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+
+                        Text(
+                          'Today',
+                          style: TextStyle(
+                            color: const Color(0xFFFDFDFD),
+                            fontSize: 17,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w800,
+                            shadows: [
+                              Shadow(
+                                offset: const Offset(2, 2),
+                                blurRadius: 4,
+                                color: Colors.black.withOpacity(0.25),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        if (_todayOrders.isEmpty)
+                          const Text(
+                            "Belum ada order hari ini.",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontFamily: 'Poppins',
+                            ),
+                          )
+                        else
+                          ..._todayOrders.map((o) => _buildOrderCard(o)),
+
+                        const SizedBox(height: 25),
+
+                        Text(
+                          'Yesterday',
+                          style: TextStyle(
+                            color: const Color(0xFFFDFDFD),
+                            fontSize: 17,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w800,
+                            shadows: [
+                              Shadow(
+                                offset: const Offset(2, 2),
+                                blurRadius: 4,
+                                color: Colors.black.withOpacity(0.25),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        if (_yesterdayOrders.isEmpty)
+                          const Text(
+                            "Tidak ada order kemarin.",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontFamily: 'Poppins',
+                            ),
+                          )
+                        else
+                          ..._yesterdayOrders.map((o) => _buildOrderCard(o)),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                ..._yesterdayOrders
-                    .map((order) => _buildOrderCard(order))
-                    .toList(),
+
+                Positioned(
+                  left: 25,
+                  right: 25,
+                  bottom: 30,
+                  child: Container(
+                    height: 48,
+                    decoration: ShapeDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(120),
+                      ),
+                      shadows: const [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 4,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {},
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'Order',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        Container(
+                          margin: const EdgeInsets.all(4),
+                          padding: const EdgeInsets.symmetric(horizontal: 28),
+                          decoration: ShapeDecoration(
+                            color: const Color(0xFFEED5DB),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                          ),
+                          child: GestureDetector(
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Fitur Export PDF segera hadir! 🚀',
+                                  ),
+                                  backgroundColor: Color(0xFFCA748D),
+                                ),
+                              );
+                            },
+                            child: const SizedBox(
+                              height: 40,
+                              child: Center(
+                                child: Text(
+                                  'PDF',
+                                  style: TextStyle(
+                                    color: Color(0xFFCA748D),
+                                    fontSize: 16,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
     );
   }
 
   Widget _buildOrderCard(Map<String, dynamic> data) {
-    bool isActive = data['isActive'] ?? false;
-    bool hasCancel = data['hasCancel'] ?? false;
+    final statusRaw = (data['status'] ?? 'Menunggu Pembayaran').toString();
+    final isCanceled =
+        statusRaw.toLowerCase() == 'dibatalkan' ||
+        statusRaw.toLowerCase() == 'cancelled';
+
+    final isActive = !isCanceled && statusRaw.toLowerCase() != 'selesai';
+
+    final orderIdStr = data['id'].toString().substring(0, 8).toUpperCase();
+    final timeStr = _getTimeAgo(data['created_at']);
+
+    final priceFormatted = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp. ',
+      decimalDigits: 0,
+    ).format(data['total_price'] ?? 0);
+
+    String productDesc = "Unknown Item";
+    int totalQty = 0;
+    final items = data['order_items'] as List<dynamic>? ?? [];
+    if (items.isNotEmpty) {
+      totalQty = items[0]['quantity'] ?? 0;
+      productDesc = items[0]['menus']?['name'] ?? "Unknown Item";
+      if (items.length > 1) {
+        productDesc += " +${items.length - 1} lainnya";
+      }
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -186,7 +447,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                data['time'],
+                timeStr,
                 style: const TextStyle(
                   color: Color(0xFF51725F),
                   fontSize: 10,
@@ -201,6 +462,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                   fontSize: 10,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w500,
+                  decoration: TextDecoration.underline,
                 ),
               ),
             ],
@@ -210,9 +472,9 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Order’s ID',
-                style: TextStyle(
+              Text(
+                'ID: $orderIdStr',
+                style: const TextStyle(
                   color: Color(0xFF2D4839),
                   fontSize: 16,
                   fontFamily: 'Poppins',
@@ -220,7 +482,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                 ),
               ),
               Text(
-                data['price'],
+                priceFormatted,
                 style: const TextStyle(
                   color: Color(0xFF2D4839),
                   fontSize: 16,
@@ -245,7 +507,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                   ),
                 ),
                 TextSpan(
-                  text: data['product'],
+                  text: productDesc,
                   style: const TextStyle(
                     color: Color(0xFF51725F),
                     fontSize: 11,
@@ -275,7 +537,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                       ),
                     ),
                     TextSpan(
-                      text: '${data['qty']}',
+                      text: '$totalQty',
                       style: const TextStyle(
                         color: Color(0xFF51725F),
                         fontSize: 11,
@@ -287,35 +549,27 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                 ),
               ),
 
-              if (hasCancel)
+              if (isCanceled)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 4,
                   ),
                   decoration: ShapeDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFFF26F71), Color(0xFFC23437)],
-                    ),
+                    color: const Color(0xFFFFD1D2),
                     shape: RoundedRectangleBorder(
-                      side: const BorderSide(width: 1),
+                      side: const BorderSide(
+                        width: 1,
+                        color: Color(0xFFC33537),
+                      ),
                       borderRadius: BorderRadius.circular(41),
                     ),
-                    shadows: const [
-                      BoxShadow(
-                        color: Color(0x3F000000),
-                        blurRadius: 1.68,
-                        offset: Offset(0, 1.68),
-                      ),
-                    ],
                   ),
                   child: const Text(
-                    'Cancel Order',
+                    'Canceled',
                     style: TextStyle(
-                      color: Color(0xFFFBFBFB),
-                      fontSize: 8,
+                      color: Color(0xFFC33537),
+                      fontSize: 9,
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w800,
                     ),
@@ -323,31 +577,30 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                 ),
             ],
           ),
-          const SizedBox(height: 15),
 
-          _buildStatusTracker(data['status']),
+          if (!isCanceled) ...[
+            const SizedBox(height: 15),
+            _buildStatusTracker(statusRaw),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildStatusTracker(int statusIndex) {
+  Widget _buildStatusTracker(String status) {
     double barWidthFactor;
-    switch (statusIndex) {
-      case 0:
-        barWidthFactor = 0.20;
-        break;
-      case 1:
-        barWidthFactor = 0.45;
-        break;
-      case 2:
-        barWidthFactor = 0.75;
-        break;
-      case 3:
-        barWidthFactor = 1.0;
-        break;
-      default:
-        barWidthFactor = 0.20;
+    String statusStr = status.toLowerCase();
+
+    if (statusStr.contains('tunggu') || statusStr.contains('bayar')) {
+      barWidthFactor = 0.15;
+    } else if (statusStr.contains('proses')) {
+      barWidthFactor = 0.45;
+    } else if (statusStr.contains('kirim')) {
+      barWidthFactor = 0.75;
+    } else if (statusStr.contains('selesai')) {
+      barWidthFactor = 1.0;
+    } else {
+      barWidthFactor = 0.0;
     }
 
     return Column(
@@ -366,7 +619,8 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                     ),
                   ),
                 ),
-                Container(
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 500),
                   width: constraints.maxWidth * barWidthFactor,
                   height: 6,
                   decoration: ShapeDecoration(
@@ -384,45 +638,20 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Waiting',
-              style: TextStyle(
-                color: Color(0xFF333333),
-                fontSize: 11,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Text(
-              'Preparing',
-              style: TextStyle(
-                color: Color(0xFF333333),
-                fontSize: 11,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Text(
-              'On The Way',
-              style: TextStyle(
-                color: Color(0xFF333333),
-                fontSize: 11,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Text(
-              'Delivered',
-              style: TextStyle(
-                color: Color(0xFF333333),
-                fontSize: 11,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            Text('Waiting', style: _trackerTextStyle),
+            Text('Preparing', style: _trackerTextStyle),
+            Text('On The Way', style: _trackerTextStyle),
+            Text('Delivered', style: _trackerTextStyle),
           ],
         ),
       ],
     );
   }
+
+  static const TextStyle _trackerTextStyle = TextStyle(
+    color: Color(0xFF333333),
+    fontSize: 10,
+    fontFamily: 'Poppins',
+    fontWeight: FontWeight.w700,
+  );
 }
