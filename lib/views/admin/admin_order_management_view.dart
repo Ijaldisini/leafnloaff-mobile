@@ -39,7 +39,6 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
 
       final now = DateTime.now();
       final todayStart = DateTime(now.year, now.month, now.day);
-      final yesterdayStart = todayStart.subtract(const Duration(days: 1));
 
       _todayOrders.clear();
       _yesterdayOrders.clear();
