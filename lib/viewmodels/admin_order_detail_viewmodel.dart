@@ -63,6 +63,43 @@ class AdminOrderDetailViewModel extends ChangeNotifier {
     }
   }
 
+  // Ubah tipe pengembalian menjadi Future<bool>
+  Future<bool> changeOrderStatus(String orderId, String newStatus) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+      
+      await _service.updateOrderStatus(orderId, newStatus);
+      
+      await fetchOrderDetail(orderId);
+      return true;
+    } catch (e) {
+      debugPrint("❌ Error Updating Order Status: $e");
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  String getNextStatusText(String currentStatus) {
+    final s = currentStatus.toLowerCase();
+    if (s.contains('tunggu') || s.contains('bayar'))
+      return 'Update To Preparing';
+    if (s.contains('proses') || s.contains('siap'))
+      return 'Update To On The Way';
+    if (s.contains('kirim') || s.contains('jalan'))
+      return 'Update To Delivered';
+    return 'Update Status';
+  }
+
+  String getNextStatusValue(String currentStatus) {
+    final s = currentStatus.toLowerCase();
+    if (s.contains('tunggu') || s.contains('bayar')) return 'Diproses';
+    if (s.contains('proses') || s.contains('siap')) return 'Dikirim';
+    if (s.contains('kirim') || s.contains('jalan')) return 'Selesai';
+    return 'Selesai';
+  }
+
   String formatCurrency(double amount) {
     return NumberFormat.currency(
       locale: 'id_ID',

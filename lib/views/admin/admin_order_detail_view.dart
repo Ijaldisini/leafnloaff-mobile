@@ -154,6 +154,8 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                           _buildSummaryCard(order),
                           const SizedBox(height: 20),
                           _buildPaymentCard(order),
+                          const SizedBox(height: 30),
+                          _buildActionButtons(order),
                         ],
                       ),
                     ),
@@ -164,6 +166,208 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildActionButtons(OrderDetailModel order) {
+    final statusStr = order.status.toLowerCase();
+    final isDelivered =
+        statusStr.contains('selesai') || statusStr.contains('delivered');
+    final isCanceled =
+        statusStr.contains('batal') || statusStr.contains('cancel');
+
+    if (isCanceled) {
+      return const SizedBox();
+    }
+
+    if (isDelivered) {
+      return GestureDetector(
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Halaman review segera hadir!')),
+          );
+        },
+        child: Container(
+          width: double.infinity,
+          height: 45,
+          decoration: ShapeDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(87.79),
+            ),
+            shadows: const [
+              BoxShadow(
+                color: Color(0x3F000000),
+                blurRadius: 3.51,
+                offset: Offset(0, 3.51),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            'View Review',
+            style: TextStyle(
+              color: const Color(0xFFFBFBFB),
+              fontSize: 16,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w800,
+              shadows: [
+                Shadow(
+                  offset: const Offset(2, 2),
+                  blurRadius: 2,
+                  color: Colors.black.withValues(alpha: 0.25),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final nextStatusText = _viewModel.getNextStatusText(order.status);
+    final nextStatusValue = _viewModel.getNextStatusValue(order.status);
+
+    return Row(
+      children: [
+        Expanded(
+          flex: 4,
+          child: GestureDetector(
+            onTap: () async {
+              final success = await _viewModel.changeOrderStatus(
+                order.id,
+                'Dibatalkan',
+              );
+
+              if (context.mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Order dibatalkan!'),
+                      backgroundColor: Color(0xFF73986F),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Gagal cancel! Cek RLS Supabase.'),
+                      backgroundColor: Color(0xFFC23437),
+                    ),
+                  );
+                }
+              }
+            },
+            child: Container(
+              height: 45,
+              decoration: ShapeDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFF26F71), Color(0xFFC23437)],
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(87.79),
+                ),
+                shadows: const [
+                  BoxShadow(
+                    color: Color(0x3F000000),
+                    blurRadius: 3.51,
+                    offset: Offset(0, 3.51),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                'Cancel Order',
+                style: TextStyle(
+                  color: const Color(0xFFFBFBFB),
+                  fontSize: 14,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  shadows: [
+                    Shadow(
+                      offset: const Offset(2, 2),
+                      blurRadius: 2,
+                      color: Colors.black.withValues(alpha: 0.25),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 15),
+
+        Expanded(
+          flex: 6,
+          child: GestureDetector(
+            onTap: () async {
+              final success = await _viewModel.changeOrderStatus(
+                order.id,
+                nextStatusValue,
+              );
+
+              if (context.mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Status berhasil diupdate!'),
+                      backgroundColor: Color(0xFF73986F),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Gagal update! Cek RLS Supabase.'),
+                      backgroundColor: Color(0xFFC23437),
+                    ),
+                  );
+                }
+              }
+            },
+            child: Container(
+              height: 45,
+              decoration: ShapeDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(87.79),
+                ),
+                shadows: const [
+                  BoxShadow(
+                    color: Color(0x3F000000),
+                    blurRadius: 3.51,
+                    offset: Offset(0, 3.51),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                nextStatusText,
+                style: TextStyle(
+                  color: const Color(0xFFFBFBFB),
+                  fontSize: 14,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  shadows: [
+                    Shadow(
+                      offset: const Offset(2, 2),
+                      blurRadius: 2,
+                      color: Colors.black.withValues(alpha: 0.25),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

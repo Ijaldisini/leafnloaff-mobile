@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AdminOrderDetailService {
@@ -16,5 +17,21 @@ class AdminOrderDetailService {
         ''')
         .eq('id', orderId)
         .single();
+  }
+
+  Future<void> updateOrderStatus(String orderId, String newStatus) async {
+    try {
+      await _supabase
+          .from('orders')
+          .update({'status': newStatus})
+          .eq('id', orderId);
+
+      debugPrint(
+        "✅ Perintah update dikirim untuk Order ID: $orderId, Status baru: $newStatus",
+      );
+    } catch (e) {
+      debugPrint("❌ Error Update Service: $e");
+      throw Exception(e.toString());
+    }
   }
 }
