@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:intl/intl.dart';
+import 'package:leafnloaff/viewmodels/admin_order_detail_viewmodel.dart';
+import 'package:leafnloaff/models/order_detail_model.dart';
 
 class AdminOrderDetailView extends StatefulWidget {
   final String orderId;
@@ -12,43 +12,12 @@ class AdminOrderDetailView extends StatefulWidget {
 }
 
 class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
-  final _supabase = Supabase.instance.client;
-  bool _isLoading = true;
-  Map<String, dynamic>? _orderData;
+  final AdminOrderDetailViewModel _viewModel = AdminOrderDetailViewModel();
 
   @override
   void initState() {
     super.initState();
-    _fetchOrderDetail();
-  }
-
-  Future<void> _fetchOrderDetail() async {
-    try {
-      final response = await _supabase
-          .from('orders')
-          .select('''
-        id, created_at, status, total_price, notes, payment_method, address_detail,
-        profiles:user_id ( full_name, phone_number ),
-        order_items (
-          quantity,
-          menus ( name, price, image_url )
-        )
-      ''')
-          .eq('id', widget.orderId)
-          .single();
-
-      if (mounted) {
-        setState(() {
-          _orderData = response;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint("Error Fetching Order Detail: $e");
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+    _viewModel.fetchOrderDetail(widget.orderId);
   }
 
   @override
@@ -83,93 +52,115 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
               ),
             ),
           ),
-
           SafeArea(
-            child: _isLoading
-                ? const Center(
+            child: ListenableBuilder(
+              listenable: _viewModel,
+              builder: (context, child) {
+                if (_viewModel.isLoading) {
+                  return const Center(
                     child: CircularProgressIndicator(color: Color(0xFFFDFDFD)),
-                  )
-                : _orderData == null
-                ? const Center(
-                    child: Text(
-                      "Data pesanan tidak ditemukan",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  )
-                : Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 15,
-                          vertical: 20,
-                        ),
-                        child: Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.arrow_back_ios_new,
-                                color: Colors.white,
-                              ),
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                            const SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Order Details',
-                                  style: TextStyle(
-                                    color: Color(0xFFFDFDFD),
-                                    fontSize: 25,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w800,
-                                    height: 1.10,
-                                    shadows: [
-                                      Shadow(
-                                        offset: Offset(2, 2),
-                                        blurRadius: 4,
-                                        color: Color(0x3F000000),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Opacity(
-                                  opacity: 0.70,
-                                  child: Text(
-                                    'Order ID: ${_orderData!['id'].toString().substring(0, 8).toUpperCase()}',
-                                    style: const TextStyle(
-                                      color: Color(0xFFFDFDFD),
-                                      fontSize: 14,
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                  );
+                }
 
-                      Expanded(
-                        child: ListView(
-                          padding: const EdgeInsets.fromLTRB(25, 10, 25, 40),
-                          physics: const BouncingScrollPhysics(),
-                          children: [
-                            _buildStatusCard(_orderData!['status'] ?? ''),
-                            const SizedBox(height: 20),
-                            _buildCustomerInfoCard(_orderData!),
-                            const SizedBox(height: 20),
-                            _buildOrderItemsList(_orderData!['order_items']),
-                            const SizedBox(height: 20),
-                            _buildSummaryCard(_orderData!),
-                            const SizedBox(height: 20),
-                            _buildPaymentCard(_orderData!),
-                          ],
+                if (_viewModel.orderDetail == null) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Data pesanan tidak ditemukan",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'Poppins',
+                          ),
                         ),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Kembali'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                final order = _viewModel.orderDetail!;
+
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 20,
                       ),
-                    ],
-                  ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.arrow_back_ios_new,
+                              color: Colors.white,
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          const SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Order Details',
+                                style: TextStyle(
+                                  color: Color(0xFFFDFDFD),
+                                  fontSize: 25,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.10,
+                                  shadows: [
+                                    Shadow(
+                                      offset: Offset(2, 2),
+                                      blurRadius: 4,
+                                      color: Color(0x3F000000),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Opacity(
+                                opacity: 0.70,
+                                child: Text(
+                                  'Order ID: ${order.id.length >= 8 ? order.id.substring(0, 8).toUpperCase() : order.id.toUpperCase()}',
+                                  style: const TextStyle(
+                                    color: Color(0xFFFDFDFD),
+                                    fontSize: 14,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(25, 10, 25, 40),
+                        physics: const BouncingScrollPhysics(),
+                        children: [
+                          _buildStatusCard(order.status),
+                          const SizedBox(height: 20),
+                          _buildCustomerInfoCard(order),
+                          const SizedBox(height: 20),
+                          _buildOrderItemsList(order.items),
+                          const SizedBox(height: 20),
+                          _buildSummaryCard(order),
+                          const SizedBox(height: 20),
+                          _buildPaymentCard(order),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -255,13 +246,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
     fontWeight: FontWeight.w700,
   );
 
-  Widget _buildCustomerInfoCard(Map<String, dynamic> orderData) {
-    final profile = orderData['profiles'];
-
-    final name = profile?['full_name'] ?? 'Guest Customer';
-    final phone = profile?['phone_number'] ?? '-';
-    final address = orderData['address_detail'] ?? 'Pickup / Tidak ada alamat';
-
+  Widget _buildCustomerInfoCard(OrderDetailModel order) {
     return _buildWhiteContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,11 +261,11 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
             ),
           ),
           const SizedBox(height: 10),
-          _buildInfoRow('Customer’s Name', name),
+          _buildInfoRow('Customer’s Name', order.profile.fullName),
           const SizedBox(height: 5),
-          _buildInfoRow('Phone Number', phone),
+          _buildInfoRow('Phone Number', order.profile.phoneNumber),
           const SizedBox(height: 5),
-          _buildInfoRow('Address', address),
+          _buildInfoRow('Address', order.addressDetail),
           const SizedBox(height: 15),
           Align(
             alignment: Alignment.centerLeft,
@@ -309,7 +294,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
     );
   }
 
-  Widget _buildOrderItemsList(List<dynamic> items) {
+  Widget _buildOrderItemsList(List<OrderItemModel> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -324,14 +309,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
         ),
         const SizedBox(height: 10),
         ...items.map((item) {
-          final menu = item['menus'] ?? {};
-          final qty = item['quantity']?.toString() ?? '1';
-          final price = NumberFormat.currency(
-            locale: 'id_ID',
-            symbol: 'Rp. ',
-            decimalDigits: 0,
-          ).format(menu['price'] ?? 0);
-          final imageUrl = menu['image_url'];
+          final priceFormatted = _viewModel.formatCurrency(item.menuPrice);
 
           return Container(
             margin: const EdgeInsets.only(bottom: 10),
@@ -353,9 +331,11 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                   child: SizedBox(
                     width: 90,
                     height: double.infinity,
-                    child: imageUrl != null && imageUrl.toString().isNotEmpty
+                    child:
+                        item.menuImageUrl != null &&
+                            item.menuImageUrl!.isNotEmpty
                         ? Image.network(
-                            imageUrl,
+                            item.menuImageUrl!,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Image.network(
@@ -378,7 +358,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          menu['name'] ?? 'Unknown Item',
+                          item.menuName,
                           style: const TextStyle(
                             color: Color(0xFF2D4839),
                             fontSize: 12,
@@ -393,7 +373,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Qty: $qty',
+                              'Qty: ${item.quantity}',
                               style: const TextStyle(
                                 color: Color(0xFF426E55),
                                 fontSize: 9,
@@ -402,7 +382,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                               ),
                             ),
                             Text(
-                              price,
+                              priceFormatted,
                               style: const TextStyle(
                                 color: Color(0xFF2D4839),
                                 fontSize: 13,
@@ -424,14 +404,8 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
     );
   }
 
-  Widget _buildSummaryCard(Map<String, dynamic> orderData) {
-    final formatCurrency = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp. ',
-      decimalDigits: 0,
-    );
-    final total = formatCurrency.format(orderData['total_price'] ?? 0);
-    final notes = orderData['notes'] ?? '-';
+  Widget _buildSummaryCard(OrderDetailModel order) {
+    final total = _viewModel.formatCurrency(order.totalPrice);
 
     return _buildWhiteContainer(
       child: Column(
@@ -468,7 +442,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
               ),
               Expanded(
                 child: Text(
-                  notes,
+                  order.notes,
                   textAlign: TextAlign.right,
                   style: const TextStyle(
                     color: Color(0xFF426E55),
@@ -509,13 +483,9 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
     );
   }
 
-  Widget _buildPaymentCard(Map<String, dynamic> orderData) {
-    final method = (orderData['payment_method'] ?? 'QRIS')
-        .toString()
-        .toUpperCase();
-
-    final isPaid =
-        orderData['status']?.toString().toLowerCase() != 'menunggu pembayaran';
+  Widget _buildPaymentCard(OrderDetailModel order) {
+    final method = order.paymentMethod.toUpperCase();
+    final isPaid = order.status.toLowerCase() != 'menunggu pembayaran';
 
     return _buildWhiteContainer(
       child: Column(
