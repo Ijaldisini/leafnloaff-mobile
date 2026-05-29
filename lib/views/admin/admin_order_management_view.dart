@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:intl/intl.dart';
-import 'admin_order_detail_view.dart';
+import 'package:leafnloaff/viewmodels/admin_order_management_viewmodel.dart';
+import 'package:leafnloaff/models/order_management_model.dart';
+import 'package:leafnloaff/views/admin/admin_order_detail_view.dart';
 
 class AdminOrderManagementView extends StatefulWidget {
   const AdminOrderManagementView({super.key});
@@ -12,62 +12,13 @@ class AdminOrderManagementView extends StatefulWidget {
 }
 
 class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
-  final _supabase = Supabase.instance.client;
-  bool _isLoading = true;
-
-  final List<Map<String, dynamic>> _todayOrders = [];
-  final List<Map<String, dynamic>> _yesterdayOrders = [];
+  final AdminOrderManagementViewModel _viewModel =
+      AdminOrderManagementViewModel();
 
   @override
   void initState() {
     super.initState();
-    _fetchOrders();
-  }
-
-  Future<void> _fetchOrders() async {
-    setState(() => _isLoading = true);
-    try {
-      final response = await _supabase
-          .from('orders')
-          .select('''
-            id, total_price, status, created_at,
-            order_items ( quantity, menus (name) )
-          ''')
-          .order('created_at', ascending: false);
-
-      final List<Map<String, dynamic>> allOrders =
-          List<Map<String, dynamic>>.from(response);
-
-      final now = DateTime.now();
-      final todayStart = DateTime(now.year, now.month, now.day);
-
-      _todayOrders.clear();
-      _yesterdayOrders.clear();
-
-      for (var order in allOrders) {
-        final createdAt = DateTime.parse(order['created_at']).toLocal();
-
-        if (createdAt.isAfter(todayStart) ||
-            createdAt.isAtSameMomentAs(todayStart)) {
-          _todayOrders.add(order);
-        } else {
-          _yesterdayOrders.add(order);
-        }
-      }
-    } catch (e) {
-      debugPrint("Error fetching admin orders: $e");
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  String _getTimeAgo(String timestamp) {
-    final date = DateTime.parse(timestamp).toLocal();
-    final diff = DateTime.now().difference(date);
-    if (diff.inMinutes < 1) return "Just now";
-    if (diff.inMinutes < 60) return "${diff.inMinutes} Mins Ago";
-    if (diff.inHours < 24) return "${diff.inHours} Hours Ago";
-    return DateFormat('EEEE, MMM d, yyyy').format(date);
+    _viewModel.fetchOrders();
   }
 
   @override
@@ -76,259 +27,304 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
-      body: _isLoading
-          ? const Center(
+      body: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, child) {
+          if (_viewModel.isLoading) {
+            return const Center(
               child: CircularProgressIndicator(color: Color(0xFFD699AB)),
-            )
-          : Stack(
-              children: [
-                Positioned(
-                  left: -17,
-                  top: -30,
-                  child: Container(
-                    width: screenWidth + 34,
-                    height: 289,
-                    decoration: const BoxDecoration(color: Color(0xFFD699AB)),
-                  ),
+            );
+          }
+
+          return Stack(
+            children: [
+              Positioned(
+                left: -17,
+                top: -30,
+                child: Container(
+                  width: screenWidth + 34,
+                  height: 289,
+                  decoration: const BoxDecoration(color: Color(0xFFD699AB)),
                 ),
-                Positioned(
-                  left: -17,
-                  top: 147,
-                  child: Container(
-                    width: screenWidth + 34,
-                    height: 114,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0x003D5A4A), Color(0xFF3D5A4A)],
-                      ),
+              ),
+              Positioned(
+                left: -17,
+                top: 147,
+                child: Container(
+                  width: screenWidth + 34,
+                  height: 114,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0x003D5A4A), Color(0xFF3D5A4A)],
                     ),
                   ),
                 ),
-                SafeArea(
-                  child: RefreshIndicator(
-                    onRefresh: _fetchOrders,
-                    color: const Color(0xFFCA748D),
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(25, 20, 25, 120),
-                      physics: const AlwaysScrollableScrollPhysics(
-                        parent: BouncingScrollPhysics(),
-                      ),
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Order Management',
-                              style: TextStyle(
-                                color: const Color(0xFFFDFDFD),
-                                fontSize: 25,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w800,
+              ),
+              SafeArea(
+                child: RefreshIndicator(
+                  onRefresh: _viewModel.fetchOrders,
+                  color: const Color(0xFFCA748D),
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(25, 20, 25, 120),
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Order Management',
+                            style: TextStyle(
+                              color: const Color(0xFFFDFDFD),
+                              fontSize: 25,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w800,
+                              shadows: [
+                                Shadow(
+                                  offset: const Offset(2, 2),
+                                  blurRadius: 4,
+                                  color: Colors.black.withValues(
+                                    alpha: 0.25,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Export PDF segera hadir! 🚀'),
+                                  backgroundColor: Color(0xFFCA748D),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              decoration: ShapeDecoration(
+                                color: const Color(0xFFEED5DB),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(100),
+                                ),
                                 shadows: [
-                                  Shadow(
-                                    offset: const Offset(2, 2),
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.15),
                                     blurRadius: 4,
-                                    color: Colors.black.withOpacity(0.25),
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(
+                                    Icons.picture_as_pdf,
+                                    color: Color(0xFFCA748D),
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'PDF',
+                                    style: TextStyle(
+                                      color: Color(0xFFCA748D),
+                                      fontSize: 14,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
-                            GestureDetector(
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Export PDF segera hadir! 🚀',
-                                    ),
-                                    backgroundColor: Color(0xFFCA748D),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 8,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Container(
+                        height: 36,
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFFDFDFD),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(103),
+                          ),
+                          shadows: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.25),
+                              blurRadius: 4,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.only(left: 12),
+                              child: Text(
+                                'Select period',
+                                style: TextStyle(
+                                  color: Color(0xFF51725F),
+                                  fontSize: 14,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w500,
                                 ),
-                                decoration: ShapeDecoration(
-                                  color: const Color(0xFFEED5DB),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(100),
-                                  ),
-                                  shadows: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.15),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: const Row(
-                                  children: [
-                                    Icon(
-                                      Icons.picture_as_pdf,
-                                      color: Color(0xFFCA748D),
-                                      size: 18,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'PDF',
-                                      style: TextStyle(
-                                        color: Color(0xFFCA748D),
-                                        fontSize: 14,
-                                        fontFamily: 'Poppins',
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              ),
+                            ),
+                            Container(
+                              width: 30,
+                              height: 30,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF426E55),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.calendar_month,
+                                size: 16,
+                                color: Colors.white,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        Container(
-                          height: 36,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFFFDFDFD),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(103),
+                      ),
+                      const SizedBox(height: 30),
+                      Text(
+                        'Today',
+                        style: TextStyle(
+                          color: const Color(0xFFFDFDFD),
+                          fontSize: 17,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w800,
+                          shadows: [
+                            Shadow(
+                              offset: const Offset(2, 2),
+                              blurRadius: 4,
+                              color: Colors.black.withValues(alpha: 0.25),
                             ),
-                            shadows: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.25),
-                                blurRadius: 4,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.only(left: 12),
-                                child: Text(
-                                  'Select period',
-                                  style: TextStyle(
-                                    color: Color(0xFF51725F),
-                                    fontSize: 14,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                width: 30,
-                                height: 30,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF426E55),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.calendar_month,
-                                  size: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
+                          ],
                         ),
-                        const SizedBox(height: 30),
-                        Text(
-                          'Today',
+                      ),
+                      const SizedBox(height: 10),
+                      if (_viewModel.todayOrders.isEmpty)
+                        const Text(
+                          "Belum ada order hari ini.",
                           style: TextStyle(
-                            color: const Color(0xFFFDFDFD),
-                            fontSize: 17,
+                            color: Colors.white70,
                             fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w800,
-                            shadows: [
-                              Shadow(
-                                offset: const Offset(2, 2),
-                                blurRadius: 4,
-                                color: Colors.black.withOpacity(0.25),
-                              ),
-                            ],
                           ),
+                        )
+                      else
+                        ..._viewModel.todayOrders.map(
+                          (o) => _buildOrderCard(o),
                         ),
-                        const SizedBox(height: 10),
-                        if (_todayOrders.isEmpty)
-                          const Text(
-                            "Belum ada order hari ini.",
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontFamily: 'Poppins',
+
+                      const SizedBox(height: 25),
+                      Text(
+                        'Yesterday',
+                        style: TextStyle(
+                          color: const Color(0xFFFDFDFD),
+                          fontSize: 17,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w800,
+                          shadows: [
+                            Shadow(
+                              offset: const Offset(2, 2),
+                              blurRadius: 4,
+                              color: Colors.black.withValues(alpha: 0.25),
                             ),
-                          )
-                        else
-                          ..._todayOrders.map((o) => _buildOrderCard(o)),
-                        const SizedBox(height: 25),
-                        Text(
-                          'Yesterday',
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      if (_viewModel.yesterdayOrders.isEmpty)
+                        const Text(
+                          "Tidak ada order kemarin.",
                           style: TextStyle(
-                            color: const Color(0xFFFDFDFD),
-                            fontSize: 17,
+                            color: Colors.white70,
                             fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w800,
-                            shadows: [
-                              Shadow(
-                                offset: const Offset(2, 2),
-                                blurRadius: 4,
-                                color: Colors.black.withOpacity(0.25),
-                              ),
-                            ],
                           ),
+                        )
+                      else
+                        ..._viewModel.yesterdayOrders.map(
+                          (o) => _buildOrderCard(o),
                         ),
-                        const SizedBox(height: 10),
-                        if (_yesterdayOrders.isEmpty)
-                          const Text(
-                            "Tidak ada order kemarin.",
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontFamily: 'Poppins',
-                            ),
-                          )
-                        else
-                          ..._yesterdayOrders.map((o) => _buildOrderCard(o)),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
-                Positioned(
-                  left: 25,
-                  right: 25,
-                  bottom: 30,
-                  child: Container(
-                    height: 48,
-                    decoration: ShapeDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(120),
-                      ),
-                      shadows: const [
-                        BoxShadow(
-                          color: Color(0x3F000000),
-                          blurRadius: 4,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
+              ),
+              Positioned(
+                left: 25,
+                right: 25,
+                bottom: 30,
+                child: Container(
+                  height: 48,
+                  decoration: ShapeDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {},
-                            child: Container(
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'Order',
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(120),
+                    ),
+                    shadows: const [
+                      BoxShadow(
+                        color: Color(0x3F000000),
+                        blurRadius: 4,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {},
+                          child: Container(
+                            alignment: Alignment.center,
+                            child: const Text(
+                              'Order',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.all(4),
+                        padding: const EdgeInsets.symmetric(horizontal: 28),
+                        decoration: ShapeDecoration(
+                          color: const Color(0xFFEED5DB),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Fitur Export PDF segera hadir! 🚀',
+                                ),
+                                backgroundColor: Color(0xFFCA748D),
+                              ),
+                            );
+                          },
+                          child: const SizedBox(
+                            height: 40,
+                            child: Center(
+                              child: Text(
+                                'PDF',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Color(0xFFCA748D),
                                   fontSize: 16,
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w700,
@@ -337,86 +333,37 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                             ),
                           ),
                         ),
-                        Container(
-                          margin: const EdgeInsets.all(4),
-                          padding: const EdgeInsets.symmetric(horizontal: 28),
-                          decoration: ShapeDecoration(
-                            color: const Color(0xFFEED5DB),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(100),
-                            ),
-                          ),
-                          child: GestureDetector(
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Fitur Export PDF segera hadir! 🚀',
-                                  ),
-                                  backgroundColor: Color(0xFFCA748D),
-                                ),
-                              );
-                            },
-                            child: const SizedBox(
-                              height: 40,
-                              child: Center(
-                                child: Text(
-                                  'PDF',
-                                  style: TextStyle(
-                                    color: Color(0xFFCA748D),
-                                    fontSize: 16,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildOrderCard(Map<String, dynamic> data) {
-    final statusRaw = (data['status'] ?? 'Menunggu Pembayaran').toString();
+  Widget _buildOrderCard(OrderManagementModel order) {
+    final statusRaw = order.status;
     final isCanceled =
         statusRaw.toLowerCase() == 'dibatalkan' ||
         statusRaw.toLowerCase() == 'cancelled';
-
     final isActive = !isCanceled && statusRaw.toLowerCase() != 'selesai';
 
-    final orderIdStr = data['id'].toString().substring(0, 8).toUpperCase();
-    final timeStr = _getTimeAgo(data['created_at']);
-
-    final priceFormatted = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp. ',
-      decimalDigits: 0,
-    ).format(data['total_price'] ?? 0);
-
-    String productDesc = "Unknown Item";
-    int totalQty = 0;
-    final items = data['order_items'] as List<dynamic>? ?? [];
-    if (items.isNotEmpty) {
-      totalQty = items[0]['quantity'] ?? 0;
-      productDesc = items[0]['menus']?['name'] ?? "Unknown Item";
-      if (items.length > 1) {
-        productDesc += " +${items.length - 1} lainnya";
-      }
-    }
+    final orderIdStr = order.id.length >= 8
+        ? order.id.substring(0, 8).toUpperCase()
+        : order.id.toUpperCase();
+    final timeStr = _viewModel.getTimeAgo(order.createdAt);
+    final priceFormatted = _viewModel.formatCurrency(order.totalPrice);
 
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                AdminOrderDetailView(orderId: data['id'].toString()),
+            builder: (context) => AdminOrderDetailView(orderId: order.id),
           ),
         );
       },
@@ -507,7 +454,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                     ),
                   ),
                   TextSpan(
-                    text: productDesc,
+                    text: order.productDesc,
                     style: const TextStyle(
                       color: Color(0xFF51725F),
                       fontSize: 11,
@@ -536,7 +483,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                         ),
                       ),
                       TextSpan(
-                        text: '$totalQty',
+                        text: '${order.totalQty}',
                         style: const TextStyle(
                           color: Color(0xFF51725F),
                           fontSize: 11,
@@ -591,9 +538,9 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
 
     if (statusStr.contains('tunggu') || statusStr.contains('bayar')) {
       barWidthFactor = 0.15;
-    } else if (statusStr.contains('proses')) {
+    } else if (statusStr.contains('proses') || statusStr.contains('siap')) {
       barWidthFactor = 0.45;
-    } else if (statusStr.contains('kirim')) {
+    } else if (statusStr.contains('kirim') || statusStr.contains('jalan')) {
       barWidthFactor = 0.75;
     } else if (statusStr.contains('selesai')) {
       barWidthFactor = 1.0;
