@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
+import 'admin_order_detail_view.dart';
 
 class AdminOrderManagementView extends StatefulWidget {
   const AdminOrderManagementView({super.key});
@@ -105,7 +106,6 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                     ),
                   ),
                 ),
-
                 SafeArea(
                   child: RefreshIndicator(
                     onRefresh: _fetchOrders,
@@ -135,7 +135,6 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                                 ],
                               ),
                             ),
-
                             GestureDetector(
                               onTap: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -189,7 +188,6 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                           ],
                         ),
                         const SizedBox(height: 20),
-
                         Container(
                           height: 36,
                           padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -238,7 +236,6 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                           ),
                         ),
                         const SizedBox(height: 30),
-
                         Text(
                           'Today',
                           style: TextStyle(
@@ -266,9 +263,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                           )
                         else
                           ..._todayOrders.map((o) => _buildOrderCard(o)),
-
                         const SizedBox(height: 25),
-
                         Text(
                           'Yesterday',
                           style: TextStyle(
@@ -300,7 +295,6 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                     ),
                   ),
                 ),
-
                 Positioned(
                   left: 25,
                   right: 25,
@@ -343,7 +337,6 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                             ),
                           ),
                         ),
-
                         Container(
                           margin: const EdgeInsets.all(4),
                           padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -417,171 +410,177 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
       }
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(15),
-      decoration: ShapeDecoration(
-        color: const Color(0xFFFDFDFD),
-        shape: RoundedRectangleBorder(
-          side: isActive
-              ? const BorderSide(width: 1, color: Color(0xFF73986F))
-              : BorderSide.none,
-          borderRadius: BorderRadius.circular(16.69),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                AdminOrderDetailView(orderId: data['id'].toString()),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(15),
+        decoration: ShapeDecoration(
+          color: const Color(0xFFFDFDFD),
+          shape: RoundedRectangleBorder(
+            side: isActive
+                ? const BorderSide(width: 1, color: Color(0xFF73986F))
+                : BorderSide.none,
+            borderRadius: BorderRadius.circular(16.69),
+          ),
+          shadows: [
+            if (isActive)
+              const BoxShadow(color: Color(0xFF73986F), blurRadius: 7)
+            else
+              const BoxShadow(
+                color: Color(0x3F000000),
+                blurRadius: 4,
+                offset: Offset(0, 4),
+              ),
+          ],
         ),
-        shadows: [
-          if (isActive)
-            const BoxShadow(color: Color(0xFF73986F), blurRadius: 7)
-          else
-            const BoxShadow(
-              color: Color(0x3F000000),
-              blurRadius: 4,
-              offset: Offset(0, 4),
-            ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                timeStr,
-                style: const TextStyle(
-                  color: Color(0xFF51725F),
-                  fontSize: 10,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const Text(
-                'See Details',
-                style: TextStyle(
-                  color: Color(0xFF51725F),
-                  fontSize: 10,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w500,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 5),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'ID: $orderIdStr',
-                style: const TextStyle(
-                  color: Color(0xFF2D4839),
-                  fontSize: 16,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Text(
-                priceFormatted,
-                style: const TextStyle(
-                  color: Color(0xFF2D4839),
-                  fontSize: 16,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 5),
-
-          Text.rich(
-            TextSpan(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const TextSpan(
-                  text: 'Product: ',
-                  style: TextStyle(
-                    color: Color(0xFF51725F),
-                    fontSize: 11,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                TextSpan(
-                  text: productDesc,
+                Text(
+                  timeStr,
                   style: const TextStyle(
                     color: Color(0xFF51725F),
-                    fontSize: 11,
+                    fontSize: 10,
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+                const Text(
+                  'See Details',
+                  style: TextStyle(
+                    color: Color(0xFF51725F),
+                    fontSize: 10,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w500,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
               ],
             ),
-          ),
-          const SizedBox(height: 2),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text.rich(
-                TextSpan(
-                  children: [
-                    const TextSpan(
-                      text: 'Qty: ',
-                      style: TextStyle(
-                        color: Color(0xFF51725F),
-                        fontSize: 11,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    TextSpan(
-                      text: '$totalQty',
-                      style: const TextStyle(
-                        color: Color(0xFF51725F),
-                        fontSize: 11,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+            const SizedBox(height: 5),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'ID: $orderIdStr',
+                  style: const TextStyle(
+                    color: Color(0xFF2D4839),
+                    fontSize: 16,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-
-              if (isCanceled)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
+                Text(
+                  priceFormatted,
+                  style: const TextStyle(
+                    color: Color(0xFF2D4839),
+                    fontSize: 16,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w700,
                   ),
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFFFFD1D2),
-                    shape: RoundedRectangleBorder(
-                      side: const BorderSide(
-                        width: 1,
-                        color: Color(0xFFC33537),
-                      ),
-                      borderRadius: BorderRadius.circular(41),
-                    ),
-                  ),
-                  child: const Text(
-                    'Canceled',
+                ),
+              ],
+            ),
+            const SizedBox(height: 5),
+            Text.rich(
+              TextSpan(
+                children: [
+                  const TextSpan(
+                    text: 'Product: ',
                     style: TextStyle(
-                      color: Color(0xFFC33537),
-                      fontSize: 9,
+                      color: Color(0xFF51725F),
+                      fontSize: 11,
                       fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
+                  TextSpan(
+                    text: productDesc,
+                    style: const TextStyle(
+                      color: Color(0xFF51725F),
+                      fontSize: 11,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 2),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      const TextSpan(
+                        text: 'Qty: ',
+                        style: TextStyle(
+                          color: Color(0xFF51725F),
+                          fontSize: 11,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      TextSpan(
+                        text: '$totalQty',
+                        style: const TextStyle(
+                          color: Color(0xFF51725F),
+                          fontSize: 11,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                if (isCanceled)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: ShapeDecoration(
+                      color: const Color(0xFFFFD1D2),
+                      shape: RoundedRectangleBorder(
+                        side: const BorderSide(
+                          width: 1,
+                          color: Color(0xFFC33537),
+                        ),
+                        borderRadius: BorderRadius.circular(41),
+                      ),
+                    ),
+                    child: const Text(
+                      'Canceled',
+                      style: TextStyle(
+                        color: Color(0xFFC33537),
+                        fontSize: 9,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            if (!isCanceled) ...[
+              const SizedBox(height: 15),
+              _buildStatusTracker(statusRaw),
             ],
-          ),
-
-          if (!isCanceled) ...[
-            const SizedBox(height: 15),
-            _buildStatusTracker(statusRaw),
           ],
-        ],
+        ),
       ),
     );
   }
