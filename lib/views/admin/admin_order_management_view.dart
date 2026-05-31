@@ -21,6 +21,29 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
     _viewModel.fetchOrders();
   }
 
+  Future<void> _handlePdfExport() async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Menyiapkan file PDF...'),
+          duration: Duration(seconds: 1),
+          backgroundColor: Color(0xFF51725F),
+        ),
+      );
+
+      await _viewModel.exportToPdf();
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: const Color(0xFFC23437),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -86,22 +109,13 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                                 Shadow(
                                   offset: const Offset(2, 2),
                                   blurRadius: 4,
-                                  color: Colors.black.withValues(
-                                    alpha: 0.25,
-                                  ),
+                                  color: Colors.black.withValues(alpha: 0.25),
                                 ),
                               ],
                             ),
                           ),
                           GestureDetector(
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Export PDF segera hadir! 🚀'),
-                                  backgroundColor: Color(0xFFCA748D),
-                                ),
-                              );
-                            },
+                            onTap: _handlePdfExport,
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 14,
@@ -221,7 +235,6 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                         ..._viewModel.todayOrders.map(
                           (o) => _buildOrderCard(o),
                         ),
-
                       const SizedBox(height: 25),
                       Text(
                         'Yesterday',
@@ -308,16 +321,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                           ),
                         ),
                         child: GestureDetector(
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Fitur Export PDF segera hadir! 🚀',
-                                ),
-                                backgroundColor: Color(0xFFCA748D),
-                              ),
-                            );
-                          },
+                          onTap: _handlePdfExport,
                           child: const SizedBox(
                             height: 40,
                             child: Center(
@@ -365,7 +369,9 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
           MaterialPageRoute(
             builder: (context) => AdminOrderDetailView(orderId: order.id),
           ),
-        );
+        ).then((_) {
+          _viewModel.fetchOrders();
+        });
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/order_management_model.dart';
 import '../services/admin_order_management_service.dart';
+import '../pdf/pdf_export_service.dart';
 
 class AdminOrderManagementViewModel extends ChangeNotifier {
   final AdminOrderManagementService _service = AdminOrderManagementService();
@@ -86,5 +87,22 @@ class AdminOrderManagementViewModel extends ChangeNotifier {
       symbol: 'Rp. ',
       decimalDigits: 0,
     ).format(amount);
+  }
+
+  final PdfExportService _pdfService = PdfExportService();
+
+  Future<void> exportToPdf() async {
+    try {
+      final allOrders = [...todayOrders, ...yesterdayOrders];
+
+      if (allOrders.isEmpty) {
+        throw Exception('Tidak ada data pesanan untuk di-export.');
+      }
+
+      await _pdfService.exportOrdersToPdf(allOrders);
+    } catch (e) {
+      debugPrint("Gagal Export PDF: $e");
+      rethrow;
+    }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:leafnloaff/viewmodels/admin_order_detail_viewmodel.dart';
 import 'package:leafnloaff/models/order_detail_model.dart';
+import 'package:leafnloaff/views/admin/admin_order_review_view.dart';
 
 class AdminOrderDetailView extends StatefulWidget {
   final String orderId;
@@ -183,8 +184,11 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
     if (isDelivered) {
       return GestureDetector(
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Halaman review segera hadir!')),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AdminOrderReviewView(orderId: order.id),
+            ),
           );
         },
         child: Container(
