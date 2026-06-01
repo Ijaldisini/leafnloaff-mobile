@@ -3,6 +3,7 @@ import '../../viewmodels/admin_menu_management_viewmodel.dart';
 import '../../models/menu_model.dart';
 import '../admin/admin_add_menu_view.dart';
 import '../admin/admin_edit_menu_view.dart';
+import '../admin/admin_preview_menu_view.dart';
 
 class AdminMenuManagementView extends StatefulWidget {
   const AdminMenuManagementView({super.key});
@@ -249,245 +250,259 @@ class _AdminMenuManagementViewState extends State<AdminMenuManagementView> {
   }
 
   Widget _buildMenuCard(MenuModel menu) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      height: 105,
-      decoration: ShapeDecoration(
-        color: const Color(0xFFFDFDFD),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.69),
+    return GestureDetector(
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AdminPreviewMenuView(menu: menu),
+          ),
+        );
+
+        if (result == true) {
+          _viewModel.fetchMenus();
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        height: 105,
+        decoration: ShapeDecoration(
+          color: const Color(0xFFFDFDFD),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.69),
+          ),
+          shadows: const [
+            BoxShadow(
+              color: Color(0x3F000000),
+              blurRadius: 4,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
-        shadows: const [
-          BoxShadow(
-            color: Color(0x3F000000),
-            blurRadius: 4,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16.69),
-              bottomLeft: Radius.circular(16.69),
-            ),
-            child: SizedBox(
-              width: 113,
-              height: double.infinity,
-              child: menu.imageUrl != null && menu.imageUrl!.isNotEmpty
-                  ? Image.network(
-                      menu.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey.shade300,
-                          child: const Center(
-                            child: Icon(
-                              Icons.broken_image,
-                              color: Colors.grey,
-                              size: 28,
-                            ),
-                          ),
-                        );
-                      },
-                    )
-                  : Container(color: Colors.grey.shade300),
-            ),
-          ),
-
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          menu.name,
-                          style: TextStyle(
-                            color: menu.isActive
-                                ? const Color(0xFF2D4839)
-                                : Colors.grey,
-                            fontSize: 16,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w800,
-                            decoration: menu.isActive
-                                ? TextDecoration.none
-                                : TextDecoration.lineThrough,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  AdminEditMenuView(menu: menu),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16.69),
+                bottomLeft: Radius.circular(16.69),
+              ),
+              child: SizedBox(
+                width: 113,
+                height: double.infinity,
+                child: menu.imageUrl != null && menu.imageUrl!.isNotEmpty
+                    ? Image.network(
+                        menu.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey.shade300,
+                            child: const Center(
+                              child: Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                                size: 28,
+                              ),
                             ),
                           );
-
-                          if (result == true) {
-                            _viewModel.fetchMenus();
-                          }
                         },
-                        child: const Icon(
-                          Icons.edit_outlined,
-                          color: Color(0xFF2D4839),
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      GestureDetector(
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext dialogContext) {
-                              return AlertDialog(
-                                title: const Text('Hapus Menu'),
-                                content: Text(
-                                  'Apakah Anda yakin ingin menghapus ${menu.name}?',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(dialogContext),
-                                    child: const Text(
-                                      'Batal',
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(dialogContext);
-                                      _viewModel.deleteMenu(menu.id, context);
-                                    },
-                                    child: const Text(
-                                      'Hapus',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                        child: const Icon(
-                          Icons.delete_outline,
-                          color: Color(0xFF2D4839),
-                          size: 18,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
+                      )
+                    : Container(color: Colors.grey.shade300),
+              ),
+            ),
 
-                  Text.rich(
-                    TextSpan(
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const TextSpan(
-                          text: 'Description: ',
-                          style: TextStyle(
-                            color: Color(0xFF51725F),
-                            fontSize: 9,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        TextSpan(
-                          text: menu.description,
-                          style: const TextStyle(
-                            color: Color(0xFF51725F),
-                            fontSize: 9,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        const TextSpan(
-                          text: 'Stock: ',
-                          style: TextStyle(
-                            color: Color(0xFF51725F),
-                            fontSize: 10,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        TextSpan(
-                          text: '${menu.stock}',
-                          style: TextStyle(
-                            color: menu.stock == 0
-                                ? Colors.red
-                                : const Color(0xFF51725F),
-                            fontSize: 10,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _viewModel.formatCurrency(menu.price),
-                        style: const TextStyle(
-                          color: Color(0xFF2D4839),
-                          fontSize: 15,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      if (!menu.isActive)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFD1D2),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: const Color(0xFFC33537),
-                              width: 0.5,
-                            ),
-                          ),
-                          child: const Text(
-                            'Nonaktif',
+                        Expanded(
+                          child: Text(
+                            menu.name,
                             style: TextStyle(
-                              color: Color(0xFFC33537),
-                              fontSize: 8,
+                              color: menu.isActive
+                                  ? const Color(0xFF2D4839)
+                                  : Colors.grey,
+                              fontSize: 16,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w800,
+                              decoration: menu.isActive
+                                  ? TextDecoration.none
+                                  : TextDecoration.lineThrough,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    AdminEditMenuView(menu: menu),
+                              ),
+                            );
+
+                            if (result == true) {
+                              _viewModel.fetchMenus();
+                            }
+                          },
+                          child: const Icon(
+                            Icons.edit_outlined,
+                            color: Color(0xFF2D4839),
+                            size: 18,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext dialogContext) {
+                                return AlertDialog(
+                                  title: const Text('Hapus Menu'),
+                                  content: Text(
+                                    'Apakah Anda yakin ingin menghapus ${menu.name}?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext),
+                                      child: const Text(
+                                        'Batal',
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(dialogContext);
+                                        _viewModel.deleteMenu(menu.id, context);
+                                      },
+                                      child: const Text(
+                                        'Hapus',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: const Icon(
+                            Icons.delete_outline,
+                            color: Color(0xFF2D4839),
+                            size: 18,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          const TextSpan(
+                            text: 'Description: ',
+                            style: TextStyle(
+                              color: Color(0xFF51725F),
+                              fontSize: 9,
                               fontFamily: 'Poppins',
                               fontWeight: FontWeight.w700,
                             ),
                           ),
+                          TextSpan(
+                            text: menu.description,
+                            style: const TextStyle(
+                              color: Color(0xFF51725F),
+                              fontSize: 9,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          const TextSpan(
+                            text: 'Stock: ',
+                            style: TextStyle(
+                              color: Color(0xFF51725F),
+                              fontSize: 10,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          TextSpan(
+                            text: '${menu.stock}',
+                            style: TextStyle(
+                              color: menu.stock == 0
+                                  ? Colors.red
+                                  : const Color(0xFF51725F),
+                              fontSize: 10,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const Spacer(),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _viewModel.formatCurrency(menu.price),
+                          style: const TextStyle(
+                            color: Color(0xFF2D4839),
+                            fontSize: 15,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
-                    ],
-                  ),
-                ],
+                        if (!menu.isActive)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFD1D2),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: const Color(0xFFC33537),
+                                width: 0.5,
+                              ),
+                            ),
+                            child: const Text(
+                              'Nonaktif',
+                              style: TextStyle(
+                                color: Color(0xFFC33537),
+                                fontSize: 8,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
