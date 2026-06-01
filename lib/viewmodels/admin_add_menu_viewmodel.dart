@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../models/menu_model.dart';
 import '../services/admin_add_menu_service.dart';
 import '../utils/image_picker_util.dart';
 
@@ -21,6 +22,23 @@ class AdminAddMenuViewModel extends ChangeNotifier {
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
+  String? _editMenuId;
+  String? _existingImageUrl;
+  String? get existingImageUrl => _existingImageUrl;
+
+  void initEditMode(MenuModel menu) {
+    _editMenuId = menu.id;
+    nameController.text = menu.name;
+    descController.text = menu.description;
+    priceController.text = menu.price.toInt().toString();
+    stockController.text = menu.stock.toString();
+
+    if (categories.contains(menu.category)) {
+      _selectedCategory = menu.category;
+    }
+    _existingImageUrl = menu.imageUrl;
+  }
 
   void setCategory(String value) {
     _selectedCategory = value;
@@ -56,14 +74,27 @@ class AdminAddMenuViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _service.addMenu(
-        name: nameController.text.trim(),
-        description: descController.text.trim(),
-        price: double.parse(priceController.text.trim()),
-        stock: int.parse(stockController.text.trim()),
-        category: _selectedCategory,
-        imageFile: _selectedImage,
-      );
+      if (_editMenuId != null) {
+        await _service.updateMenu(
+          id: _editMenuId!,
+          name: nameController.text.trim(),
+          description: descController.text.trim(),
+          price: double.parse(priceController.text.trim()),
+          stock: int.parse(stockController.text.trim()),
+          category: _selectedCategory,
+          newImageFile: _selectedImage,
+          existingImageUrl: _existingImageUrl,
+        );
+      } else {
+        await _service.addMenu(
+          name: nameController.text.trim(),
+          description: descController.text.trim(),
+          price: double.parse(priceController.text.trim()),
+          stock: int.parse(stockController.text.trim()),
+          category: _selectedCategory,
+          imageFile: _selectedImage,
+        );
+      }
 
       _isLoading = false;
       notifyListeners();
@@ -73,9 +104,7 @@ class AdminAddMenuViewModel extends ChangeNotifier {
       notifyListeners();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Gagal menyimpan data, periksa koneksi atau format angka!',
-          ),
+          content: Text('Gagal menyimpan data, periksa jaringan Anda.'),
         ),
       );
       return false;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../viewmodels/admin_menu_management_viewmodel.dart';
 import '../../models/menu_model.dart';
 import '../admin/admin_add_menu_view.dart';
+import '../admin/admin_edit_menu_view.dart';
 
 class AdminMenuManagementView extends StatefulWidget {
   const AdminMenuManagementView({super.key});
@@ -145,12 +146,13 @@ class _AdminMenuManagementViewState extends State<AdminMenuManagementView> {
                                   final result = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const AdminAddMenuView(),
+                                      builder: (context) =>
+                                          const AdminAddMenuView(),
                                     ),
                                   );
 
                                   if (result == true) {
-                                    _viewModel.fetchMenus(); 
+                                    _viewModel.fetchMenus();
                                   }
                                 },
                                 child: Container(
@@ -322,10 +324,18 @@ class _AdminMenuManagementViewState extends State<AdminMenuManagementView> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Edit ${menu.name}')),
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  AdminEditMenuView(menu: menu),
+                            ),
                           );
+
+                          if (result == true) {
+                            _viewModel.fetchMenus();
+                          }
                         },
                         child: const Icon(
                           Icons.edit_outlined,
@@ -355,9 +365,7 @@ class _AdminMenuManagementViewState extends State<AdminMenuManagementView> {
                                   ),
                                   TextButton(
                                     onPressed: () {
-                                      Navigator.pop(
-                                        dialogContext,
-                                      );
+                                      Navigator.pop(dialogContext);
                                       _viewModel.deleteMenu(menu.id, context);
                                     },
                                     child: const Text(

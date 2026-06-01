@@ -22,7 +22,6 @@ class AdminAddMenuService {
             '${DateTime.now().millisecondsSinceEpoch}_${name.replaceAll(' ', '_')}.$extension';
 
         await _supabase.storage.from('menu_images').upload(fileName, imageFile);
-
         finalImageUrl = _supabase.storage
             .from('menu_images')
             .getPublicUrl(fileName);
@@ -40,6 +39,49 @@ class AdminAddMenuService {
     } catch (e) {
       debugPrint("Error Inserting Menu: $e");
       throw Exception("Gagal menyimpan menu: $e");
+    }
+  }
+
+  Future<void> updateMenu({
+    required String id,
+    required String name,
+    required String description,
+    required double price,
+    required int stock,
+    required String category,
+    File? newImageFile,
+    String? existingImageUrl,
+  }) async {
+    try {
+      String? finalImageUrl = existingImageUrl;
+
+      if (newImageFile != null) {
+        final extension = newImageFile.path.split('.').last;
+        final fileName =
+            '${DateTime.now().millisecondsSinceEpoch}_${name.replaceAll(' ', '_')}.$extension';
+
+        await _supabase.storage
+            .from('menu_images')
+            .upload(fileName, newImageFile);
+        finalImageUrl = _supabase.storage
+            .from('menu_images')
+            .getPublicUrl(fileName);
+      }
+
+      await _supabase
+          .from('menus')
+          .update({
+            'name': name,
+            'description': description,
+            'price': price,
+            'stock': stock,
+            'category': category,
+            'image_url': finalImageUrl,
+          })
+          .eq('id', id);
+    } catch (e) {
+      debugPrint("Error Updating Menu: $e");
+      throw Exception("Gagal mengubah menu: $e");
     }
   }
 }
