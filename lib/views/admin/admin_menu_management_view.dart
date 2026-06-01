@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../viewmodels/admin_menu_management_viewmodel.dart';
 import '../../models/menu_model.dart';
+import '../admin/admin_add_menu_view.dart';
 
 class AdminMenuManagementView extends StatefulWidget {
   const AdminMenuManagementView({super.key});
@@ -140,14 +141,17 @@ class _AdminMenuManagementViewState extends State<AdminMenuManagementView> {
                               ),
                               const SizedBox(width: 12),
                               GestureDetector(
-                                onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Add Menu form akan segera dibuat!',
-                                      ),
+                                onTap: () async {
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const AdminAddMenuView(),
                                     ),
                                   );
+
+                                  if (result == true) {
+                                    _viewModel.fetchMenus(); 
+                                  }
                                 },
                                 child: Container(
                                   width: 37,
