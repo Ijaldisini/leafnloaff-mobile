@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'admin_dashboard_view.dart';
+import 'admin_menu_management_view.dart';
 import 'admin_order_management_view.dart';
 
 class AdminMainView extends StatefulWidget {
@@ -14,6 +15,7 @@ class _AdminMainViewState extends State<AdminMainView> {
 
   final List<Widget> _pages = [
     const AdminDashboardView(),
+    const AdminMenuManagementView(),
     const AdminOrderManagementView(),
   ];
 
@@ -72,7 +74,8 @@ class _AdminMainViewState extends State<AdminMainView> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         _buildNavItem(index: 0, title: 'Home'),
-                        _buildNavItem(index: 1, title: 'Order'),
+                        _buildNavItem(index: 1, title: 'Menu'),
+                        _buildNavItem(index: 2, title: 'Order'),
                       ],
                     ),
                   ),

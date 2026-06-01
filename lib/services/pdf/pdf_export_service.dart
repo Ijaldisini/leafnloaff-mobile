@@ -2,7 +2,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
-import '../models/order_management_model.dart';
+import '../../models/order_management_model.dart';
 
 class PdfExportService {
   Future<void> exportOrdersToPdf(List<OrderManagementModel> orders) async {
