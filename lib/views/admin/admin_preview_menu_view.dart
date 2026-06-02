@@ -209,7 +209,7 @@ class _AdminPreviewMenuViewState extends State<AdminPreviewMenuView> {
                             ),
                             const SizedBox(height: 10),
                             Text(
-                              widget.menu.description ?? '-',
+                              widget.menu.description,
                               style: const TextStyle(
                                 color: Color(0xFF51725F),
                                 fontSize: 14,
