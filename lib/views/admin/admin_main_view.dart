@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'admin_dashboard_view.dart';
+import 'admin_menu_management_view.dart';
 import 'admin_order_management_view.dart';
+import 'admin_notification_view.dart';
 
 class AdminMainView extends StatefulWidget {
   const AdminMainView({super.key});
@@ -12,18 +14,21 @@ class AdminMainView extends StatefulWidget {
 class _AdminMainViewState extends State<AdminMainView> {
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [
-    const AdminDashboardView(),
-    const AdminOrderManagementView(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
       body: Stack(
         children: [
-          IndexedStack(index: _selectedIndex, children: _pages),
+          IndexedStack(
+            index: _selectedIndex,
+            children: const [
+              AdminDashboardView(),
+              AdminOrderManagementView(),
+              AdminMenuManagementView(),
+              AdminNotificationView(),
+            ],
+          ),
 
           Positioned(
             bottom: 0,
@@ -46,8 +51,8 @@ class _AdminMainViewState extends State<AdminMainView> {
                   color: const Color(0xFF3D5A4A),
                   padding: const EdgeInsets.only(
                     bottom: 30,
-                    left: 25,
-                    right: 25,
+                    left: 20,
+                    right: 20,
                   ),
                   child: Container(
                     height: 50,
@@ -72,7 +77,9 @@ class _AdminMainViewState extends State<AdminMainView> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         _buildNavItem(index: 0, title: 'Home'),
-                        _buildNavItem(index: 1, title: 'Order'),
+                        _buildNavItem(index: 1, title: 'Menu'),
+                        _buildNavItem(index: 2, title: 'Order'),
+                        _buildNavItem(index: 3, title: 'Notif'),
                       ],
                     ),
                   ),
@@ -91,7 +98,7 @@ class _AdminMainViewState extends State<AdminMainView> {
       onTap: () => setState(() => _selectedIndex = index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: ShapeDecoration(
           color: isActive ? const Color(0xFFEED5DB) : Colors.transparent,
           shape: RoundedRectangleBorder(
@@ -102,7 +109,7 @@ class _AdminMainViewState extends State<AdminMainView> {
           title,
           style: TextStyle(
             color: isActive ? const Color(0xFFCA748D) : const Color(0xFFFDFDFD),
-            fontSize: 16,
+            fontSize: 14,
             fontFamily: 'Poppins',
             fontWeight: FontWeight.w700,
           ),
