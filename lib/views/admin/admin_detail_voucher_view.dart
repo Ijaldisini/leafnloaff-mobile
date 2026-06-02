@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/voucher_model.dart';
+import 'admin_edit_voucher_view.dart';
 
 class AdminDetailVoucherView extends StatelessWidget {
   final VoucherModel voucher;
@@ -15,7 +16,7 @@ class AdminDetailVoucherView extends StatelessWidget {
     final String discount = "${voucher.discountPercentage}% Off";
 
     final String terms = voucher.termsAndCondition;
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
       body: Stack(
@@ -207,9 +208,11 @@ class AdminDetailVoucherView extends StatelessWidget {
               child: Center(
                 child: GestureDetector(
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Fitur Edit Voucher segera hadir!'),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AdminEditVoucherView(voucher: voucher),
                       ),
                     );
                   },
