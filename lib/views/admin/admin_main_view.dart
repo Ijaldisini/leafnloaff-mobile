@@ -3,6 +3,7 @@ import 'admin_dashboard_view.dart';
 import 'admin_menu_management_view.dart';
 import 'admin_order_management_view.dart';
 import 'admin_notification_view.dart';
+import 'admin_voucher_view.dart';
 
 class AdminMainView extends StatefulWidget {
   const AdminMainView({super.key});
@@ -27,6 +28,7 @@ class _AdminMainViewState extends State<AdminMainView> {
               AdminOrderManagementView(),
               AdminMenuManagementView(),
               AdminNotificationView(),
+              AdminVoucherView(),
             ],
           ),
 
@@ -51,8 +53,8 @@ class _AdminMainViewState extends State<AdminMainView> {
                   color: const Color(0xFF3D5A4A),
                   padding: const EdgeInsets.only(
                     bottom: 30,
-                    left: 20,
-                    right: 20,
+                    left: 15,
+                    right: 15,
                   ),
                   child: Container(
                     height: 50,
@@ -80,6 +82,10 @@ class _AdminMainViewState extends State<AdminMainView> {
                         _buildNavItem(index: 1, title: 'Menu'),
                         _buildNavItem(index: 2, title: 'Order'),
                         _buildNavItem(index: 3, title: 'Notif'),
+                        _buildNavItem(
+                          index: 4,
+                          title: 'Voucher',
+                        ),
                       ],
                     ),
                   ),
@@ -98,7 +104,7 @@ class _AdminMainViewState extends State<AdminMainView> {
       onTap: () => setState(() => _selectedIndex = index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: ShapeDecoration(
           color: isActive ? const Color(0xFFEED5DB) : Colors.transparent,
           shape: RoundedRectangleBorder(
@@ -109,7 +115,7 @@ class _AdminMainViewState extends State<AdminMainView> {
           title,
           style: TextStyle(
             color: isActive ? const Color(0xFFCA748D) : const Color(0xFFFDFDFD),
-            fontSize: 14,
+            fontSize: 12,
             fontFamily: 'Poppins',
             fontWeight: FontWeight.w700,
           ),
