@@ -13,6 +13,19 @@ class RegisterViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
+  void _setError(String message) {
+    _errorMessage = message;
+    notifyListeners();
+  }
+
+  void _clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   void navigateToRegisterOtp(BuildContext context, UserModel user) {
     Navigator.pushReplacement(
       context,
@@ -26,10 +39,10 @@ class RegisterViewModel extends ChangeNotifier {
     final email = emailController.text.trim();
     final password = passwordController.text;
 
+    _clearError();
+
     if (name.isEmpty || username.isEmpty || email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Semua form pendaftaran wajib diisi')),
-      );
+      _setError('Semua form pendaftaran wajib diisi');
       return;
     }
 
@@ -64,9 +77,12 @@ class RegisterViewModel extends ChangeNotifier {
         navigateToRegisterOtp(context, completedUser);
       }
     } catch (e) {
+      final errorMsg = e.toString().replaceAll('Exception: ', '');
+      _setError(errorMsg); 
+      
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+          SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
         );
       }
     } finally {

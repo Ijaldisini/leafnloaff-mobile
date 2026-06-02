@@ -14,6 +14,19 @@ class LoginViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
+  void _setError(String message) {
+    _errorMessage = message;
+    notifyListeners();
+  }
+
+  void _clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   void navigateToRegister(BuildContext context) {
     Navigator.pushReplacement(
       context,
@@ -29,10 +42,10 @@ class LoginViewModel extends ChangeNotifier {
     final email = emailController.text.trim();
     final password = passwordController.text;
 
+    _clearError();
+
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email dan Password tidak boleh kosong')),
-      );
+      _setError('Email dan Password tidak boleh kosong');
       return;
     }
 
@@ -68,10 +81,13 @@ class LoginViewModel extends ChangeNotifier {
         }
       });
     } catch (e) {
+      final errorMsg = e.toString().replaceAll('Exception: ', '');
+      _setError(errorMsg);
+      
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
+            content: Text(errorMsg),
             backgroundColor: Colors.red,
           ),
         );

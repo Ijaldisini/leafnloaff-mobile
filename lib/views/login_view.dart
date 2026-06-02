@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../viewmodels/login_viewmodel.dart';
+// import '../views/app_navigator.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -8,200 +9,126 @@ class LoginView extends StatefulWidget {
   State<LoginView> createState() => _LoginViewState();
 }
 
-class _LoginViewState extends State<LoginView> {
+class _LoginViewState extends State<LoginView>
+    with SingleTickerProviderStateMixin {
   final LoginViewModel _viewModel = LoginViewModel();
+  bool _obscurePassword = true;
+
+  late AnimationController _animController;
+  late Animation<double> _fadeAnim;
+  late Animation<Offset> _slideAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnim = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOut,
+    );
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOutCubic,
+    ));
+    _animController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    _viewModel.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       body: AnimatedBuilder(
         animation: _viewModel,
-        builder: (context, child) {
-          return SingleChildScrollView(
-            child: Container(
-              width: 390,
-              height: 844,
-              clipBehavior: Clip.antiAlias,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment(0.00, 0.00),
-                  end: Alignment(1.00, 1.00),
-                  colors: [Color(0xFFEAEAAA), Color(0xFF2D4839)],
-                ),
+        builder: (context, _) {
+          return Container(
+            width: screenWidth,
+            height: screenHeight,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFEAEAAA), Color(0xFF2D4839)],
               ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: 68,
-                    top: 82,
-                    child: Container(
-                      width: 255,
-                      height: 38,
-                      decoration: ShapeDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment(0.50, 0.00),
-                          end: Alignment(0.50, 1.00),
-                          colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(108.57),
-                        ),
-                      ),
-                    ),
+            ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: screenHeight -
+                        MediaQuery.of(context).padding.top -
+                        MediaQuery.of(context).padding.bottom,
                   ),
-                  Positioned(
-                    left: 73,
-                    top: 86,
-                    child: Container(
-                      width: 118,
-                      height: 30.92,
-                      decoration: ShapeDecoration(
-                        color: const Color(0xFFEED5DB),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(88.35),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 73,
-                    top: 86,
-                    child: Container(
-                      width: 118,
-                      height: 30.92,
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Login',
-                        style: TextStyle(
-                          color: Color(0xFFCA748D),
-                          fontSize: 18,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 199,
-                    top: 86,
-                    child: GestureDetector(
-                      onTap: () => _viewModel.navigateToRegister(
-                        context,
-                      ),
-                      child: Container(
-                        width: 118,
-                        height: 30.92,
-                        alignment: Alignment.center,
-                        child: const Text(
-                          'Register',
-                          style: TextStyle(
-                            color: Color(0xFFEED5DB),
-                            fontSize: 18,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  child: IntrinsicHeight(
+                    child: FadeTransition(
+                      opacity: _fadeAnim,
+                      child: SlideTransition(
+                        position: _slideAnim,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 28),
 
-                  Positioned(
-                    left: 141.68,
-                    top: 222.34,
-                    child: const SizedBox(
-                      width: 97.96,
-                      height: 113.75,
-                      child: Icon(Icons.eco, size: 80, color: Colors.white),
-                    ),
-                  ),
+                            Center(child: _buildTabBar(context)),
 
-                  Positioned(
-                    left: 58,
-                    top: 421,
-                    child: const Text(
-                      'Email',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 58,
-                    top: 447,
-                    child: _buildInputField(
-                      _viewModel.emailController,
-                      'Masukkan email',
-                      false,
-                    ),
-                  ),
+                            const SizedBox(height: 36),
 
-                  Positioned(
-                    left: 58,
-                    top: 518,
-                    child: const Text(
-                      'Password',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 58,
-                    top: 540,
-                    child: _buildInputField(
-                      _viewModel.passwordController,
-                      'Masukkan password',
-                      true,
-                    ),
-                  ),
+                            Center(child: _buildLogo()),
 
-                  Positioned(
-                    left: 102,
-                    top: 628,
-                    child: GestureDetector(
-                      onTap: _viewModel.isLoading
-                          ? null
-                          : () => _viewModel.login(context),
-                      child: Container(
-                        width: 189,
-                        height: 38,
-                        decoration: ShapeDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(108.57),
-                          ),
+                            const SizedBox(height: 40),
+
+                            _fieldLabel('Email'),
+                            const SizedBox(height: 8),
+                            _buildInputField(
+                              controller: _viewModel.emailController,
+                              hint: '',
+                              isPassword: false,
+                              keyboardType: TextInputType.emailAddress,
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            _fieldLabel('Password'),
+                            const SizedBox(height: 8),
+                            _buildInputField(
+                              controller: _viewModel.passwordController,
+                              hint: '',
+                              isPassword: true,
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            if (_viewModel.errorMessage != null &&
+                                _viewModel.errorMessage!.isNotEmpty)
+                              _buildErrorBox(_viewModel.errorMessage!),
+
+                            const Spacer(),
+                            const SizedBox(height: 36),
+
+                            Center(child: _buildLoginButton()),
+
+                            const SizedBox(height: 36),
+                          ],
                         ),
-                        alignment: Alignment.center,
-                        child: _viewModel.isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text(
-                                'Login',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
                       ),
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           );
@@ -210,32 +137,280 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
-  Widget _buildInputField(
-    TextEditingController controller,
-    String hint,
-    bool isPassword,
-  ) {
+  // ── Tab Bar ──────────────────────────────────────
+  Widget _buildTabBar(BuildContext context) {
     return Container(
-      width: 275,
-      height: 38,
-      decoration: ShapeDecoration(
-        color: const Color(0xFFFDFDFD),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(108.57),
+      width: 240,
+      height: 36,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
         ),
+        borderRadius: BorderRadius.circular(100),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: TextField(
-          controller: controller,
-          obscureText: isPassword,
-          style: const TextStyle(color: Colors.black, fontFamily: 'Poppins'),
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            hintText: hint,
-            hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+      child: Row(
+        children: [
+          // Login — aktif
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEED5DB),
+                borderRadius: BorderRadius.circular(100),
+              ),
+              alignment: Alignment.center,
+              child: const Text(
+                'Login',
+                style: TextStyle(
+                  color: Color(0xFFCA748D),
+                  fontSize: 15,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          // Register — tidak aktif
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _viewModel.navigateToRegister(context),
+              child: const Center(
+                child: Text(
+                  'Register',
+                  style: TextStyle(
+                    color: Color(0xFFEED5DB),
+                    fontSize: 15,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _logoLine('Leaf'),
+        _logoLine('Loaff'),
+      ],
+    );
+  }
+
+  Widget _logoLine(String text) {
+    return Stack(
+      children: [
+        Text(
+          text,
+          style: TextStyle(
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 3
+              ..color = const Color(0xFF2D4839).withOpacity(0.4),
+            fontSize: 62,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w900,
+            height: 1.05,
           ),
         ),
+        // Teks utama dengan gradient
+        ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [Color(0xFFF5F5A0), Color(0xFFEED5DB)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ).createShader(bounds),
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 62,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w900,
+              height: 1.05,
+            ),
+          ),
+        ),
+        // 👑 Crown di huruf pertama
+        Positioned(
+          left: 2,
+          top: -8,
+          child: Text(
+            '♛',
+            style: TextStyle(
+              fontSize: 16,
+              color: const Color(0xFFD4B44A).withOpacity(0.9),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Label field ──────────────────────────────────
+  Widget _fieldLabel(String label) {
+    return Text(
+      label,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 15,
+        fontFamily: 'Poppins',
+        fontWeight: FontWeight.w700,
+        shadows: [
+          Shadow(
+            offset: Offset(1, 1),
+            blurRadius: 3,
+            color: Colors.black26,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Input field ──────────────────────────────────
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String hint,
+    required bool isPassword,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Container(
+      height: 44,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.92),
+        borderRadius: BorderRadius.circular(100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                obscureText: isPassword ? _obscurePassword : false,
+                keyboardType: keyboardType,
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                ),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                  hintText: hint,
+                  hintStyle:
+                      const TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+              ),
+            ),
+            if (isPassword)
+              GestureDetector(
+                onTap: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
+                child: Icon(
+                  _obscurePassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  size: 19,
+                  color: const Color(0xFFCA748D),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Error box ────────────────────────────────────
+  Widget _buildErrorBox(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFCA748D).withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+        border:
+            Border.all(color: const Color(0xFFCA748D).withOpacity(0.5)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline,
+              color: Color(0xFFEED5DB), size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Color(0xFFEED5DB),
+                fontSize: 12,
+                fontFamily: 'Poppins',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Tombol Login ─────────────────────────────────
+  Widget _buildLoginButton() {
+    return GestureDetector(
+      onTap: _viewModel.isLoading
+          ? null
+          : () => _viewModel.login(context),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 200,
+        height: 46,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: _viewModel.isLoading
+                ? [
+                    const Color(0xFFD699AB).withOpacity(0.6),
+                    const Color(0xFFCA748D).withOpacity(0.6),
+                  ]
+                : const [Color(0xFFD699AB), Color(0xFFCA748D)],
+          ),
+          borderRadius: BorderRadius.circular(100),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFCA748D).withOpacity(0.45),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        alignment: Alignment.center,
+        child: _viewModel.isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2.5),
+              )
+            : const Text(
+                'Login',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
+              ),
       ),
     );
   }

@@ -5,6 +5,13 @@ class WelcomeViewModel extends ChangeNotifier {
   int _currentSlideIndex = 0;
   int get currentSlideIndex => _currentSlideIndex;
 
+  void previousSlide() {
+    if (_currentSlideIndex > 0) {
+      _currentSlideIndex--;
+      notifyListeners();
+    }
+  }
+
   void onNextPressed(BuildContext context) {
     if (_currentSlideIndex < 2) {
       _currentSlideIndex++;
