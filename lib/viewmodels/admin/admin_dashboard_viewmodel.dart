@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/dashboard_stat_model.dart';
-import '../models/recent_order_model.dart';
-import '../services/admin_dashboard_service.dart';
+import '../../models/dashboard_stat_model.dart';
+import '../../models/recent_order_model.dart';
+import '../../services/admin/admin_dashboard_service.dart';
 
 class AdminDashboardViewModel extends ChangeNotifier {
   final AdminDashboardService _service = AdminDashboardService();

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/menu_model.dart';
-import '../../viewmodels/admin_add_menu_viewmodel.dart';
+import '../../viewmodels/admin/admin_add_menu_viewmodel.dart';
 
 class AdminEditMenuView extends StatefulWidget {
   final MenuModel menu;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:leafnloaff/viewmodels/admin_order_review_viewmodel.dart';
+import 'package:leafnloaff/viewmodels/admin/admin_order_review_viewmodel.dart';
 import 'package:leafnloaff/models/order_review_model.dart';
 
 class AdminOrderReviewView extends StatefulWidget {

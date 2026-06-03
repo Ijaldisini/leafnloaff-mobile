@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../viewmodels/admin_add_menu_viewmodel.dart';
+import '../../viewmodels/admin/admin_add_menu_viewmodel.dart';
 
 class AdminAddMenuView extends StatefulWidget {
   const AdminAddMenuView({super.key});

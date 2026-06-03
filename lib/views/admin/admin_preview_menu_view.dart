@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/menu_model.dart';
-import '../../viewmodels/admin_preview_menu_viewmodel.dart';
+import '../../viewmodels/admin/admin_preview_menu_viewmodel.dart';
 import 'admin_edit_menu_view.dart';
 import 'admin_review_menu_view.dart';
 

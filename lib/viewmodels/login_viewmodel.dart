@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
 import '../views/register_view.dart';
-import '../views/home_view.dart';
+import '../views/cust/home_view.dart';
 import '../views/admin/admin_main_view.dart';
 import 'package:flutter/scheduler.dart';
+import '../views/cust/main_view.dart';
 
 class LoginViewModel extends ChangeNotifier {
   final TextEditingController emailController = TextEditingController();
@@ -74,7 +75,8 @@ class LoginViewModel extends ChangeNotifier {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-              builder: (context) => HomeView(user: loggedInUser),
+              builder: (context) =>
+                  CustomerMainView(user: loggedInUser),
             ),
             (route) => false,
           );
@@ -83,13 +85,10 @@ class LoginViewModel extends ChangeNotifier {
     } catch (e) {
       final errorMsg = e.toString().replaceAll('Exception: ', '');
       _setError(errorMsg);
-      
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMsg),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
         );
       }
     } finally {

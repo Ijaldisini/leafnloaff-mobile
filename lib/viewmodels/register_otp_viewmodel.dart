@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:otp/otp.dart';
 import '../models/user_model.dart';
-import '../views/home_view.dart';
+import '../views/cust/main_view.dart';
 
 class RegisterOtpViewModel extends ChangeNotifier {
   final List<TextEditingController> otpControllers = List.generate(
@@ -60,7 +60,9 @@ class RegisterOtpViewModel extends ChangeNotifier {
 
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => HomeView(user: user)),
+            MaterialPageRoute(
+              builder: (context) => CustomerMainView(user: user),
+            ),
             (route) => false,
           );
         }

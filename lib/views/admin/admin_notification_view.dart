@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../viewmodels/admin_notification_viewmodel.dart';
+import '../../viewmodels/admin/admin_notification_viewmodel.dart';
 
 class AdminNotificationView extends StatefulWidget {
   const AdminNotificationView({super.key});

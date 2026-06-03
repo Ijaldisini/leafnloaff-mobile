@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../viewmodels/admin_voucher_viewmodel.dart';
+import '../../viewmodels/admin/admin_voucher_viewmodel.dart';
 import 'admin_add_voucher_view.dart';
 import 'admin_detail_voucher_view.dart';
 import '../../models/voucher_model.dart';

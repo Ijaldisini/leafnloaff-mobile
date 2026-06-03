@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/voucher_model.dart';
+import '../../models/voucher_model.dart';
 
 class VoucherService {
   final _supabase = Supabase.instance.client;

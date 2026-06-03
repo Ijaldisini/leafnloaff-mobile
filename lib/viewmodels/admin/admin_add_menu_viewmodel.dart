@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../models/menu_model.dart';
-import '../services/admin_add_menu_service.dart';
-import '../utils/image_picker_util.dart';
+import '../../models/menu_model.dart';
+import '../../services/admin/admin_add_menu_service.dart';
+import '../../utils/image_picker_util.dart';
 
 class AdminAddMenuViewModel extends ChangeNotifier {
   final AdminAddMenuService _service = AdminAddMenuService();

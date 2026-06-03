@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/order_management_model.dart';
-import '../services/admin_order_management_service.dart';
-import '../services/pdf/pdf_export_service.dart';
+import '../../models/order_management_model.dart';
+import '../../services/admin/admin_order_management_service.dart';
+import '../../services/pdf/pdf_export_service.dart';
 
 class AdminOrderManagementViewModel extends ChangeNotifier {
   final AdminOrderManagementService _service = AdminOrderManagementService();

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../viewmodels/admin_menu_management_viewmodel.dart';
+import '../../viewmodels/admin/admin_menu_management_viewmodel.dart';
 import '../../models/menu_model.dart';
 import '../admin/admin_add_menu_view.dart';
 import '../admin/admin_edit_menu_view.dart';

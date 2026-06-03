@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/menu_model.dart';
-import '../services/admin_menu_management_service.dart';
+import '../../models/menu_model.dart';
+import '../../services/admin/admin_menu_management_service.dart';
 
 class AdminMenuManagementViewModel extends ChangeNotifier {
   final AdminMenuManagementService _service = AdminMenuManagementService();

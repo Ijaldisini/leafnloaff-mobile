@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/voucher_model.dart';
-import '../../viewmodels/admin_edit_voucher_viewmodel.dart';
+import '../../viewmodels/admin/admin_edit_voucher_viewmodel.dart';
 
 class AdminEditVoucherView extends StatefulWidget {
   final VoucherModel voucher;

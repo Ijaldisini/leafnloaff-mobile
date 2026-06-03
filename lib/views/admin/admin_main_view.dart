@@ -79,8 +79,8 @@ class _AdminMainViewState extends State<AdminMainView> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         _buildNavItem(index: 0, title: 'Home'),
-                        _buildNavItem(index: 1, title: 'Menu'),
-                        _buildNavItem(index: 2, title: 'Order'),
+                        _buildNavItem(index: 1, title: 'Order'),
+                        _buildNavItem(index: 2, title: 'Menu'),
                         _buildNavItem(index: 3, title: 'Notif'),
                         _buildNavItem(
                           index: 4,

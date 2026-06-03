@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../viewmodels/admin_add_voucher_viewmodel.dart';
+import '../../viewmodels/admin/admin_add_voucher_viewmodel.dart';
 
 class AdminAddVoucherView extends StatefulWidget {
   const AdminAddVoucherView({super.key});
@@ -98,21 +98,42 @@ class _AdminAddVoucherViewState extends State<AdminAddVoucherView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'New Voucher',
-                      style: TextStyle(
-                        color: Color(0xFFFDFDFD),
-                        fontSize: 25,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w800,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(2, 2),
-                            blurRadius: 4,
-                            color: Color(0x3F000000),
+                    Row(
+                      children: [
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          alignment: Alignment.centerLeft,
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                            size: 28,
                           ),
-                        ],
-                      ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+
+                        const Expanded(
+                          child: Text(
+                            'New Voucher',
+                            textAlign: TextAlign
+                                .center,
+                            style: TextStyle(
+                              color: Color(0xFFFDFDFD),
+                              fontSize: 25,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w800,
+                              shadows: [
+                                Shadow(
+                                  offset: Offset(2, 2),
+                                  blurRadius: 4,
+                                  color: Color(0x3F000000),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 48),
+                      ],
                     ),
                     const SizedBox(height: 30),
 

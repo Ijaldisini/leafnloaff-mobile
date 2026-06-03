@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:leafnloaff/viewmodels/admin_order_management_viewmodel.dart';
+import 'package:leafnloaff/viewmodels/admin/admin_order_management_viewmodel.dart';
 import 'package:leafnloaff/models/order_management_model.dart';
 import 'package:leafnloaff/views/admin/admin_order_detail_view.dart';
 

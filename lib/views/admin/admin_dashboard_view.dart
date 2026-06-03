@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:intl/intl.dart';
-import 'package:leafnloaff/viewmodels/admin_dashboard_viewmodel.dart';
+import 'package:leafnloaff/viewmodels/admin/admin_dashboard_viewmodel.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../login_view.dart';
 
 class AdminDashboardView extends StatefulWidget {
   const AdminDashboardView({super.key});
@@ -15,9 +17,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
   final PageController _pageController = PageController();
 
   int _currentPage = 0;
-  int _selectedNavIndex = 0;
-
-  final List<String> _navLabels = ['Home', 'Menu', 'Order', 'Notif'];
 
   @override
   void initState() {
@@ -34,6 +33,59 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
   String _capitalize(String text) {
     if (text.isEmpty) return text;
     return text[0].toUpperCase() + text.substring(1).toLowerCase();
+  }
+
+  void _handleLogout() async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Logout',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: const Text(
+            'Apakah Anda yakin ingin keluar?',
+            style: TextStyle(fontFamily: 'Poppins'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text(
+                'Batal',
+                style: TextStyle(color: Colors.grey, fontFamily: 'Poppins'),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text(
+                'Keluar',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      await Supabase.instance.client.auth.signOut();
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LoginView(),
+        ),
+        (Route<dynamic> route) => false,
+      );
+    }
   }
 
   @override
@@ -54,7 +106,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
 
           return Stack(
             children: [
-              // 🎨 Background Pink
               Positioned(
                 left: -17,
                 top: -30,
@@ -64,8 +115,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                   decoration: const BoxDecoration(color: Color(0xFFD699AB)),
                 ),
               ),
-              
-              // 🎨 Gradient Fade
+
               Positioned(
                 left: -17,
                 top: 147,
@@ -87,62 +137,79 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                   color: const Color(0xFFCA748D),
                   onRefresh: _viewModel.fetchDashboardData,
                   child: ListView(
-                    padding: const EdgeInsets.only(bottom: 120),
+                    padding: const EdgeInsets.only(bottom: 100),
                     physics: const AlwaysScrollableScrollPhysics(
                       parent: BouncingScrollPhysics(),
                     ),
                     children: [
                       Padding(
                         padding: const EdgeInsets.fromLTRB(25, 20, 25, 20),
-                        child: Column(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment
+                              .spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              "Today's Overview",
-                              style: TextStyle(
-                                color: Color(0xFFFDFDFD),
-                                fontSize: 19.17,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w800,
-                                shadows: [
-                                  Shadow(
-                                    offset: Offset(2, 2),
-                                    blurRadius: 4,
-                                    color: Color(0x3F000000),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Today's Overview",
+                                  style: TextStyle(
+                                    color: Color(0xFFFDFDFD),
+                                    fontSize: 19.17,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w800,
+                                    shadows: [
+                                      Shadow(
+                                        offset: Offset(2, 2),
+                                        blurRadius: 4,
+                                        color: Color(0x3F000000),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Opacity(
-                              opacity: 0.70,
-                              child: Text(
-                                todayDateStr,
-                                style: const TextStyle(
-                                  color: Color(0xFFFDFDFD),
-                                  fontSize: 15,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w600,
                                 ),
+                                const SizedBox(height: 5),
+                                Opacity(
+                                  opacity: 0.70,
+                                  child: Text(
+                                    todayDateStr,
+                                    style: const TextStyle(
+                                      color: Color(0xFFFDFDFD),
+                                      fontSize: 15,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            IconButton(
+                              onPressed: _handleLogout,
+                              icon: const Icon(
+                                Icons.logout,
+                                color: Colors.white,
+                                size: 28,
                               ),
+                              tooltip: 'Logout',
                             ),
                           ],
                         ),
                       ),
 
-                      // 📊 Top Cards Carousel
                       SizedBox(
                         height: 145,
                         child: PageView.builder(
                           controller: _pageController,
                           physics: const BouncingScrollPhysics(),
-                          scrollBehavior: const MaterialScrollBehavior().copyWith(
-                            dragDevices: {
-                              PointerDeviceKind.mouse,
-                              PointerDeviceKind.touch,
-                              PointerDeviceKind.trackpad,
-                            },
-                          ),
+                          scrollBehavior: const MaterialScrollBehavior()
+                              .copyWith(
+                                dragDevices: {
+                                  PointerDeviceKind.mouse,
+                                  PointerDeviceKind.touch,
+                                  PointerDeviceKind.trackpad,
+                                },
+                              ),
                           onPageChanged: (index) {
                             setState(() => _currentPage = index);
                           },
@@ -159,7 +226,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                         ),
                       ),
 
-                      // 🔘 Dots Indicator
                       const SizedBox(height: 15),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -173,7 +239,9 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                               shape: BoxShape.circle,
                               color: _currentPage == index
                                   ? const Color(0xFF1C3628)
-                                  : const Color(0xFFEED5DB).withOpacity(0.5),
+                                  : const Color(
+                                      0xFFEED5DB,
+                                    ).withValues(alpha: 0.5),
                             ),
                           ),
                         ),
@@ -181,7 +249,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
 
                       const SizedBox(height: 25),
 
-                      // 🔘 Action Buttons dengan Icon
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 25),
                         child: Row(
@@ -212,7 +279,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
 
                       const SizedBox(height: 30),
 
-                      //  Recent Orders Section
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 25),
                         child: Row(
@@ -236,7 +302,8 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                               ),
                             ),
                             GestureDetector(
-                              onTap: () {},
+                              onTap: () {
+                              },
                               child: Opacity(
                                 opacity: 0.70,
                                 child: const Text(
@@ -299,87 +366,11 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                               productName: order.productName,
                               qty: order.quantity.toString(),
                               timeAgo: _viewModel.getTimeAgo(order.createdAt),
-                              notes: order.notes,
+                              notes: order.notes ?? '',
                             ),
                           );
                         }),
                     ],
-                  ),
-                ),
-              ),
-
-              // 🔽 Bottom Gradient Overlay
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  height: 130,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [Color(0xFF3D5A4A), Color(0x003E5A4A)],
-                    ),
-                  ),
-                ),
-              ),
-
-              // 🧭 Bottom Navigation - 4 Tabs
-              Positioned(
-                left: 25,
-                right: 25,
-                bottom: MediaQuery.of(context).padding.bottom + 20,
-                child: Container(
-                  height: 48,
-                  decoration: ShapeDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(120),
-                    ),
-                    shadows: const [
-                      BoxShadow(
-                        color: Color(0x3F000000),
-                        blurRadius: 4,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: List.generate(_navLabels.length, (index) {
-                      final isActive = _selectedNavIndex == index;
-                      return Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedNavIndex = index),
-                          child: Container(
-                            decoration: isActive
-                                ? ShapeDecoration(
-                                    color: const Color(0xFFEED5DB),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(100),
-                                    ),
-                                  )
-                                : null,
-                            alignment: Alignment.center,
-                            child: Text(
-                              _navLabels[index],
-                              style: TextStyle(
-                                color: isActive
-                                    ? const Color(0xFFCA748D)
-                                    : const Color(0xFFFDFDFD),
-                                fontSize: 16,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
                   ),
                 ),
               ),
@@ -390,7 +381,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     );
   }
 
-  //  Top Card Widget
   Widget _buildTopCard({
     required String title,
     required String value,
@@ -491,14 +481,12 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     );
   }
 
-  //  Action Button dengan Icon
   Widget _buildActionButton({required String title, required IconData icon}) {
     return GestureDetector(
       onTap: () {
-        // TODO: Add action
       },
       child: Container(
-        height: 90,  // ✅ Tinggi container
+        height: 90,
         padding: const EdgeInsets.all(16),
         decoration: ShapeDecoration(
           gradient: const LinearGradient(
@@ -517,9 +505,8 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
             ),
           ],
         ),
-        child: Stack(  // ✅ PAKAI STACK BIAR GA OVERFLOW
+        child: Stack(
           children: [
-            // ✅ TEXT DI ATAS
             Text(
               title,
               style: const TextStyle(
@@ -530,23 +517,17 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                 height: 1.2,
               ),
             ),
-            
-            // ✅ ICON DI KANAN BAWAH
             Positioned(
               right: 0,
               bottom: 0,
               child: Container(
-                width: 28,  // ✅ Ukuran container icon (diperkecil dikit)
+                width: 28,
                 height: 28,
                 decoration: const BoxDecoration(
                   color: Color(0xFFCA748D),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  size: 20,  // ✅ Ukuran icon (diperkecil)
-                  color: Colors.white,
-                ),
+                child: Icon(icon, size: 20, color: Colors.white),
               ),
             ),
           ],
@@ -555,7 +536,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     );
   }
 
-  // 📦 Order Card Widget
   Widget _buildOrderCard({
     required String orderId,
     required String status,

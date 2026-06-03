@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/order_review_model.dart';
-import '../services/admin_order_review_service.dart';
+import '../../models/order_review_model.dart';
+import '../../services/admin/admin_order_review_service.dart';
 
 class AdminOrderReviewViewModel extends ChangeNotifier {
   final AdminOrderReviewService _service = AdminOrderReviewService();

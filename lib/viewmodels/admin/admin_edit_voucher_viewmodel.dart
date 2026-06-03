@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../services/voucher_service.dart';
+import '../../services/admin/admin_voucher_service.dart';
 
 class AdminEditVoucherViewModel extends ChangeNotifier {
   final VoucherService _voucherService = VoucherService();

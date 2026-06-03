@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/voucher_model.dart';
-import '../services/voucher_service.dart';
+import '../../models/voucher_model.dart';
+import '../../services/admin/admin_voucher_service.dart';
 
 class AdminVoucherViewModel extends ChangeNotifier {
   final VoucherService _voucherService = VoucherService();
