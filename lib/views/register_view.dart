@@ -55,14 +55,13 @@ class _RegisterViewState extends State<RegisterView>
             width: screenWidth,
             height: screenHeight,
             decoration: const BoxDecoration(
-              // ✅ Gradient yang sama dengan LoginView
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFFFEF9C3),  // ✅ Kuning cream
-                  Color(0xFF84A98C),  // ✅ Hijau sage
-                  Color(0xFF52796F),  // ✅ Hijau gelap
+                  Color(0xFFFEF9C3),
+                  Color(0xFF84A98C),
+                  Color(0xFF52796F),
                 ],
                 stops: [0.0, 0.4, 1.0],
               ),
@@ -86,17 +85,14 @@ class _RegisterViewState extends State<RegisterView>
                           children: [
                             const SizedBox(height: 28),
 
-                            // ── Tab bar ───────────────────────────
                             Center(child: _buildTabBar()),
 
                             const SizedBox(height: 28),
 
-                            // ── Logo ─────────────────────────────
                             Center(child: _buildLogo()),
 
                             const SizedBox(height: 28),
 
-                            // ── Fields ────────────────────────────
                             _fieldLabel('Name'),
                             const SizedBox(height: 8),
                             _buildInputField(
@@ -141,7 +137,6 @@ class _RegisterViewState extends State<RegisterView>
                             const Spacer(),
                             const SizedBox(height: 28),
 
-                            // ── Tombol Register ───────────────────
                             Center(child: _buildRegisterButton()),
 
                             const SizedBox(height: 36),
@@ -174,7 +169,6 @@ class _RegisterViewState extends State<RegisterView>
       ),
       child: Row(
         children: [
-          // Login — tidak aktif
           Expanded(
             child: GestureDetector(
               onTap: () => Navigator.pushAndRemoveUntil(
@@ -195,7 +189,6 @@ class _RegisterViewState extends State<RegisterView>
               ),
             ),
           ),
-          // Register — aktif
           Expanded(
             child: Container(
               margin: const EdgeInsets.all(3),
@@ -356,10 +349,10 @@ class _RegisterViewState extends State<RegisterView>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFE76F51).withOpacity(0.2),  // ✅ Coral
+        color: const Color(0xFFE76F51).withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFE76F51).withOpacity(0.5),  // ✅ Coral
+          color: const Color(0xFFE76F51).withOpacity(0.5),
         ),
       ),
       child: Row(
@@ -407,7 +400,7 @@ class _RegisterViewState extends State<RegisterView>
           borderRadius: BorderRadius.circular(100),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFCA748D).withOpacity(0.45),  // ✅ Coral shadow
+              color: const Color(0xFFCA748D).withOpacity(0.45),
               blurRadius: 14,
               offset: const Offset(0, 6),
             ),
