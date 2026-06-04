@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/user_model.dart';
 import 'home_view.dart';
+import 'profile_view.dart';
 
 class CustomerMainView extends StatefulWidget {
   final UserModel user;
@@ -33,12 +34,7 @@ class _CustomerMainViewState extends State<CustomerMainView> {
           style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
         ),
       ),
-      const Center(
-        child: Text(
-          'Profile View',
-          style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
-        ),
-      ),
+      ProfileView(user: widget.user),
     ];
   }
 

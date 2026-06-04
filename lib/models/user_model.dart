@@ -5,7 +5,9 @@ class UserModel {
   final String email;
   final String? otpSecret;
   final String role;
-  
+  final String? phoneNumber;
+  final String? profileImageUrl;
+
   UserModel({
     required this.id,
     required this.fullName,
@@ -13,6 +15,8 @@ class UserModel {
     required this.email,
     this.otpSecret,
     this.role = 'customer',
+    this.phoneNumber,
+    this.profileImageUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,6 +27,8 @@ class UserModel {
       'email': email,
       'otp_secret': otpSecret,
       'role': role,
+      'phone_number': phoneNumber,
+      'profile_image_url': profileImageUrl,
     };
   }
 
@@ -33,9 +39,27 @@ class UserModel {
       username: map['username'] ?? '',
       email: map['email'] ?? '',
       otpSecret: map['otp_secret'],
-      role:
-          map['role'] ??
-          'customer',
+      role: map['role'] ?? 'customer',
+      phoneNumber: map['phone_number'],
+      profileImageUrl: map['profile_image_url'],
+    );
+  }
+
+  UserModel copyWith({
+    String? fullName,
+    String? username,
+    String? phoneNumber,
+    String? profileImageUrl,
+  }) {
+    return UserModel(
+      id: id,
+      fullName: fullName ?? this.fullName,
+      username: username ?? this.username,
+      email: email,
+      otpSecret: otpSecret,
+      role: role,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
     );
   }
 }
