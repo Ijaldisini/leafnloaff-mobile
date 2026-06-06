@@ -17,7 +17,10 @@ class ReviewMenuService {
               full_name
             )
           ''')
-          .eq('product_id', productId)
+          .eq(
+            'menu_id',
+            productId,
+          )
           .order('created_at', ascending: false);
 
       return List<Map<String, dynamic>>.from(response);
@@ -32,11 +35,26 @@ class ReviewMenuService {
     required int quantity,
   }) async {
     try {
-      await _supabase.from('cart').insert({
-        'user_id': userId,
-        'product_id': productId,
-        'quantity': quantity,
-      });
+      final existingCartItem = await _supabase
+          .from('cart')
+          .select()
+          .eq('user_id', userId)
+          .eq('menu_id', productId)
+          .maybeSingle();
+
+      if (existingCartItem != null) {
+        final newQuantity = (existingCartItem['quantity'] as int) + quantity;
+        await _supabase
+            .from('cart')
+            .update({'quantity': newQuantity})
+            .eq('id', existingCartItem['id']);
+      } else {
+        await _supabase.from('cart').insert({
+          'user_id': userId,
+          'menu_id': productId,
+          'quantity': quantity,
+        });
+      }
     } catch (e) {
       throw Exception('Gagal menambah ke keranjang: $e');
     }

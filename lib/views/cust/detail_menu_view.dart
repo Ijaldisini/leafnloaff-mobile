@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart';
 import '../../viewmodels/cust/detail_menu_viewmodel.dart';
-import 'main_view.dart';
 import 'review_menu_view.dart';
 
 class DetailMenuView extends StatefulWidget {
@@ -65,11 +64,16 @@ class _DetailMenuViewState extends State<DetailMenuView>
   @override
   void dispose() {
     _animController.dispose();
+    _viewModel.dispose();
     super.dispose();
   }
 
   String get _formattedPrice {
-    return 'Rp ${widget.price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
+    return NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(widget.price);
   }
 
   @override
@@ -168,70 +172,77 @@ class _DetailMenuViewState extends State<DetailMenuView>
                       ),
 
                       Transform.translate(
-                      offset: const Offset(0, -90),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 26),
-                            child: Container(
-                              width: double.infinity,
-                              height: 100,
-                              decoration: const ShapeDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [Color(0x00CA748D), Color(0xFFCA748D)],
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.only(
-                                    bottomLeft: Radius.circular(20),
-                                    bottomRight: Radius.circular(20),
+                        offset: const Offset(0, -90),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 26,
+                              ),
+                              child: Container(
+                                width: double.infinity,
+                                height: 100,
+                                decoration: const ShapeDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Color(0x00CA748D),
+                                      Color(0xFFCA748D),
+                                    ],
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.only(
+                                      bottomLeft: Radius.circular(20),
+                                      bottomRight: Radius.circular(20),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              alignment: Alignment.bottomLeft,
-                              padding: const EdgeInsets.only(
-                                left: 16,
-                                bottom: 14,
-                              ),
-                              child: Text(
-                                _formattedPrice,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  shadows: [
-                                    Shadow(
-                                      offset: Offset(1, 1),
-                                      blurRadius: 3,
-                                      color: Colors.black26,
-                                    ),
-                                  ],
+                                alignment: Alignment.bottomLeft,
+                                padding: const EdgeInsets.only(
+                                  left: 16,
+                                  bottom: 14,
+                                ),
+                                child: Text(
+                                  _formattedPrice,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w800,
+                                    shadows: [
+                                      Shadow(
+                                        offset: Offset(1, 1),
+                                        blurRadius: 3,
+                                        color: Colors.black26,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
 
-                          const SizedBox(height: 16), 
+                            const SizedBox(height: 16),
 
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(26, 0, 26, 0),
-                            child: Container(
-                              width: double.infinity,
-                              decoration: ShapeDecoration(
-                                color: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                shadows: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.15),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 6),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(26, 0, 26, 0),
+                              child: Container(
+                                width: double.infinity,
+                                decoration: ShapeDecoration(
+                                  color: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
-                                ],
-                              ),
+                                  shadows: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -650,12 +661,7 @@ class _DetailMenuViewState extends State<DetailMenuView>
     try {
       final success = await _viewModel.addToCart(widget.productId);
 
-      if (!success && mounted) {
-        Navigator.pop(context);
-        return;
-      }
-
-      if (mounted) {
+      if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Row(
@@ -685,7 +691,7 @@ class _DetailMenuViewState extends State<DetailMenuView>
               'Gagal menambahkan: $e',
               style: const TextStyle(fontFamily: 'Poppins'),
             ),
-            backgroundColor: const Color(0xFFCA748D),
+            backgroundColor: const Color(0xFFC23437),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),

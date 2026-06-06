@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/services/cust/review_menu_service.dart';
+import '../../services/cust/review_menu_service.dart';
 
 class ReviewMenuViewModel extends ChangeNotifier {
   final ReviewMenuService _service = ReviewMenuService();
@@ -34,9 +34,7 @@ class ReviewMenuViewModel extends ChangeNotifier {
     try {
       final userId = _service.getCurrentUserId();
       if (userId == null) {
-        _isAddingToCart = false;
-        notifyListeners();
-        return false;
+        throw Exception("Sesi telah habis, silakan login ulang.");
       }
 
       await _service.addToCart(
@@ -51,7 +49,7 @@ class ReviewMenuViewModel extends ChangeNotifier {
     } catch (e) {
       _isAddingToCart = false;
       notifyListeners();
-      throw Exception(e.toString());
+      throw Exception(e.toString().replaceAll("Exception: ", ""));
     }
   }
 }

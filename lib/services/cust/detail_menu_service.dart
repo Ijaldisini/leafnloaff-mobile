@@ -26,12 +26,26 @@ class DetailMenuService {
     required int quantity,
   }) async {
     try {
-      await _supabase.from('cart').insert({
-        'user_id': userId,
-        'menu_id': productId,
-        'quantity': quantity,
-        'created_at': DateTime.now().toIso8601String(),
-      });
+      final existingCartItem = await _supabase
+          .from('cart')
+          .select()
+          .eq('user_id', userId)
+          .eq('menu_id', productId)
+          .maybeSingle();
+
+      if (existingCartItem != null) {
+        final newQuantity = (existingCartItem['quantity'] as int) + quantity;
+        await _supabase
+            .from('cart')
+            .update({'quantity': newQuantity})
+            .eq('id', existingCartItem['id']);
+      } else {
+        await _supabase.from('cart').insert({
+          'user_id': userId,
+          'menu_id': productId,
+          'quantity': quantity,
+        });
+      }
     } catch (e) {
       throw Exception('Gagal menambah ke keranjang: $e');
     }

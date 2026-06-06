@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../viewmodels/cust/review_menu_viewmodel.dart';
 
 class ReviewMenuView extends StatefulWidget {
@@ -52,11 +53,16 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
   @override
   void dispose() {
     _animController.dispose();
+    _viewModel.dispose();
     super.dispose();
   }
 
   String get _formattedPrice {
-    return 'Rp. ${widget.price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
+    return NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    ).format(widget.price);
   }
 
   @override
@@ -361,11 +367,7 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                                         rating: (review['rating'] ?? 5.0)
                                             .toDouble(),
                                         comment: review['comment'] ?? '',
-                                        images: review['images'] != null
-                                            ? List<String>.from(
-                                                review['images'],
-                                              )
-                                            : [],
+                                        imageUrl: review['image_url'],
                                       );
                                     },
                                   ),
@@ -441,17 +443,9 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 18.22,
+                                    fontSize: 14,
                                     fontFamily: 'Poppins',
                                     fontWeight: FontWeight.w800,
-                                    height: 1.10,
-                                    shadows: [
-                                      Shadow(
-                                        offset: Offset(2, 2),
-                                        blurRadius: 2,
-                                        color: Colors.black26,
-                                      ),
-                                    ],
                                   ),
                                 ),
                               ),
@@ -472,7 +466,7 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
     required String date,
     required double rating,
     required String comment,
-    required List<String> images,
+    required String? imageUrl,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -555,34 +549,22 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                 height: 1.4,
               ),
             ),
-          if (images.isNotEmpty) ...[
+
+          if (imageUrl != null && imageUrl.isNotEmpty) ...[
             const SizedBox(height: 12),
-            SizedBox(
-              height: 70,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: images.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      images[index],
-                      width: 70,
-                      height: 70,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 70,
-                        height: 70,
-                        color: Colors.grey.shade200,
-                        child: const Icon(
-                          Icons.broken_image,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                  );
-                },
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                imageUrl,
+                height: 120,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 100,
+                  width: double.infinity,
+                  color: Colors.grey.shade200,
+                  child: const Icon(Icons.broken_image, color: Colors.grey),
+                ),
               ),
             ),
           ],
@@ -618,20 +600,25 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
     try {
       final success = await _viewModel.addToCart(widget.productId);
 
-      if (!success && mounted) {
-        Navigator.pop(context);
-        return;
-      }
-
-      if (mounted) {
+      if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Berhasil ditambahkan ke keranjang!',
-              style: TextStyle(fontFamily: 'Poppins'),
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
+                SizedBox(width: 8),
+                Text(
+                  'Berhasil ditambahkan ke keranjang!',
+                  style: TextStyle(fontFamily: 'Poppins'),
+                ),
+              ],
             ),
-            backgroundColor: Color(0xFF426E55),
+            backgroundColor: const Color(0xFF426E55),
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           ),
         );
       }
@@ -643,8 +630,12 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
               'Gagal: ${e.toString()}',
               style: const TextStyle(fontFamily: 'Poppins'),
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: const Color(0xFFC23437),
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           ),
         );
       }

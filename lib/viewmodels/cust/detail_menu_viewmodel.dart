@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/services/cust/detail_menu_service.dart';
+import '../../services/cust/detail_menu_service.dart';
 
 class DetailMenuViewModel extends ChangeNotifier {
   final DetailMenuService _service = DetailMenuService();
@@ -66,9 +66,7 @@ class DetailMenuViewModel extends ChangeNotifier {
     try {
       final userId = _service.getCurrentUserId();
       if (userId == null) {
-        _isAddingToCart = false;
-        notifyListeners();
-        return false;
+        throw Exception("Sesi telah habis, silakan login ulang.");
       }
 
       await _service.addToCart(
@@ -83,7 +81,7 @@ class DetailMenuViewModel extends ChangeNotifier {
     } catch (e) {
       _isAddingToCart = false;
       notifyListeners();
-      throw Exception(e.toString());
+      throw Exception(e.toString().replaceAll("Exception: ", ""));
     }
   }
 }

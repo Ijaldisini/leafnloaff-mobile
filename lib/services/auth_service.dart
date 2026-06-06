@@ -63,4 +63,21 @@ class AuthService {
       throw Exception('Gagal login: ${e.toString()}');
     }
   }
+
+  Future<UserModel?> getCurrentUser() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return null;
+
+    try {
+      final profileData = await _supabase
+          .from('profiles')
+          .select()
+          .eq('id', user.id)
+          .single();
+
+      return UserModel.fromMap(profileData);
+    } catch (e) {
+      return null;
+    }
+  }
 }

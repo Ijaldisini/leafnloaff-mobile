@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/user_model.dart';
 import 'home_view.dart';
 import 'profile_view.dart';
+import 'cart_view.dart';
 
 class CustomerMainView extends StatefulWidget {
   final UserModel user;
@@ -22,12 +23,7 @@ class _CustomerMainViewState extends State<CustomerMainView> {
     super.initState();
     _pages = [
       HomeView(user: widget.user),
-      const Center(
-        child: Text(
-          'Cart View',
-          style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
-        ),
-      ),
+      const CartView(),
       const Center(
         child: Text(
           'Notification View',
