@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/cust/cart_viewmodel.dart';
+import 'checkout_view.dart';
 
 class CartView extends StatefulWidget {
   const CartView({super.key});
@@ -255,7 +256,13 @@ class _CartViewState extends State<CartView> {
                           GestureDetector(
                             onTap: _viewModel.selectedItemIds.isEmpty
                                 ? null
-                                : () {},
+                                : () {Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const CheckoutView(),
+                                      ),
+                                    );},
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
