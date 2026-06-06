@@ -15,11 +15,19 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final HomeViewModel _viewModel = HomeViewModel();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _viewModel.fetchHomeData();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _viewModel.dispose();
+    super.dispose();
   }
 
   @override
@@ -35,9 +43,7 @@ class _HomeViewState extends State<HomeView> {
             );
           }
 
-          final products = _viewModel.menus
-              .where((m) => m['category'] == _viewModel.selectedCategory)
-              .toList();
+          final products = _viewModel.filteredMenus;
 
           return SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -62,58 +68,61 @@ class _HomeViewState extends State<HomeView> {
                               const Icon(
                                 Icons.location_on,
                                 color: Color(0xFF2D4839),
-                                size: 20,
+                                size: 28,
                               ),
-                              const SizedBox(width: 4),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Your Location',
-                                    style: TextStyle(
-                                      color: const Color(0xFFFDFDFD),
-                                      fontSize: 19.17,
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w800,
-                                      height: 1.10,
-                                      shadows: [
-                                        Shadow(
-                                          offset: const Offset(2, 2),
-                                          blurRadius: 4,
-                                          color: Colors.black.withValues(
-                                            alpha: 0.25,
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Your Location',
+                                      style: TextStyle(
+                                        color: const Color(0xFFFDFDFD),
+                                        fontSize: 19.17,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w800,
+                                        height: 1.10,
+                                        shadows: [
+                                          Shadow(
+                                            offset: const Offset(2, 2),
+                                            blurRadius: 4,
+                                            color: Colors.black.withValues(
+                                              alpha: 0.25,
+                                            ),
                                           ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      _viewModel
+                                          .currentLocation,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.8,
                                         ),
-                                      ],
+                                        fontSize: 13,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w500,
+                                        height: 1.10,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    'Blablabla Street, Blabla City',
-                                    style: TextStyle(
-                                      color: const Color.fromARGB(
-                                        116,
-                                        253,
-                                        253,
-                                        253,
-                                      ).withValues(alpha: 0.70),
-                                      fontSize: 15,
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w500,
-                                      height: 1.10,
-                                    ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ],
                           ),
                         ),
 
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 16),
 
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: Container(
-                            height: 40,
+                            height: 45,
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(100),
@@ -125,32 +134,43 @@ class _HomeViewState extends State<HomeView> {
                                 ),
                               ],
                             ),
-                            child: Row(
-                              children: [
-                                const SizedBox(width: 14),
-                                Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF426E55),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.search,
-                                    size: 16,
-                                    color: Colors.white,
-                                  ),
+                            child: TextField(
+                              controller: _searchController,
+                              onChanged: (value) =>
+                                  _viewModel.setSearchQuery(value),
+                              style: const TextStyle(
+                                color: Color(0xFF2D4839),
+                                fontFamily: 'Poppins',
+                                fontSize: 14,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: 'Search...',
+                                hintStyle: const TextStyle(
+                                  color: Colors.grey,
+                                  fontFamily: 'Poppins',
+                                  fontSize: 14,
                                 ),
-                                const SizedBox(width: 10),
-                                const Text(
-                                  'Search...',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 13,
-                                    fontFamily: 'Poppins',
-                                  ),
+                                prefixIcon: const Icon(
+                                  Icons.search,
+                                  color: Color(0xFF426E55),
                                 ),
-                              ],
+                                suffixIcon: _viewModel.searchQuery.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(
+                                          Icons.clear,
+                                          color: Colors.grey,
+                                        ),
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          _viewModel.setSearchQuery('');
+                                        },
+                                      )
+                                    : null,
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -214,7 +234,8 @@ class _HomeViewState extends State<HomeView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (_viewModel.categories.isNotEmpty)
+                      if (_viewModel.categories.isNotEmpty &&
+                          _viewModel.searchQuery.isEmpty)
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -267,16 +288,20 @@ class _HomeViewState extends State<HomeView> {
                             }).toList(),
                           ),
                         ),
+
                       const SizedBox(height: 16),
+
                       if (products.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 24,
                             vertical: 20,
                           ),
                           child: Text(
-                            'Belum ada menu di kategori ini.',
-                            style: TextStyle(
+                            _viewModel.searchQuery.isNotEmpty
+                                ? 'Tidak ada menu yang cocok dengan "${_viewModel.searchQuery}".'
+                                : 'Belum ada menu di kategori ini.',
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontFamily: 'Poppins',
                             ),

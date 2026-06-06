@@ -3,6 +3,8 @@ import '../../models/user_model.dart';
 import '../../viewmodels/cust/profile_viewmodel.dart';
 import '../login_view.dart';
 import 'edit_profile_view.dart';
+import 'history_view.dart';
+import 'address_view.dart';
 
 class ProfileView extends StatefulWidget {
   final UserModel user;
@@ -160,12 +162,33 @@ class _ProfileViewState extends State<ProfileView> {
 
                 const SizedBox(height: 50),
 
-                _buildMenuButton('History', onTap: () {}),
+                _buildMenuButton(
+                  'History',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HistoryView(),
+                      ),
+                    );
+                  },
+                ),
                 const SizedBox(height: 16),
-                _buildMenuButton('Address', onTap: () {}),
-                const SizedBox(height: 16),
-                _buildMenuButton('Delete Account', onTap: () {}),
 
+                _buildMenuButton(
+                  'Address',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddressView(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                _buildMenuButton('Delete Account', onTap: () {}),
                 const SizedBox(height: 40),
 
                 ListenableBuilder(
