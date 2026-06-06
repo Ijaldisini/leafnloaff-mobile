@@ -26,7 +26,6 @@ class _HomeViewState extends State<HomeView> {
   @override
   void dispose() {
     _searchController.dispose();
-    _viewModel.dispose();
     super.dispose();
   }
 
@@ -96,8 +95,7 @@ class _HomeViewState extends State<HomeView> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      _viewModel
-                                          .currentLocation,
+                                      _viewModel.currentLocation,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -352,7 +350,8 @@ class _HomeViewState extends State<HomeView> {
     dynamic price,
     Map<String, dynamic> menuData,
   ) {
-    final isFav = _viewModel.favoriteItems.contains(id);
+    final isAdded = _viewModel.recentlyAddedItems.contains(id);
+
     final priceFormatted = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp',
@@ -455,15 +454,19 @@ class _HomeViewState extends State<HomeView> {
               bottom: 8,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: () => _viewModel.toggleFavorite(id),
+                onTap: () => _viewModel.addToCart(id),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   width: 30,
                   height: 30,
                   decoration: BoxDecoration(
-                    color: isFav
-                        ? const Color(0xFFCA748D)
-                        : Colors.white.withValues(alpha: 0.9),
+                    color: isAdded
+                        ? const Color(
+                            0xFFCA748D,
+                          )
+                        : Colors.white.withValues(
+                            alpha: 0.9,
+                          ),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
@@ -474,9 +477,9 @@ class _HomeViewState extends State<HomeView> {
                     ],
                   ),
                   child: Icon(
-                    isFav ? Icons.check : Icons.add,
-                    size: 30,
-                    color: isFav ? Colors.white : const Color(0xFF426E55),
+                    isAdded ? Icons.check : Icons.add,
+                    size: 24,
+                    color: isAdded ? Colors.white : const Color(0xFF426E55),
                   ),
                 ),
               ),

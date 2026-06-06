@@ -23,7 +23,6 @@ class _AddressViewState extends State<AddressView> {
 
   @override
   void dispose() {
-    _viewModel.dispose();
     super.dispose();
   }
 

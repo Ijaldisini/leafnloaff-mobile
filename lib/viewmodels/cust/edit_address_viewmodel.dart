@@ -17,7 +17,6 @@ class EditAddressViewModel extends ChangeNotifier {
   String? errorMessage;
 
   LatLng selectedLocation = const LatLng(-8.1689, 113.7020);
-  Set<Marker> markers = {};
   GoogleMapController? mapController;
 
   void initData(Map<String, dynamic> existingAddress) {
@@ -30,18 +29,21 @@ class EditAddressViewModel extends ChangeNotifier {
       existingAddress['latitude'] ?? -8.1689,
       existingAddress['longitude'] ?? 113.7020,
     );
-    _setMarker(selectedLocation);
   }
 
   void onMapCreated(GoogleMapController controller) {
     mapController = controller;
-    _setMarker(selectedLocation);
   }
 
-  void onMapTapped(LatLng location) async {
-    selectedLocation = location;
-    _setMarker(location);
-    await _updateAddressText(location.latitude, location.longitude);
+  void onCameraMove(CameraPosition position) {
+    selectedLocation = position.target;
+  }
+
+  Future<void> onCameraIdle() async {
+    await _updateAddressText(
+      selectedLocation.latitude,
+      selectedLocation.longitude,
+    );
   }
 
   Future<void> fetchCurrentLocation() async {
@@ -51,14 +53,13 @@ class EditAddressViewModel extends ChangeNotifier {
 
     try {
       final position = await _mapsService.getCurrentLocation();
-      selectedLocation = LatLng(position.latitude, position.longitude);
 
-      mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(selectedLocation, 16.0),
+      await mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          LatLng(position.latitude, position.longitude),
+          16.0,
+        ),
       );
-      _setMarker(selectedLocation);
-
-      await _updateAddressText(position.latitude, position.longitude);
     } catch (e) {
       errorMessage = e.toString();
     } finally {
@@ -67,12 +68,12 @@ class EditAddressViewModel extends ChangeNotifier {
     }
   }
 
-  void _setMarker(LatLng location) {
-    markers.clear();
-    markers.add(
-      Marker(markerId: const MarkerId('selected_location'), position: location),
-    );
-    notifyListeners();
+  void zoomIn() {
+    mapController?.animateCamera(CameraUpdate.zoomIn());
+  }
+
+  void zoomOut() {
+    mapController?.animateCamera(CameraUpdate.zoomOut());
   }
 
   Future<void> _updateAddressText(double lat, double lng) async {

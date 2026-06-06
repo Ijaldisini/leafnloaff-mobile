@@ -21,7 +21,6 @@ class _HistoryViewState extends State<HistoryView> {
 
   @override
   void dispose() {
-    _viewModel.dispose();
     super.dispose();
   }
 

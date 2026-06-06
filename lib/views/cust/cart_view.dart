@@ -20,7 +20,6 @@ class _CartViewState extends State<CartView> {
 
   @override
   void dispose() {
-    _viewModel.dispose();
     super.dispose();
   }
 

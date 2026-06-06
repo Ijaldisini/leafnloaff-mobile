@@ -3,10 +3,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../services/maps/maps_service.dart';
 import '../../services/cust/address_service.dart';
 
+import 'home_viewmodel.dart';
+import 'address_viewmodel.dart';
+
 class FormAddressViewModel extends ChangeNotifier {
   final MapsService _mapsService = MapsService();
-  final AddressService _addressService =
-      AddressService();
+  final AddressService _addressService = AddressService();
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
@@ -17,18 +19,29 @@ class FormAddressViewModel extends ChangeNotifier {
   String? errorMessage;
 
   LatLng selectedLocation = const LatLng(-8.1689, 113.7020);
-  Set<Marker> markers = {};
   GoogleMapController? mapController;
 
   void onMapCreated(GoogleMapController controller) {
     mapController = controller;
-    _setMarker(selectedLocation);
   }
 
-  void onMapTapped(LatLng location) async {
-    selectedLocation = location;
-    _setMarker(location);
-    await _updateAddressText(location.latitude, location.longitude);
+  void onCameraMove(CameraPosition position) {
+    selectedLocation = position.target;
+  }
+
+  Future<void> onCameraIdle() async {
+    await _updateAddressText(
+      selectedLocation.latitude,
+      selectedLocation.longitude,
+    );
+  }
+
+  void zoomIn() {
+    mapController?.animateCamera(CameraUpdate.zoomIn());
+  }
+
+  void zoomOut() {
+    mapController?.animateCamera(CameraUpdate.zoomOut());
   }
 
   Future<void> fetchCurrentLocation() async {
@@ -38,28 +51,19 @@ class FormAddressViewModel extends ChangeNotifier {
 
     try {
       final position = await _mapsService.getCurrentLocation();
-      selectedLocation = LatLng(position.latitude, position.longitude);
 
-      mapController?.animateCamera(
-        CameraUpdate.newLatLngZoom(selectedLocation, 16.0),
+      await mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          LatLng(position.latitude, position.longitude),
+          16.0,
+        ),
       );
-      _setMarker(selectedLocation);
-
-      await _updateAddressText(position.latitude, position.longitude);
     } catch (e) {
       errorMessage = e.toString();
     } finally {
       isLoading = false;
       notifyListeners();
     }
-  }
-
-  void _setMarker(LatLng location) {
-    markers.clear();
-    markers.add(
-      Marker(markerId: const MarkerId('selected_location'), position: location),
-    );
-    notifyListeners();
   }
 
   Future<void> _updateAddressText(double lat, double lng) async {
@@ -91,6 +95,10 @@ class FormAddressViewModel extends ChangeNotifier {
       };
 
       await _addressService.saveNewAddress(newAddress);
+
+      HomeViewModel().fetchHomeData();
+      AddressViewModel().fetchAddresses();
+
       return true;
     } catch (e) {
       errorMessage = "Gagal menyimpan alamat: $e";

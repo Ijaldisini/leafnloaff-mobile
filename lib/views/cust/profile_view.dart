@@ -18,7 +18,13 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   final ProfileViewModel _viewModel = ProfileViewModel();
 
-  late UserModel _currentUser = widget.user;
+  late UserModel _currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentUser = widget.user;
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -3,6 +3,10 @@ import 'package:intl/intl.dart';
 import '../../services/cust/history_service.dart';
 
 class HistoryViewModel extends ChangeNotifier {
+  static final HistoryViewModel _instance = HistoryViewModel._internal();
+  factory HistoryViewModel() => _instance;
+  HistoryViewModel._internal();
+
   final HistoryService _service = HistoryService();
 
   bool isLoading = false;

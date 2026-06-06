@@ -1,7 +1,12 @@
 import 'package:flutter/foundation.dart';
 import '../../services/cust/address_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AddressViewModel extends ChangeNotifier {
+  static final AddressViewModel _instance = AddressViewModel._internal();
+  factory AddressViewModel() => _instance;
+  AddressViewModel._internal();
+
   final AddressService _service = AddressService();
 
   bool isLoading = false;
@@ -23,10 +28,20 @@ class AddressViewModel extends ChangeNotifier {
     }
   }
 
-  void openMaps(double? lat, double? long) {
+  Future<void> openMaps(double? lat, double? long) async {
     if (lat != null && long != null) {
-      if (kDebugMode) {
-        print('Membuka maps pada koordinat: $lat, $long');
+      final Uri url = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=$lat,$long',
+      );
+
+      try {
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+        } else {
+          debugPrint('Could not launch maps');
+        }
+      } catch (e) {
+        debugPrint('Error opening maps: $e');
       }
     }
   }

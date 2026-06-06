@@ -1,7 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../services/cust/home_service.dart';
+import 'cart_viewmodel.dart';
 
 class HomeViewModel extends ChangeNotifier {
+  static final HomeViewModel _instance = HomeViewModel._internal();
+  factory HomeViewModel() => _instance;
+  HomeViewModel._internal();
+
   final HomeService _service = HomeService();
 
   bool _isLoading = true;
@@ -19,8 +25,8 @@ class HomeViewModel extends ChangeNotifier {
   Map<String, dynamic>? _activeVoucher;
   Map<String, dynamic>? get activeVoucher => _activeVoucher;
 
-  final Set<String> _favoriteItems = {};
-  Set<String> get favoriteItems => _favoriteItems;
+  final Set<String> _recentlyAddedItems = {};
+  Set<String> get recentlyAddedItems => _recentlyAddedItems;
 
   String _searchQuery = '';
   String get searchQuery => _searchQuery;
@@ -59,7 +65,6 @@ class HomeViewModel extends ChangeNotifier {
 
       _activeVoucher = await _service.fetchActiveVoucher();
       _menus = await _service.fetchActiveMenus();
-
     } catch (e) {
       debugPrint('Error fetching home data: $e');
     } finally {
@@ -79,12 +84,34 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleFavorite(String id) {
-    if (_favoriteItems.contains(id)) {
-      _favoriteItems.remove(id);
-    } else {
-      _favoriteItems.add(id);
+  Future<void> addToCart(String productId) async {
+    if (_recentlyAddedItems.contains(productId)) return;
+
+    try {
+      final userId = _service.getCurrentUserId();
+      if (userId == null) {
+        throw Exception("Sesi telah habis, silakan login ulang.");
+      }
+
+      _recentlyAddedItems.add(productId);
+      notifyListeners();
+
+      await _service.addToCart(
+        userId: userId,
+        productId: productId,
+        quantity: 1,
+      );
+
+      CartViewModel().loadCartData();
+
+      Timer(const Duration(milliseconds: 1500), () {
+        _recentlyAddedItems.remove(productId);
+        notifyListeners();
+      });
+    } catch (e) {
+      _recentlyAddedItems.remove(productId);
+      notifyListeners();
+      debugPrint('Error add to cart: $e');
     }
-    notifyListeners();
   }
 }

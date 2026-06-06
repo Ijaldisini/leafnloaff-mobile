@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../viewmodels/cust/add_address_viewmodel.dart';
 
@@ -205,17 +207,96 @@ class _FormAddressViewState extends State<FormAddressView> {
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(13),
-                              child: GoogleMap(
-                                initialCameraPosition: CameraPosition(
-                                  target: _viewModel.selectedLocation,
-                                  zoom: 14.0,
-                                ),
-                                onMapCreated: _viewModel.onMapCreated,
-                                onTap: _viewModel.onMapTapped,
-                                markers: _viewModel.markers,
-                                myLocationEnabled: true,
-                                myLocationButtonEnabled: false,
-                                zoomControlsEnabled: false,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  GoogleMap(
+                                    initialCameraPosition: CameraPosition(
+                                      target: _viewModel.selectedLocation,
+                                      zoom: 16.0,
+                                    ),
+                                    onMapCreated: _viewModel.onMapCreated,
+                                    onCameraMove:
+                                        _viewModel.onCameraMove,
+                                    onCameraIdle: _viewModel
+                                        .onCameraIdle,
+                                    myLocationEnabled: true,
+                                    myLocationButtonEnabled: false,
+                                    zoomControlsEnabled: false,
+                                    gestureRecognizers: {
+                                      Factory<OneSequenceGestureRecognizer>(
+                                        () => EagerGestureRecognizer(),
+                                      ),
+                                    },
+                                  ),
+
+                                  IgnorePointer(
+                                    child: const Padding(
+                                      padding: EdgeInsets.only(bottom: 35.0),
+                                      child: Icon(
+                                        Icons.location_on,
+                                        size: 40,
+                                        color: Color(0xFFC23437),
+                                      ),
+                                    ),
+                                  ),
+
+                                  Positioned(
+                                    bottom: 10,
+                                    right: 10,
+                                    child: Column(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: _viewModel.zoomIn,
+                                          child: Container(
+                                            width: 35,
+                                            height: 35,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              boxShadow: const [
+                                                BoxShadow(
+                                                  color: Colors.black26,
+                                                  blurRadius: 4,
+                                                  offset: Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: const Icon(
+                                              Icons.add,
+                                              color: Color(0xFF2D4839),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        GestureDetector(
+                                          onTap: _viewModel.zoomOut,
+                                          child: Container(
+                                            width: 35,
+                                            height: 35,
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              boxShadow: const [
+                                                BoxShadow(
+                                                  color: Colors.black26,
+                                                  blurRadius: 4,
+                                                  offset: Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: const Icon(
+                                              Icons.remove,
+                                              color: Color(0xFF2D4839),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -275,10 +356,7 @@ class _FormAddressViewState extends State<FormAddressView> {
                                               ),
                                             ),
                                           );
-                                          Navigator.pop(
-                                            context,
-                                            true,
-                                          );
+                                          Navigator.pop(context, true);
                                         }
                                       },
                                 child: Container(

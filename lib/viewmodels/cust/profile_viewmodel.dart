@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../../services/cust/profile_service.dart';
 
 class ProfileViewModel extends ChangeNotifier {
+  static final ProfileViewModel _instance = ProfileViewModel._internal();
+  factory ProfileViewModel() => _instance;
+  ProfileViewModel._internal();
+
   final ProfileService _service = ProfileService();
 
   bool _isLoading = false;

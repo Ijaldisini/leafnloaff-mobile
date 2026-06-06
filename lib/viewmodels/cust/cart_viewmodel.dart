@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../../services/cust/cart_service.dart';
 
 class CartViewModel extends ChangeNotifier {
+  static final CartViewModel _instance = CartViewModel._internal();
+  factory CartViewModel() => _instance;
+  CartViewModel._internal();
+  
   final CartService _service = CartService();
 
   bool isLoading = true;

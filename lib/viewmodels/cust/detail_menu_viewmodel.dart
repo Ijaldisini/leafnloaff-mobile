@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/cust/detail_menu_service.dart';
+import 'cart_viewmodel.dart';
 
 class DetailMenuViewModel extends ChangeNotifier {
   final DetailMenuService _service = DetailMenuService();
@@ -75,6 +76,8 @@ class DetailMenuViewModel extends ChangeNotifier {
         quantity: 1,
       );
 
+      CartViewModel().loadCartData();
+      
       _isAddingToCart = false;
       notifyListeners();
       return true;
