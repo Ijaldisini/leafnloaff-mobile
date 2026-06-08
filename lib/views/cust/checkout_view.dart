@@ -522,36 +522,27 @@ class _CheckoutViewState extends State<CheckoutView> {
       decoration: BoxDecoration(
         color: const Color(0xFFFDFDFD),
         borderRadius: BorderRadius.circular(16.69),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 4)),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.payments_outlined, color: Color(0xFF2D4839)),
-              SizedBox(width: 10),
-              Text(
-                'Payment Method',
-                style: TextStyle(
-                  color: Color(0xFF2D4839),
-                  fontSize: 16,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
+          const Text(
+            'Payment Method',
+            style: TextStyle(
+              color: Color(0xFF2D4839),
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 15),
+
           _buildPaymentSelectableBox('Cash On Delivery', 'COD'),
           const SizedBox(height: 10),
-          _buildPaymentSelectableBox('QRIS', 'QRIS'),
-          if (_viewModel.paymentMethod == 'QRIS') _buildQRISSection(),
+          _buildPaymentSelectableBox('QRIS', 'QRIS Statis'),
+          if (_viewModel.paymentMethod == 'QRIS Statis') _buildQRISSection(),
           const SizedBox(height: 10),
-          _buildPaymentSelectableBox('Virtual Account', 'Virtual Account'),
-          if (_viewModel.paymentMethod == 'Virtual Account') _buildVASection(),
+          _buildPaymentSelectableBox('Virtual Account', 'Virtual Account Bank'),
+          if (_viewModel.paymentMethod == 'Virtual Account Bank')
+            _buildVASection(),
         ],
       ),
     );

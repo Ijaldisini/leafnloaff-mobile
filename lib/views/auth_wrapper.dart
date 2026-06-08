@@ -24,26 +24,28 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
     if (!mounted) return;
 
-    if (userModel != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => CustomerMainView(user: userModel)),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const WelcomeView()),
-      );
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (userModel != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CustomerMainView(user: userModel),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const WelcomeView()),
+        );
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
       backgroundColor: Color(0xFF3D5A4A),
-      body: Center(
-        child: CircularProgressIndicator(color: Color(0xFFD699AB)),
-      ),
+      body: Center(child: CircularProgressIndicator(color: Color(0xFFD699AB))),
     );
   }
 }

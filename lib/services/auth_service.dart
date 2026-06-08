@@ -1,43 +1,45 @@
-import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  String _generateTOTPSecret() {
-    const length = 16;
-    const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-    final random = Random.secure();
-    return List.generate(length, (index) {
-      return base32Chars[random.nextInt(base32Chars.length)];
-    }).join();
-  }
-
-  Future<String> register(UserModel user, String password) async {
+  Future<void> register(UserModel user, String password) async {
     try {
-      final otpSecret = _generateTOTPSecret();
-
       final response = await _supabase.auth.signUp(
         email: user.email,
         password: password,
       );
 
       if (response.user != null) {
-        final completedUser = UserModel(
-          id: response.user!.id,
-          fullName: user.fullName,
-          username: user.username,
-          email: user.email,
-          otpSecret: otpSecret,
-        );
-
+        final completedUser = user.copyWith(id: response.user!.id);
         await _supabase.from('profiles').insert(completedUser.toMap());
       }
-
-      return otpSecret;
     } catch (e) {
       throw Exception('Gagal register: ${e.toString()}');
+    }
+  }
+
+  Future<void> verifyEmailOtp(String email, String token) async {
+    try {
+      debugPrint("Memverifikasi: Email=$email, Token=$token");
+
+      final AuthResponse res = await _supabase.auth.verifyOTP(
+        email: email,
+        token: token,
+        type: OtpType.email,
+      );
+
+      if (res.session == null) {
+        throw Exception('Sesi tidak terbentuk. Kode mungkin tidak valid.');
+      }
+    } on AuthException catch (e) {
+      debugPrint("Auth Error: ${e.message}");
+      throw Exception(e.message);
+    } catch (e) {
+      debugPrint("General Error: $e");
+      throw Exception('Verifikasi gagal: ${e.toString()}');
     }
   }
 

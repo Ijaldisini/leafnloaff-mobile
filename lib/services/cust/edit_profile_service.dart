@@ -4,12 +4,15 @@ class EditProfileService {
   final _supabase = Supabase.instance.client;
 
   Future<void> updateProfile({
-    required String userId,
     required String fullName,
     required String username,
     required String? phoneNumber,
   }) async {
     try {
+      final userId = _supabase.auth.currentUser?.id;
+
+      if (userId == null) throw Exception("User tidak sedang login");
+
       await _supabase
           .from('profiles')
           .update({

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import '../viewmodels/register_otp_viewmodel.dart';
 import '../models/user_model.dart';
 
@@ -18,17 +17,14 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
 
   @override
   Widget build(BuildContext context) {
-    final String otpUri =
-        'otpauth://totp/LeafNLoaf:${widget.user.email}?secret=${widget.user.otpSecret}&issuer=LeafNLoaf';
-
     return Scaffold(
       body: AnimatedBuilder(
         animation: _viewModel,
         builder: (context, child) {
           return SingleChildScrollView(
             child: Container(
-              width: 390,
-              height: 844,
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment(0.00, 0.00),
@@ -37,9 +33,9 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                 ),
               ),
               child: Stack(
+                alignment: Alignment.center,
                 children: [
                   Positioned(
-                    left: 68,
                     top: 82,
                     child: Container(
                       width: 255,
@@ -56,35 +52,44 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                   ),
 
                   Positioned(
-                    left: 135,
                     top: 180,
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: QrImageView(
-                        data: otpUri,
-                        version: QrVersions.auto,
-                        size: 110.0,
-                        eyeStyle: const QrEyeStyle(
-                          eyeShape: QrEyeShape.square,
-                          color: Color(0xFF2D4839),
-                        ),
-                        dataModuleStyle: const QrDataModuleStyle(
-                          dataModuleShape: QrDataModuleShape.circle,
-                          color: Color(0xFF2D4839),
-                        ),
+                    child: SizedBox(
+                      width: 320,
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.mark_email_unread_outlined,
+                            size: 80,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'Verifikasi Email',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Kami telah mengirimkan 8-digit kode OTP ke email:\n\n${widget.user.email}\n\nSilakan periksa kotak masuk atau folder spam Anda.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
 
                   Positioned(
-                    left: 58,
-                    top: 350,
+                    top: 400,
                     child: const Text(
                       'OTP Code',
                       style: TextStyle(
@@ -96,15 +101,14 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                     ),
                   ),
                   Positioned(
-                    left: 57,
-                    top: 376,
+                    top: 430,
                     child: SizedBox(
                       width: 275.5,
                       height: 38,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: List.generate(
-                          6,
+                          8,
                           (index) => _buildOtpBox(index),
                         ),
                       ),
@@ -112,8 +116,7 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                   ),
 
                   Positioned(
-                    left: 101,
-                    top: 494,
+                    top: 520,
                     child: GestureDetector(
                       onTap: _viewModel.isLoading
                           ? null
@@ -131,8 +134,13 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                         ),
                         alignment: Alignment.center,
                         child: _viewModel.isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Text(
                                 'Verify',

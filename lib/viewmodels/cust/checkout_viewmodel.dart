@@ -7,6 +7,7 @@ import 'history_viewmodel.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/payments/midtrans_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CheckoutViewModel extends ChangeNotifier {
   final CheckoutService _service = CheckoutService();
@@ -18,7 +19,7 @@ class CheckoutViewModel extends ChangeNotifier {
   String? errorMessage;
 
   String shippingMethod = 'Delivery';
-  String paymentMethod = 'QRIS Statisx';
+  String paymentMethod = 'COD';
   String? selectedBank;
 
   File? paymentProofFile;
@@ -31,6 +32,13 @@ class CheckoutViewModel extends ChangeNotifier {
   double shippingCost = 0;
   double discount = 0;
   double get totalPayment => subTotal + shippingCost - discount;
+
+  final Map<String, String> bankCodes = {
+    'BCA Virtual Account': 'bca',
+    'Mandiri Virtual Account': 'echannel',
+    'BNI Virtual Account': 'bni',
+    'BRI Virtual Account': 'bri',
+  };
 
   Future<void> initCheckoutData() async {
     isLoading = true;
@@ -140,25 +148,32 @@ class CheckoutViewModel extends ChangeNotifier {
       return false;
     }
 
-    if (paymentMethod == 'Virtual Account Bank' && selectedBank == null) {
-      errorMessage = "Harap pilih Bank untuk Virtual Account!";
-      notifyListeners();
-      return false;
-    }
-
     isPlacingOrder = true;
     errorMessage = null;
     notifyListeners();
 
     try {
+      String? proofUrl;
+      if (paymentMethod == 'QRIS Statis' && paymentProofFile != null) {
+        proofUrl = await _service.uploadPaymentProof(paymentProofFile!);
+      }
+
       final orderData = {
         'user_id': _service.getCurrentUserId(),
         'total_price': totalPayment,
         'delivery_type': shippingMethod,
-        'address_detail': shippingMethod == 'Delivery' ? deliveryAddress!['address_detail'] : null,
-        'latitude': shippingMethod == 'Delivery' ? deliveryAddress!['latitude'] : null,
-        'longitude': shippingMethod == 'Delivery' ? deliveryAddress!['longitude'] : null,
-        'payment_method': paymentMethod,
+        'address_detail': shippingMethod == 'Delivery'
+            ? deliveryAddress!['address_detail']
+            : null,
+        'latitude': shippingMethod == 'Delivery'
+            ? deliveryAddress!['latitude']
+            : null,
+        'longitude': shippingMethod == 'Delivery'
+            ? deliveryAddress!['longitude']
+            : null,
+        'payment_method':
+            paymentMethod,
+        'payment_proof_url': proofUrl,
         'status': paymentMethod == 'COD' ? 'Diproses' : 'Menunggu Pembayaran',
         'discount_applied': discount,
         'notes': 'Pesanan dari aplikasi mobile',
@@ -168,25 +183,27 @@ class CheckoutViewModel extends ChangeNotifier {
         orderData: orderData,
         cartItems: selectedCartItems,
       );
+      if (paymentMethod == 'Virtual Account Bank') {
+        if (selectedBank == null || !bankCodes.containsKey(selectedBank)) {
+          throw Exception("Harap pilih bank terlebih dahulu!");
+        }
 
-      CartViewModel().selectedItemIds.clear();
-      CartViewModel().loadCartData(); 
-      HistoryViewModel().fetchHistory(); 
-
-      if (paymentMethod != 'COD') {
         final paymentUrl = await _midtransService.createTransaction(
           orderId: orderId,
           grossAmount: totalPayment.toInt(),
           customerName: deliveryAddress?['recipient_name'] ?? 'Customer',
           customerPhone: deliveryAddress?['phone_number'] ?? '0800000000',
+          bank: bankCodes[selectedBank!],
         );
 
         if (paymentUrl != null) {
-          final Uri url = Uri.parse(paymentUrl);
-          await launchUrl(url, mode: LaunchMode.externalApplication);
+          await Supabase.instance.client
+              .from('orders')
+              .update({'payment_proof_url': paymentUrl})
+              .eq('id', orderId);
+          await launchUrl(Uri.parse(paymentUrl), mode: LaunchMode.inAppWebView);
         }
       }
-
       return true;
     } catch (e) {
       errorMessage = "Gagal memproses pesanan: $e";

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../services/maps/maps_service.dart';
 import '../../services/cust/address_service.dart';
+import 'home_viewmodel.dart';
+import 'address_viewmodel.dart';
 
 class EditAddressViewModel extends ChangeNotifier {
   final MapsService _mapsService = MapsService();
@@ -105,6 +107,10 @@ class EditAddressViewModel extends ChangeNotifier {
       };
 
       await _addressService.updateAddress(addressId, updatedData);
+
+      HomeViewModel().fetchHomeData();
+      AddressViewModel().fetchAddresses();
+
       return true;
     } catch (e) {
       errorMessage = "Gagal memperbarui alamat: $e";

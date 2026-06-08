@@ -9,16 +9,17 @@ class MidtransService {
     required int grossAmount,
     required String customerName,
     required String customerPhone,
+    String? bank,
   }) async {
     final String url = 'https://app.sandbox.midtrans.com/snap/v1/transactions';
-
     final String basicAuth = base64Encode(utf8.encode('$serverKey:'));
 
     final Map<String, dynamic> body = {
-      "transaction_details": {
-        "order_id": orderId, // Harus unik untuk setiap transaksi
-        "gross_amount": grossAmount,
+      "payment_type": "bank_transfer",
+      "bank_transfer": {
+        "bank": bank,
       },
+      "transaction_details": {"order_id": orderId, "gross_amount": grossAmount},
       "customer_details": {"first_name": customerName, "phone": customerPhone},
     };
 
@@ -37,7 +38,7 @@ class MidtransService {
         final data = jsonDecode(response.body);
         return data['redirect_url'];
       } else {
-        throw Exception('Gagal membuat transaksi Midtrans: ${response.body}');
+        throw Exception('Gagal membuat transaksi: ${response.body}');
       }
     } catch (e) {
       throw Exception('Error Midtrans API: $e');

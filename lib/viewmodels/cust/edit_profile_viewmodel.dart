@@ -37,7 +37,6 @@ class EditProfileViewModel extends ChangeNotifier {
 
     try {
       await _service.updateProfile(
-        userId: currentUser.id,
         fullName: nameController.text.trim(),
         username: usernameController.text.trim(),
         phoneNumber: phoneController.text.trim(),

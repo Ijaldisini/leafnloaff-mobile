@@ -20,10 +20,16 @@ class AdminNotificationViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final adminId = _supabase.auth.currentUser?.id;
+
+      if (adminId == null) {
+        throw Exception("Admin tidak ditemukan");
+      }
+
       final response = await _supabase
           .from('notifications')
           .select()
-          .isFilter('user_id', null)
+          .eq('user_id', adminId)
           .order('created_at', ascending: false);
 
       debugPrint("====== DATA NOTIFIKASI DARI SUPABASE ======");

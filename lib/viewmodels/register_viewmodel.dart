@@ -57,29 +57,21 @@ class RegisterViewModel extends ChangeNotifier {
         email: email,
       );
 
-      final String secret = await _authService.register(newUser, password);
+      await _authService.register(newUser, password);
 
-      final completedUser = UserModel(
-        id: '',
-        fullName: name,
-        username: username,
-        email: email,
-        otpSecret: secret,
-      );
-
-      debugPrint("Register Berhasil!");
+      debugPrint("Register Berhasil! Menunggu verifikasi OTP");
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Register Berhasil! Silakan scan QR Code.'),
+            content: Text('Pendaftaran berhasil! Silakan periksa email Anda.'),
           ),
         );
-        navigateToRegisterOtp(context, completedUser);
+        navigateToRegisterOtp(context, newUser);
       }
     } catch (e) {
       final errorMsg = e.toString().replaceAll('Exception: ', '');
-      _setError(errorMsg); 
-      
+      _setError(errorMsg);
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),

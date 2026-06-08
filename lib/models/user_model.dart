@@ -3,7 +3,6 @@ class UserModel {
   final String fullName;
   final String username;
   final String email;
-  final String? otpSecret;
   final String role;
   final String? phoneNumber;
   final String? profileImageUrl;
@@ -13,7 +12,6 @@ class UserModel {
     required this.fullName,
     required this.username,
     required this.email,
-    this.otpSecret,
     this.role = 'customer',
     this.phoneNumber,
     this.profileImageUrl,
@@ -25,7 +23,6 @@ class UserModel {
       'full_name': fullName,
       'username': username,
       'email': email,
-      'otp_secret': otpSecret,
       'role': role,
       'phone_number': phoneNumber,
       'profile_image_url': profileImageUrl,
@@ -38,7 +35,6 @@ class UserModel {
       fullName: map['full_name'] ?? '',
       username: map['username'] ?? '',
       email: map['email'] ?? '',
-      otpSecret: map['otp_secret'],
       role: map['role'] ?? 'customer',
       phoneNumber: map['phone_number'],
       profileImageUrl: map['profile_image_url'],
@@ -46,17 +42,17 @@ class UserModel {
   }
 
   UserModel copyWith({
+    String? id,
     String? fullName,
     String? username,
     String? phoneNumber,
     String? profileImageUrl,
   }) {
     return UserModel(
-      id: id,
+      id: id ?? this.id,
       fullName: fullName ?? this.fullName,
       username: username ?? this.username,
       email: email,
-      otpSecret: otpSecret,
       role: role,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,

@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:otp/otp.dart';
 import '../models/user_model.dart';
 import '../views/cust/main_view.dart';
+import '../services/auth_service.dart';
 
 class RegisterOtpViewModel extends ChangeNotifier {
   final List<TextEditingController> otpControllers = List.generate(
-    6,
+    8,
     (_) => TextEditingController(),
   );
-  final List<FocusNode> focusNodes = List.generate(6, (_) => FocusNode());
+  final List<FocusNode> focusNodes = List.generate(8, (_) => FocusNode());
+
+  final AuthService _authService = AuthService();
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -18,18 +20,9 @@ class RegisterOtpViewModel extends ChangeNotifier {
   void verifyOtp(BuildContext context, UserModel user) async {
     final code = otpCode;
 
-    if (code.length < 6) {
+    if (code.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Masukkan 6 digit kode OTP')),
-      );
-      return;
-    }
-
-    if (user.otpSecret == null || user.otpSecret!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error: Kode Rahasia tidak ditemukan pada akun ini'),
-        ),
+        const SnackBar(content: Text('Masukkan 8 digit kode OTP')),
       );
       return;
     }
@@ -38,36 +31,18 @@ class RegisterOtpViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final String expectedCode = OTP.generateTOTPCodeString(
-        user.otpSecret!,
-        DateTime.now().millisecondsSinceEpoch,
-        length: 6,
-        interval: 30,
-        algorithm: Algorithm.SHA1,
-        isGoogle: true,
-      );
+      await _authService.verifyEmailOtp(user.email, code);
 
-      debugPrint("Kode diinput: $code");
-      debugPrint("Kode diharapkan: $expectedCode");
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Verifikasi Email Berhasil!')),
+        );
 
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (code == expectedCode) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Verifikasi Berhasil!')));
-
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CustomerMainView(user: user),
-            ),
-            (route) => false,
-          );
-        }
-      } else {
-        throw Exception('Kode OTP salah atau sudah kedaluwarsa.');
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => CustomerMainView(user: user)),
+          (route) => false,
+        );
       }
     } catch (e) {
       if (context.mounted) {
@@ -85,7 +60,7 @@ class RegisterOtpViewModel extends ChangeNotifier {
   }
 
   void nextField(String value, int index) {
-    if (value.length == 1 && index < 5) {
+    if (value.length == 1 && index < 7) {
       focusNodes[index + 1].requestFocus();
     }
     if (value.isEmpty && index > 0) {

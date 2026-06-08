@@ -137,7 +137,7 @@ class _WelcomeViewState extends State<WelcomeView>
                     child: SlideTransition(
                       position: _slideAnim,
                       child: SizedBox(
-                        width: screenWidth * 0.6,
+                        width: screenWidth * 0.65,
                         child: Text(
                           slide['text']!,
                           textAlign: TextAlign.right,
