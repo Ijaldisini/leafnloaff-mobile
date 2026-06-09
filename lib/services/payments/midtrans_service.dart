@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MidtransService {
-  final String serverKey = const String.fromEnvironment('MIDTRANS_SERVER_KEY');
+  final String serverKey = dotenv.env['MIDTRANS_SERVER_KEY'] ?? '';
 
   Future<Map<String, dynamic>> createTransaction({
     required String orderId,
