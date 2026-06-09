@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import '../../utils/image_picker_util.dart';
 import '../../services/cust/checkout_service.dart';
 import 'cart_viewmodel.dart';
-import 'history_viewmodel.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../services/payments/midtrans_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -135,17 +133,23 @@ class CheckoutViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> placeOrder() async {
+  Future<Map<String, dynamic>?> placeOrder() async {
     if (shippingMethod == 'Delivery' && deliveryAddress == null) {
       errorMessage = "Alamat pengiriman harus diisi!";
       notifyListeners();
-      return false;
+      return null;
     }
 
     if (paymentMethod == 'QRIS Statis' && paymentProofFile == null) {
       errorMessage = "Harap unggah bukti pembayaran QRIS!";
       notifyListeners();
-      return false;
+      return null;
+    }
+
+    if (paymentMethod == 'Virtual Account Bank' && selectedBank == null) {
+      errorMessage = "Harap pilih bank terlebih dahulu!";
+      notifyListeners();
+      return null;
     }
 
     isPlacingOrder = true;
@@ -171,8 +175,7 @@ class CheckoutViewModel extends ChangeNotifier {
         'longitude': shippingMethod == 'Delivery'
             ? deliveryAddress!['longitude']
             : null,
-        'payment_method':
-            paymentMethod,
+        'payment_method': paymentMethod,
         'payment_proof_url': proofUrl,
         'status': paymentMethod == 'COD' ? 'Diproses' : 'Menunggu Pembayaran',
         'discount_applied': discount,
@@ -183,31 +186,49 @@ class CheckoutViewModel extends ChangeNotifier {
         orderData: orderData,
         cartItems: selectedCartItems,
       );
-      if (paymentMethod == 'Virtual Account Bank') {
-        if (selectedBank == null || !bankCodes.containsKey(selectedBank)) {
-          throw Exception("Harap pilih bank terlebih dahulu!");
-        }
 
-        final paymentUrl = await _midtransService.createTransaction(
+      if (paymentMethod == 'Virtual Account Bank') {
+        String uniqueMidtransOrderId =
+            "$orderId-${DateTime.now().millisecondsSinceEpoch}";
+
+        final transactionResponse = await _midtransService.createTransaction(
           orderId: orderId,
           grossAmount: totalPayment.toInt(),
           customerName: deliveryAddress?['recipient_name'] ?? 'Customer',
           customerPhone: deliveryAddress?['phone_number'] ?? '0800000000',
-          bank: bankCodes[selectedBank!],
+          bank:
+              bankCodes[selectedBank!]!,
         );
 
-        if (paymentUrl != null) {
-          await Supabase.instance.client
-              .from('orders')
-              .update({'payment_proof_url': paymentUrl})
-              .eq('id', orderId);
-          await launchUrl(Uri.parse(paymentUrl), mode: LaunchMode.inAppWebView);
+        debugPrint('RESPONS MENTAH MIDTRANS: $transactionResponse');
+
+        String vaNumber = 'Gagal memuat VA';
+
+        if (bankCodes[selectedBank!] == 'echannel') {
+          final billerCode = transactionResponse['biller_code'] ?? '';
+          final billKey = transactionResponse['bill_key'] ?? '';
+          vaNumber = '$billerCode $billKey';
+        } else {
+          final vaNumbers = transactionResponse['va_numbers'] as List<dynamic>?;
+          if (vaNumbers != null && vaNumbers.isNotEmpty) {
+            vaNumber = vaNumbers[0]['va_number'];
+          }
         }
+
+        await Supabase.instance.client
+            .from('orders')
+            .update({
+              'payment_proof_url':
+                  null,
+              'va_number': vaNumber,
+            })
+            .eq('id', orderId);
       }
-      return true;
+
+      return {'orderId': orderId};
     } catch (e) {
       errorMessage = "Gagal memproses pesanan: $e";
-      return false;
+      return null;
     } finally {
       isPlacingOrder = false;
       notifyListeners();

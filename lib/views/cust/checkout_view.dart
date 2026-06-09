@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/cust/checkout_viewmodel.dart';
 import 'address_view.dart';
+import '../cust/detail_order_view.dart';
 
 class CheckoutView extends StatefulWidget {
   const CheckoutView({super.key});
@@ -232,9 +233,10 @@ class _CheckoutViewState extends State<CheckoutView> {
                             onTap: _viewModel.isPlacingOrder
                                 ? null
                                 : () async {
-                                    final success = await _viewModel
+                                    final result = await _viewModel
                                         .placeOrder();
-                                    if (success && context.mounted) {
+
+                                    if (result != null && context.mounted) {
                                       ScaffoldMessenger.of(
                                         context,
                                       ).showSnackBar(
@@ -242,9 +244,17 @@ class _CheckoutViewState extends State<CheckoutView> {
                                           content: Text(
                                             'Pesanan berhasil dibuat!',
                                           ),
+                                          backgroundColor: Color(0xFF426E55),
                                         ),
                                       );
-                                      Navigator.pop(context);
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => DetailOrderView(
+                                            orderId: result['orderId'],
+                                          ),
+                                        ),
+                                      );
                                     }
                                   },
                             child: Container(

@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/cust/detail_order_viewmodel.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -15,12 +17,66 @@ class DetailOrderView extends StatefulWidget {
 class _DetailOrderViewState extends State<DetailOrderView> {
   final DetailOrderViewModel _viewModel = DetailOrderViewModel();
 
+  Timer? _timer;
+  Duration _timeLeft = Duration.zero;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel.fetchOrder(widget.orderId);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _viewModel.fetchOrder(widget.orderId);
+
+      if (mounted && _viewModel.orderData != null) {
+        final expiryStr = _viewModel.orderData!['va_expiry_time'];
+        if (expiryStr != null) {
+          _startTimer(expiryStr);
+        }
+      }
     });
+  }
+
+  void _startTimer(String expiryTimeStr) {
+    final expiryTime = DateTime.parse(expiryTimeStr);
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      final now = DateTime.now();
+      if (expiryTime.isAfter(now)) {
+        setState(() {
+          _timeLeft = expiryTime.difference(now);
+        });
+      } else {
+        setState(() {
+          _timeLeft = Duration.zero;
+        });
+        timer.cancel();
+      }
+    });
+
+    final now = DateTime.now();
+    if (expiryTime.isAfter(now)) {
+      setState(() {
+        _timeLeft = expiryTime.difference(now);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitHours = twoDigits(duration.inHours);
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$twoDigitHours : $twoDigitMinutes : $twoDigitSeconds";
   }
 
   String _formatCurrency(double amount) {
@@ -63,7 +119,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-
           SafeArea(
             child: Column(
               children: [
@@ -118,7 +173,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                     ],
                   ),
                 ),
-
                 Expanded(
                   child: ListenableBuilder(
                     listenable: _viewModel,
@@ -271,6 +325,8 @@ class _DetailOrderViewState extends State<DetailOrderView> {
     bool isPaid,
     Map<String, dynamic> order,
   ) {
+    bool isVA = paymentMethod == 'Virtual Account Bank';
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
       decoration: BoxDecoration(
@@ -294,47 +350,81 @@ class _DetailOrderViewState extends State<DetailOrderView> {
           ),
           const SizedBox(height: 20),
 
-          if (paymentMethod == 'Virtual Account') ...[
+          if (isVA && !isPaid) ...[
             const Center(
               child: Text(
-                'Virtual Account (Midtrans)',
+                'Virtual Account',
                 style: TextStyle(
-                  color: Color(0xFF426E55),
-                  fontSize: 15,
+                  color: Color(0xFF2D4839),
+                  fontSize: 14,
                   fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
-            const SizedBox(height: 10),
-
-            if (!isPaid && order['payment_proof_url'] != null)
-              GestureDetector(
-                onTap: () async {
-                  final Uri url = Uri.parse(order['payment_proof_url']);
-                  await launchUrl(url, mode: LaunchMode.externalApplication);
-                },
-                child: Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFCA748D),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Text(
-                    'Bayar Sekarang',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w600,
-                    ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  order['va_number'] ?? 'N/A',
+                  style: const TextStyle(
+                    color: Color(0xFF2D4839),
+                    fontSize: 16,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
                   ),
                 ),
-              ),
-            const SizedBox(height: 20),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    if (order['va_number'] != null) {
+                      Clipboard.setData(
+                        ClipboardData(text: order['va_number']),
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Nomor VA disalin!'),
+                          backgroundColor: Color(0xFF426E55),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Icon(
+                    Icons.copy,
+                    color: Color(0xFF2D4839),
+                    size: 18,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 25),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Payment code will expired in',
+                  style: TextStyle(
+                    color: Color(0xFF426E55),
+                    fontSize: 12,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  _viewModel.formattedRemainingTime,
+                  style: const TextStyle(
+                    color: Color(0xFFC23437),
+                    fontSize: 12,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
           ],
 
           Row(
@@ -344,20 +434,15 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                 'Payment Method',
                 style: TextStyle(
                   color: Color(0xFF426E55),
-                  fontSize: 13,
+                  fontSize: 12,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              _buildPill(
-                paymentMethod == 'Virtual Account'
-                    ? 'Bank Transfer'
-                    : paymentMethod,
-                false,
-              ),
+              _buildPill(isVA ? 'Bank Transfer' : paymentMethod, false),
             ],
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 12),
 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -366,7 +451,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                 'Payment Status',
                 style: TextStyle(
                   color: Color(0xFF426E55),
-                  fontSize: 13,
+                  fontSize: 12,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w600,
                 ),
@@ -374,28 +459,33 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               _buildPill(isPaid ? 'Paid' : 'Unpaid', isPaid),
             ],
           ),
-          const SizedBox(height: 20),
 
-          if (paymentMethod == 'COD')
+          if (paymentMethod == 'COD') ...[
+            const SizedBox(height: 20),
             const Text(
               'Please prepare the exact payment amount and complete the payment once your order has been delivered.',
               style: TextStyle(
                 color: Color(0xFF426E55),
-                fontSize: 13,
+                fontSize: 12,
                 fontFamily: 'Poppins',
-                fontWeight: FontWeight.w600,
-                height: 1.2,
+                fontWeight: FontWeight.w500,
+                height: 1.3,
               ),
-            )
-          else if (paymentMethod == 'QRIS' &&
-              order['payment_proof_url'] != null)
+            ),
+          ] else if (paymentMethod == 'QRIS Statis' &&
+              order['payment_proof_url'] != null) ...[
+            const SizedBox(height: 20),
             Align(
               alignment: Alignment.centerLeft,
               child: GestureDetector(
-                onTap: () {},
+                onTap: () async {
+                  final Uri url = Uri.parse(order['payment_proof_url']);
+                  await launchUrl(url, mode: LaunchMode.inAppBrowserView);
+                },
                 child: _buildPill('See proof of payment', false),
               ),
             ),
+          ],
         ],
       ),
     );
@@ -441,7 +531,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
         ),
       );
     }
-
     if (status == 'Selesai') {
       return GestureDetector(
         onTap: () {},
@@ -479,9 +568,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         GestureDetector(
-          onTap: () async {
-            await _viewModel.cancelOrder();
-          },
+          onTap: () async => await _viewModel.cancelOrder(),
           child: Container(
             width: 140,
             height: 35,
@@ -512,9 +599,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
         ),
         GestureDetector(
           onTap: status == 'Dikirim'
-              ? () async {
-                  await _viewModel.receiveOrder();
-                }
+              ? () async => await _viewModel.receiveOrder()
               : null,
           child: Container(
             width: 140,

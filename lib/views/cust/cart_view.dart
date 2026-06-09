@@ -256,13 +256,17 @@ class _CartViewState extends State<CartView> {
                           GestureDetector(
                             onTap: _viewModel.selectedItemIds.isEmpty
                                 ? null
-                                : () {Navigator.push(
+                                : () {
+                                    Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
                                             const CheckoutView(),
                                       ),
-                                    );},
+                                    ).then((_) {
+                                      _viewModel.loadCartData();
+                                    });
+                                  },
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
@@ -472,9 +476,7 @@ class _CartViewState extends State<CartView> {
                               width: 20,
                               height: 20,
                               decoration: const BoxDecoration(
-                                color: Color(
-                                  0xFF2D4839,
-                                ),
+                                color: Color(0xFF2D4839),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
