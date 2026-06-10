@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../viewmodels/cust/checkout_viewmodel.dart';
 import 'address_view.dart';
 import '../cust/detail_order_view.dart';
+import '../cust/select_voucher_view.dart';
 
 class CheckoutView extends StatefulWidget {
   const CheckoutView({super.key});
@@ -22,17 +23,107 @@ class _CheckoutViewState extends State<CheckoutView> {
     });
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   String _formatCurrency(double amount) {
     return NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp. ',
       decimalDigits: 0,
     ).format(amount);
+  }
+
+  void _showVoucherBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (context) {
+        return ListenableBuilder(
+          listenable: _viewModel,
+          builder: (context, _) {
+            if (_viewModel.vouchersList.isEmpty) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Text(
+                    'Tidak ada voucher tersedia.',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      color: Color(0xFF2D4839),
+                    ),
+                  ),
+                ),
+              );
+            }
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    'Gunakan Voucher',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2D4839),
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                ),
+                const Divider(),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _viewModel.vouchersList.length,
+                    itemBuilder: (context, index) {
+                      final voucher = _viewModel.vouchersList[index];
+                      final isSelected =
+                          _viewModel.selectedVoucher?['id'] == voucher['id'];
+                      return ListTile(
+                        leading: const Icon(
+                          Icons.confirmation_number_outlined,
+                          color: Color(0xFFCA748D),
+                        ),
+                        title: Text(
+                          voucher['title'] ?? 'Diskon Spesial',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                        subtitle: Text(
+                          'Potongan harga ${voucher['discount_percentage']}%',
+                          style: const TextStyle(fontFamily: 'Poppins'),
+                        ),
+                        trailing: Icon(
+                          isSelected
+                              ? Icons.check_circle
+                              : Icons.circle_outlined,
+                          color: const Color(0xFF2D4839),
+                        ),
+                        onTap: () {
+                          if (isSelected) {
+                            _viewModel.selectVoucher(null);
+                          } else {
+                            _viewModel.selectVoucher(voucher);
+                          }
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -65,7 +156,6 @@ class _CheckoutViewState extends State<CheckoutView> {
               ),
             ),
           ),
-
           SafeArea(
             child: Column(
               children: [
@@ -106,7 +196,6 @@ class _CheckoutViewState extends State<CheckoutView> {
                     ],
                   ),
                 ),
-
                 Expanded(
                   child: ListenableBuilder(
                     listenable: _viewModel,
@@ -135,16 +224,12 @@ class _CheckoutViewState extends State<CheckoutView> {
                                 ),
                               ),
                             ),
-
                           _buildShippingOption(),
                           const SizedBox(height: 20),
-
                           _buildPaymentMethod(),
                           const SizedBox(height: 20),
-
                           _buildVoucherOption(),
                           const SizedBox(height: 20),
-
                           const Text(
                             'Order Items',
                             style: TextStyle(
@@ -158,7 +243,6 @@ class _CheckoutViewState extends State<CheckoutView> {
                           ..._viewModel.selectedCartItems.map(
                             (item) => _buildItemCard(item),
                           ),
-
                           const SizedBox(height: 220),
                         ],
                       );
@@ -168,7 +252,6 @@ class _CheckoutViewState extends State<CheckoutView> {
               ],
             ),
           ),
-
           Align(
             alignment: Alignment.bottomCenter,
             child: ListenableBuilder(
@@ -480,13 +563,17 @@ class _CheckoutViewState extends State<CheckoutView> {
                   ),
                   GestureDetector(
                     onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AddressView(),
-                        ),
-                      );
-                      _viewModel.initCheckoutData();
+                      final selectedAddress =
+                          await Navigator.push<Map<String, dynamic>>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AddressView(),
+                            ),
+                          );
+
+                      if (selectedAddress != null) {
+                        _viewModel.updateSelectedAddress(selectedAddress);
+                      }
                     },
                     child: const Icon(
                       Icons.edit_outlined,
@@ -544,7 +631,6 @@ class _CheckoutViewState extends State<CheckoutView> {
             ),
           ),
           const SizedBox(height: 15),
-
           _buildPaymentSelectableBox('Cash On Delivery', 'COD'),
           const SizedBox(height: 10),
           _buildPaymentSelectableBox('QRIS', 'QRIS Statis'),
@@ -727,20 +813,56 @@ class _CheckoutViewState extends State<CheckoutView> {
             ),
           ),
           const SizedBox(height: 10),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFF2D4839)),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Text(
-              'Select Voucher',
-              style: TextStyle(
-                color: Color(0xFF2D4839),
-                fontSize: 12,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w600,
+          GestureDetector(
+            onTap: () async {
+              final selected = await Navigator.push<Map<String, dynamic>?>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SelectVoucherView(
+                    availableVouchers: _viewModel.vouchersList,
+                    selectedVoucher: _viewModel.selectedVoucher,
+                  ),
+                ),
+              );
+
+              if (selected != null) {
+                if (selected.containsKey('clear')) {
+                  _viewModel.selectVoucher(null);
+                } else {
+                  _viewModel.selectVoucher(selected);
+                }
+              }
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFF2D4839)),
+                borderRadius: BorderRadius.circular(10),
+                color: _viewModel.selectedVoucher != null
+                    ? const Color(0xFFEED5DB)
+                    : Colors.transparent,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _viewModel.selectedVoucher != null
+                        ? '${_viewModel.selectedVoucher!['title']} (${_viewModel.selectedVoucher!['discount_percentage']}% Off)'
+                        : 'Select Voucher',
+                    style: const TextStyle(
+                      color: Color(0xFF2D4839),
+                      fontSize: 12,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Icon(
+                    Icons.keyboard_arrow_right,
+                    color: Color(0xFF2D4839),
+                    size: 18,
+                  ),
+                ],
               ),
             ),
           ),

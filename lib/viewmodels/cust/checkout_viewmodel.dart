@@ -26,6 +26,10 @@ class CheckoutViewModel extends ChangeNotifier {
   Map<String, dynamic>? deliveryAddress;
   List<Map<String, dynamic>> selectedCartItems = [];
 
+  List<Map<String, dynamic>> vouchersList = [];
+  Map<String, dynamic>? selectedVoucher;
+  Map<String, double>? adminLocation;
+
   double subTotal = 0;
   double shippingCost = 0;
   double discount = 0;
@@ -55,9 +59,12 @@ class CheckoutViewModel extends ChangeNotifier {
         subTotal += (price * qty);
       }
 
+      adminLocation = await _service.fetchAdminLocation();
       deliveryAddress = await _service.fetchDefaultAddress();
+      vouchersList = await _service.fetchActiveVouchers();
 
       _calculateShippingCost();
+      _recalculateDiscount();
     } catch (e) {
       errorMessage = e.toString();
     } finally {
@@ -72,6 +79,16 @@ class CheckoutViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateSelectedAddress(Map<String, dynamic> newAddress) {
+    deliveryAddress = newAddress;
+
+    _calculateShippingCost();
+
+    _recalculateDiscount();
+
+    notifyListeners();
+  }
+
   void _calculateShippingCost() {
     if (shippingMethod != 'Delivery' || deliveryAddress == null) {
       shippingCost = 0;
@@ -79,8 +96,15 @@ class CheckoutViewModel extends ChangeNotifier {
     }
 
     try {
-      const double storeLatitude = -8.1689;
-      const double storeLongitude = 113.7020;
+      final double storeLatitude = adminLocation?['latitude'] ?? -8.164913;
+      final double storeLongitude = adminLocation?['longitude'] ?? 113.716434;
+
+      if (deliveryAddress!['latitude'] == null ||
+          deliveryAddress!['longitude'] == null) {
+        shippingCost = 0;
+        debugPrint('Koordinat alamat customer kosong!');
+        return;
+      }
 
       final double custLatitude = (deliveryAddress!['latitude'] as num)
           .toDouble();
@@ -96,15 +120,37 @@ class CheckoutViewModel extends ChangeNotifier {
 
       double distanceInKm = distanceInMeters / 1000;
 
+      debugPrint('--- INFO ONGKIR ---');
+      debugPrint('Jarak Asli: $distanceInKm KM');
+
       if (distanceInKm <= 5.0) {
         shippingCost = 0;
+        debugPrint('Tarif: Rp 0 (Gratis Ongkir)');
       } else {
         double excessDistance = distanceInKm - 5.0;
         shippingCost = excessDistance.ceil() * 10000.0;
+        debugPrint('Kelebihan: $excessDistance KM -> Tarif: Rp $shippingCost');
       }
+      debugPrint('-------------------');
     } catch (e) {
       debugPrint('Error memproses perhitungan ongkir: $e');
-      shippingCost = 10000;
+      shippingCost = 0;
+    }
+  }
+
+  void selectVoucher(Map<String, dynamic>? voucher) {
+    selectedVoucher = voucher;
+    _recalculateDiscount();
+    notifyListeners();
+  }
+
+  void _recalculateDiscount() {
+    if (selectedVoucher != null) {
+      final percentage = (selectedVoucher!['discount_percentage'] as num)
+          .toDouble();
+      discount = (subTotal * percentage / 100);
+    } else {
+      discount = 0;
     }
   }
 
@@ -178,8 +224,9 @@ class CheckoutViewModel extends ChangeNotifier {
         'payment_method': paymentMethod,
         'payment_proof_url': proofUrl,
         'status': paymentMethod == 'COD' ? 'Diproses' : 'Menunggu Pembayaran',
-        'discount_applied': discount,
         'notes': 'Pesanan dari aplikasi mobile',
+        'voucher_id': selectedVoucher?['id'],
+        'discount_applied': discount,
       };
 
       final orderId = await _service.placeOrder(
@@ -188,21 +235,15 @@ class CheckoutViewModel extends ChangeNotifier {
       );
 
       if (paymentMethod == 'Virtual Account Bank') {
-        String uniqueMidtransOrderId =
-            "$orderId-${DateTime.now().millisecondsSinceEpoch}";
-
         final transactionResponse = await _midtransService.createTransaction(
           orderId: orderId,
           grossAmount: totalPayment.toInt(),
           customerName: deliveryAddress?['recipient_name'] ?? 'Customer',
           customerPhone: deliveryAddress?['phone_number'] ?? '0800000000',
-          bank:
-              bankCodes[selectedBank!]!,
+          bank: bankCodes[selectedBank!]!,
         );
 
-        debugPrint('RESPONS MENTAH MIDTRANS: $transactionResponse');
-
-        String vaNumber = 'Gagal memuat VA';
+        String vaNumber = 'Gagal membuat VA';
 
         if (bankCodes[selectedBank!] == 'echannel') {
           final billerCode = transactionResponse['biller_code'] ?? '';
@@ -218,9 +259,10 @@ class CheckoutViewModel extends ChangeNotifier {
         await Supabase.instance.client
             .from('orders')
             .update({
-              'payment_proof_url':
-                  null,
               'va_number': vaNumber,
+              'va_expiry_time': DateTime.now()
+                  .add(const Duration(hours: 1))
+                  .toIso8601String(),
             })
             .eq('id', orderId);
       }

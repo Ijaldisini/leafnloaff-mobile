@@ -56,7 +56,6 @@ class _AddressViewState extends State<AddressView> {
               ),
             ),
           ),
-
           SafeArea(
             child: Column(
               children: [
@@ -97,7 +96,6 @@ class _AddressViewState extends State<AddressView> {
                     ],
                   ),
                 ),
-
                 Expanded(
                   child: ListenableBuilder(
                     listenable: _viewModel,
@@ -146,7 +144,6 @@ class _AddressViewState extends State<AddressView> {
               ],
             ),
           ),
-
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -219,97 +216,85 @@ class _AddressViewState extends State<AddressView> {
   }
 
   Widget _buildAddressCard(Map<String, dynamic> address) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16.0),
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFDFDFD),
-        borderRadius: BorderRadius.circular(16.69),
-        border: Border.all(color: const Color(0xFFCA748D), width: 1),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 4)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  address['recipient_name'] ?? 'Recipient’s Name',
-                  style: const TextStyle(
-                    color: Color(0xFF2D4839),
-                    fontSize: 16,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () async {
-                      final shouldRefresh = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              EditAddressView(address: address),
-                        ),
-                      );
-                      if (shouldRefresh == true) {
-                        _viewModel.fetchAddresses();
-                      }
-                    },
-                    child: const Icon(
-                      Icons.edit_outlined,
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context, address);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16.0),
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFDFDFD),
+          borderRadius: BorderRadius.circular(16.69),
+          border: Border.all(color: const Color(0xFFCA748D), width: 1),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 4,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    address['recipient_name'] ?? 'Recipient’s Name',
+                    style: const TextStyle(
                       color: Color(0xFF2D4839),
-                      size: 20,
+                      fontSize: 16,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  GestureDetector(
-                    onTap: () {
-                      _showDeleteConfirmation(context, address['id']);
-                    },
-                    child: const Icon(
-                      Icons.delete_outline,
-                      color: Color(0xFF2D4839),
-                      size: 20,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          Row(
-            children: [
-              const Icon(Icons.phone, color: Color(0xFF426E55), size: 16),
-              const SizedBox(width: 8),
-              Text(
-                address['phone_number'] ?? '08123456789',
-                style: const TextStyle(
-                  color: Color(0xFF426E55),
-                  fontSize: 13,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.location_on, color: Color(0xFF426E55), size: 16),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  address['address_detail'] ?? 'Street, No. 00',
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () async {
+                        final shouldRefresh = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                EditAddressView(address: address),
+                          ),
+                        );
+                        if (shouldRefresh == true) {
+                          _viewModel.fetchAddresses();
+                        }
+                      },
+                      child: const Icon(
+                        Icons.edit_outlined,
+                        color: Color(0xFF2D4839),
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    GestureDetector(
+                      onTap: () {
+                        _showDeleteConfirmation(context, address['id']);
+                      },
+                      child: const Icon(
+                        Icons.delete_outline,
+                        color: Color(0xFF2D4839),
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.phone, color: Color(0xFF426E55), size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  address['phone_number'] ?? '08123456789',
                   style: const TextStyle(
                     color: Color(0xFF426E55),
                     fontSize: 13,
@@ -317,34 +302,59 @@ class _AddressViewState extends State<AddressView> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          GestureDetector(
-            onTap: () {
-              _viewModel.openMaps(address['latitude'], address['longitude']);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEED5DB),
-                border: Border.all(color: const Color(0xFFCA748D)),
-                borderRadius: BorderRadius.circular(62.50),
-              ),
-              child: const Text(
-                'View Maps',
-                style: TextStyle(
-                  color: Color(0xFFCA748D),
-                  fontSize: 11.39,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.location_on,
+                  color: Color(0xFF426E55),
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    address['address_detail'] ?? 'Street, No. 00',
+                    style: const TextStyle(
+                      color: Color(0xFF426E55),
+                      fontSize: 13,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () {
+                _viewModel.openMaps(address['latitude'], address['longitude']);
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEED5DB),
+                  border: Border.all(color: const Color(0xFFCA748D)),
+                  borderRadius: BorderRadius.circular(62.50),
+                ),
+                child: const Text(
+                  'View Maps',
+                  style: TextStyle(
+                    color: Color(0xFFCA748D),
+                    fontSize: 11.39,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
