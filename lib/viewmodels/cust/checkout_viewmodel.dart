@@ -6,6 +6,7 @@ import 'cart_viewmodel.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../services/payments/midtrans_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../models/voucher_model.dart';
 
 class CheckoutViewModel extends ChangeNotifier {
   final CheckoutService _service = CheckoutService();
@@ -26,8 +27,8 @@ class CheckoutViewModel extends ChangeNotifier {
   Map<String, dynamic>? deliveryAddress;
   List<Map<String, dynamic>> selectedCartItems = [];
 
-  List<Map<String, dynamic>> vouchersList = [];
-  Map<String, dynamic>? selectedVoucher;
+  VoucherModel? selectedVoucher;
+
   Map<String, double>? adminLocation;
 
   double subTotal = 0;
@@ -61,7 +62,6 @@ class CheckoutViewModel extends ChangeNotifier {
 
       adminLocation = await _service.fetchAdminLocation();
       deliveryAddress = await _service.fetchDefaultAddress();
-      vouchersList = await _service.fetchActiveVouchers();
 
       _calculateShippingCost();
       _recalculateDiscount();
@@ -73,19 +73,16 @@ class CheckoutViewModel extends ChangeNotifier {
     }
   }
 
-  void setShippingMethod(String method) {
-    shippingMethod = method;
+  void updateSelectedAddress(Map<String, dynamic> newAddress) {
+    deliveryAddress = newAddress;
     _calculateShippingCost();
+    _recalculateDiscount();
     notifyListeners();
   }
 
-  void updateSelectedAddress(Map<String, dynamic> newAddress) {
-    deliveryAddress = newAddress;
-
+  void setShippingMethod(String method) {
+    shippingMethod = method;
     _calculateShippingCost();
-
-    _recalculateDiscount();
-
     notifyListeners();
   }
 
@@ -96,8 +93,8 @@ class CheckoutViewModel extends ChangeNotifier {
     }
 
     try {
-      final double storeLatitude = adminLocation?['latitude'] ?? -8.164913;
-      final double storeLongitude = adminLocation?['longitude'] ?? 113.716434;
+      final double storeLatitude = adminLocation?['latitude'] ?? -8.1689;
+      final double storeLongitude = adminLocation?['longitude'] ?? 113.7020;
 
       if (deliveryAddress!['latitude'] == null ||
           deliveryAddress!['longitude'] == null) {
@@ -120,25 +117,19 @@ class CheckoutViewModel extends ChangeNotifier {
 
       double distanceInKm = distanceInMeters / 1000;
 
-      debugPrint('--- INFO ONGKIR ---');
-      debugPrint('Jarak Asli: $distanceInKm KM');
-
       if (distanceInKm <= 5.0) {
         shippingCost = 0;
-        debugPrint('Tarif: Rp 0 (Gratis Ongkir)');
       } else {
         double excessDistance = distanceInKm - 5.0;
         shippingCost = excessDistance.ceil() * 10000.0;
-        debugPrint('Kelebihan: $excessDistance KM -> Tarif: Rp $shippingCost');
       }
-      debugPrint('-------------------');
     } catch (e) {
       debugPrint('Error memproses perhitungan ongkir: $e');
       shippingCost = 0;
     }
   }
 
-  void selectVoucher(Map<String, dynamic>? voucher) {
+  void selectVoucher(VoucherModel? voucher) {
     selectedVoucher = voucher;
     _recalculateDiscount();
     notifyListeners();
@@ -146,8 +137,7 @@ class CheckoutViewModel extends ChangeNotifier {
 
   void _recalculateDiscount() {
     if (selectedVoucher != null) {
-      final percentage = (selectedVoucher!['discount_percentage'] as num)
-          .toDouble();
+      final percentage = (selectedVoucher!.discountPercentage).toDouble();
       discount = (subTotal * percentage / 100);
     } else {
       discount = 0;
@@ -225,7 +215,8 @@ class CheckoutViewModel extends ChangeNotifier {
         'payment_proof_url': proofUrl,
         'status': paymentMethod == 'COD' ? 'Diproses' : 'Menunggu Pembayaran',
         'notes': 'Pesanan dari aplikasi mobile',
-        'voucher_id': selectedVoucher?['id'],
+        // ID DIAMBIL DARI MODEL VOUCHER
+        'voucher_id': selectedVoucher?.id,
         'discount_applied': discount,
       };
 

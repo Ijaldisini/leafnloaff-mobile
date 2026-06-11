@@ -3,6 +3,7 @@ import '../../models/user_model.dart';
 import 'home_view.dart';
 import 'profile_view.dart';
 import 'cart_view.dart';
+import 'notification_view.dart';
 
 class CustomerMainView extends StatefulWidget {
   final UserModel user;
@@ -24,12 +25,7 @@ class _CustomerMainViewState extends State<CustomerMainView> {
     _pages = [
       HomeView(user: widget.user),
       const CartView(),
-      const Center(
-        child: Text(
-          'Notification View',
-          style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
-        ),
-      ),
+      const NotificationView(),
       ProfileView(user: widget.user),
     ];
   }

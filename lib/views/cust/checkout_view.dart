@@ -4,6 +4,7 @@ import '../../viewmodels/cust/checkout_viewmodel.dart';
 import 'address_view.dart';
 import '../cust/detail_order_view.dart';
 import '../cust/select_voucher_view.dart';
+import '../../models/voucher_model.dart';
 
 class CheckoutView extends StatefulWidget {
   const CheckoutView({super.key});
@@ -31,99 +32,9 @@ class _CheckoutViewState extends State<CheckoutView> {
     ).format(amount);
   }
 
-  void _showVoucherBottomSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-      ),
-      builder: (context) {
-        return ListenableBuilder(
-          listenable: _viewModel,
-          builder: (context, _) {
-            if (_viewModel.vouchersList.isEmpty) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24.0),
-                  child: Text(
-                    'Tidak ada voucher tersedia.',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      color: Color(0xFF2D4839),
-                    ),
-                  ),
-                ),
-              );
-            }
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Gunakan Voucher',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D4839),
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                ),
-                const Divider(),
-                Flexible(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _viewModel.vouchersList.length,
-                    itemBuilder: (context, index) {
-                      final voucher = _viewModel.vouchersList[index];
-                      final isSelected =
-                          _viewModel.selectedVoucher?['id'] == voucher['id'];
-                      return ListTile(
-                        leading: const Icon(
-                          Icons.confirmation_number_outlined,
-                          color: Color(0xFFCA748D),
-                        ),
-                        title: Text(
-                          voucher['title'] ?? 'Diskon Spesial',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                        subtitle: Text(
-                          'Potongan harga ${voucher['discount_percentage']}%',
-                          style: const TextStyle(fontFamily: 'Poppins'),
-                        ),
-                        trailing: Icon(
-                          isSelected
-                              ? Icons.check_circle
-                              : Icons.circle_outlined,
-                          color: const Color(0xFF2D4839),
-                        ),
-                        onTap: () {
-                          if (isSelected) {
-                            _viewModel.selectVoucher(null);
-                          } else {
-                            _viewModel.selectVoucher(voucher);
-                          }
-                          Navigator.pop(context);
-                        },
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-            );
-          },
-        );
-      },
-    );
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -815,20 +726,19 @@ class _CheckoutViewState extends State<CheckoutView> {
           const SizedBox(height: 10),
           GestureDetector(
             onTap: () async {
-              final selected = await Navigator.push<Map<String, dynamic>?>(
+              final selected = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => SelectVoucherView(
-                    availableVouchers: _viewModel.vouchersList,
                     selectedVoucher: _viewModel.selectedVoucher,
                   ),
                 ),
               );
 
               if (selected != null) {
-                if (selected.containsKey('clear')) {
+                if (selected == 'clear') {
                   _viewModel.selectVoucher(null);
-                } else {
+                } else if (selected is VoucherModel) {
                   _viewModel.selectVoucher(selected);
                 }
               }
@@ -848,7 +758,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                 children: [
                   Text(
                     _viewModel.selectedVoucher != null
-                        ? '${_viewModel.selectedVoucher!['title']} (${_viewModel.selectedVoucher!['discount_percentage']}% Off)'
+                        ? '${_viewModel.selectedVoucher!.title} (${_viewModel.selectedVoucher!.discountPercentage}% Off)'
                         : 'Select Voucher',
                     style: const TextStyle(
                       color: Color(0xFF2D4839),

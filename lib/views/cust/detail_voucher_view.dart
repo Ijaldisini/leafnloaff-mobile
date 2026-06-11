@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../models/voucher_model.dart';
 
 class DetailVoucherView extends StatelessWidget {
-  final Map<String, dynamic> voucher;
+  final VoucherModel voucher;
 
   const DetailVoucherView({super.key, required this.voucher});
 
   @override
   Widget build(BuildContext context) {
-    String expiryText = '';
-    if (voucher['expires_at'] != null) {
-      final expiryDate = DateTime.parse(voucher['expires_at']).toLocal();
-      expiryText =
-          'Expires on ${DateFormat('MMM dd, yyyy').format(expiryDate)}';
-    }
+    final expiryText =
+        'Expires on ${DateFormat('MMM dd, yyyy').format(voucher.expiresAt)}';
 
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
@@ -100,10 +97,7 @@ class DetailVoucherView extends StatelessWidget {
                             ),
                           ],
                           image: DecorationImage(
-                            image: NetworkImage(
-                              voucher['image_url'] ??
-                                  'https://placehold.co/334x121',
-                            ),
+                            image: NetworkImage(voucher.imageUrl),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -126,7 +120,7 @@ class DetailVoucherView extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              voucher['title'] ?? 'Voucher’s Name',
+                              voucher.title,
                               style: const TextStyle(
                                 color: Color(0xFF51725F),
                                 fontSize: 16,
@@ -135,7 +129,7 @@ class DetailVoucherView extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              '${voucher['discount_percentage']}% Off',
+                              '${voucher.discountPercentage}% Off',
                               style: const TextStyle(
                                 color: Color(0xFF2D4839),
                                 fontSize: 35,
@@ -144,16 +138,15 @@ class DetailVoucherView extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 10),
-                            if (expiryText.isNotEmpty)
-                              Text(
-                                expiryText,
-                                style: const TextStyle(
-                                  color: Color(0xFF51725F),
-                                  fontSize: 12,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            Text(
+                              expiryText,
+                              style: const TextStyle(
+                                color: Color(0xFF51725F),
+                                fontSize: 12,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w600,
                               ),
+                            ),
                             const SizedBox(height: 20),
                             const Text(
                               'Terms and Conditions',
@@ -166,8 +159,7 @@ class DetailVoucherView extends StatelessWidget {
                             ),
                             const SizedBox(height: 10),
                             Text(
-                              voucher['terms_and_condition'] ??
-                                  'Syarat dan ketentuan berlaku.',
+                              voucher.termsAndCondition,
                               style: const TextStyle(
                                 color: Color(0xFF51725F),
                                 fontSize: 14,
@@ -180,9 +172,7 @@ class DetailVoucherView extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(
-                        height: 120,
-                      ),
+                      const SizedBox(height: 120),
                     ],
                   ),
                 ),

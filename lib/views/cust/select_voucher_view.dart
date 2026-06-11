@@ -1,37 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../models/voucher_model.dart';
+import '../../viewmodels/cust/select_voucher_viewmodel.dart';
 import 'detail_voucher_view.dart';
 
 class SelectVoucherView extends StatefulWidget {
-  final List<Map<String, dynamic>> availableVouchers;
-  final Map<String, dynamic>? selectedVoucher;
+  final VoucherModel? selectedVoucher;
 
-  const SelectVoucherView({
-    super.key,
-    required this.availableVouchers,
-    this.selectedVoucher,
-  });
+  const SelectVoucherView({super.key, this.selectedVoucher});
 
   @override
   State<SelectVoucherView> createState() => _SelectVoucherViewState();
 }
 
 class _SelectVoucherViewState extends State<SelectVoucherView> {
-  Map<String, dynamic>? _currentSelected;
+  final SelectVoucherViewModel _viewModel = SelectVoucherViewModel();
 
   @override
   void initState() {
     super.initState();
-    _currentSelected = widget.selectedVoucher;
-  }
-
-  void _handleVoucherSelection(Map<String, dynamic> voucher) {
-    if (_currentSelected != null && _currentSelected!['id'] == voucher['id']) {
-      setState(() => _currentSelected = null);
-    } else {
-      setState(() => _currentSelected = voucher);
-    }
-    Navigator.pop(context, _currentSelected ?? {'clear': true});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _viewModel.initVoucherData(widget.selectedVoucher);
+    });
   }
 
   @override
@@ -68,7 +58,10 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+                  padding: const EdgeInsets.only(
+                    top: 10.0,
+                    bottom: 20.0,
+                  ),
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
@@ -81,7 +74,10 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
                               Icons.arrow_back_ios_new,
                               color: Colors.white,
                             ),
-                            onPressed: () => Navigator.pop(context),
+                            onPressed: () => Navigator.pop(
+                              context,
+                              _viewModel.selectedVoucher ?? 'clear',
+                            ),
                           ),
                         ),
                       ),
@@ -104,59 +100,26 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
                     ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 28.0,
-                    vertical: 10.0,
-                  ),
-                  child: Container(
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFDFDFD),
-                      borderRadius: BorderRadius.circular(100),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 4,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 30,
-                          height: 30,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF426E55),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.search,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        const Expanded(
-                          child: Text(
-                            'Search voucher...',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontFamily: 'Poppins',
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
+
                 Expanded(
-                  child: widget.availableVouchers.isEmpty
-                      ? const Center(
+                  child: ListenableBuilder(
+                    listenable: _viewModel,
+                    builder: (context, child) {
+                      if (_viewModel.isLoading) {
+                        return const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        );
+                      }
+                      if (_viewModel.errorMessage != null) {
+                        return Center(
+                          child: Text(
+                            _viewModel.errorMessage!,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        );
+                      }
+                      if (_viewModel.vouchers.isEmpty) {
+                        return const Center(
                           child: Text(
                             'Tidak ada voucher tersedia.',
                             style: TextStyle(
@@ -164,199 +127,142 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
                               fontFamily: 'Poppins',
                             ),
                           ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.only(
-                            left: 28,
-                            right: 28,
-                            bottom: 20,
-                          ),
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: widget.availableVouchers.length,
-                          itemBuilder: (context, index) {
-                            final voucher = widget.availableVouchers[index];
-                            final isSelected =
-                                _currentSelected != null &&
-                                _currentSelected!['id'] == voucher['id'];
+                        );
+                      }
 
-                            String expiryText = '';
-                            if (voucher['expires_at'] != null) {
-                              final expiryDate = DateTime.parse(
-                                voucher['expires_at'],
-                              ).toLocal();
-                              expiryText =
-                                  'Expires on ${DateFormat('MMM dd, yyyy').format(expiryDate)}';
-                            }
+                      return ListView.builder(
+                        padding: const EdgeInsets.only(
+                          left: 28,
+                          right: 28,
+                          bottom: 20,
+                        ),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: _viewModel.vouchers.length,
+                        itemBuilder: (context, index) {
+                          final voucher = _viewModel.vouchers[index];
+                          final isSelected =
+                              _viewModel.selectedVoucher?.id == voucher.id;
+                          final expiryText =
+                              'Expires on ${DateFormat('MMM dd, yyyy').format(voucher.expiresAt)}';
 
-                            return GestureDetector(
-                              onTap: () => _handleVoucherSelection(voucher),
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 20),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.bottomRight,
-                                    end: Alignment.topLeft,
-                                    colors: [
-                                      Color(0xFFD699AB),
-                                      Color(0xFFFDFDFD),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 4,
-                                      offset: Offset(0, 4),
-                                    ),
+                          return GestureDetector(
+                            onTap: () {
+                              _viewModel.toggleVoucherSelection(voucher);
+                              Navigator.pop(
+                                context,
+                                _viewModel.selectedVoucher ?? 'clear',
+                              );
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 20),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.bottomRight,
+                                  end: Alignment.topLeft,
+                                  colors: [
+                                    Color(0xFFD699AB),
+                                    Color(0xFFFDFDFD),
                                   ],
                                 ),
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      height: 120,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: const Color(0xFFCA748D),
-                                          width: 1,
-                                        ),
-                                        image: DecorationImage(
-                                          image: NetworkImage(
-                                            voucher['image_url'] ??
-                                                'https://placehold.co/334x121',
-                                          ),
-                                          fit: BoxFit.cover,
-                                        ),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 4,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: const Color(0xFFCA748D),
+                                        width: 1,
+                                      ),
+                                      image: DecorationImage(
+                                        image: NetworkImage(voucher.imageUrl),
+                                        fit: BoxFit.cover,
                                       ),
                                     ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                  voucher['title'] ??
-                                                      'Voucher’s Name',
-                                                  style: const TextStyle(
-                                                    color: Color(0xFFCA748D),
-                                                    fontSize: 16,
-                                                    fontFamily: 'Poppins',
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                voucher.title,
+                                                style: const TextStyle(
+                                                  color: Color(0xFFCA748D),
+                                                  fontSize: 16,
+                                                  fontFamily: 'Poppins',
+                                                  fontWeight: FontWeight.w600,
                                                 ),
                                               ),
-                                              Row(
-                                                children: [
-                                                  GestureDetector(
-                                                    onTap: () async {
-                                                      final useVoucher =
-                                                          await Navigator.push(
-                                                            context,
-                                                            MaterialPageRoute(
-                                                              builder: (context) =>
-                                                                  DetailVoucherView(
-                                                                    voucher:
-                                                                        voucher,
-                                                                  ),
-                                                            ),
-                                                          );
-                                                      if (useVoucher == true) {
-                                                        _handleVoucherSelection(
-                                                          voucher,
+                                            ),
+                                            Row(
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: () async {
+                                                    final useVoucher =
+                                                        await Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                DetailVoucherView(
+                                                                  voucher:
+                                                                      voucher,
+                                                                ),
+                                                          ),
                                                         );
-                                                      }
-                                                    },
-                                                    child: Container(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            horizontal: 10,
-                                                            vertical: 2,
-                                                          ),
-                                                      decoration: BoxDecoration(
-                                                        color: const Color(
-                                                          0xFFFDFDFD,
+                                                    if (useVoucher == true) {
+                                                      _viewModel
+                                                          .toggleVoucherSelection(
+                                                            voucher,
+                                                          );
+                                                      Navigator.pop(
+                                                        context,
+                                                        _viewModel
+                                                            .selectedVoucher,
+                                                      );
+                                                    }
+                                                  },
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 10,
+                                                          vertical: 2,
                                                         ),
-                                                        border: Border.all(
-                                                          color: const Color(
-                                                            0xFF426E55,
-                                                          ),
-                                                          width: 0.85,
-                                                        ),
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              53,
-                                                            ),
-                                                      ),
-                                                      child: const Text(
-                                                        'More Info',
-                                                        style: TextStyle(
-                                                          color: Color(
-                                                            0xFF426E55,
-                                                          ),
-                                                          fontSize: 10,
-                                                          fontFamily: 'Poppins',
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 10),
-                                                  Container(
-                                                    width: 20,
-                                                    height: 20,
                                                     decoration: BoxDecoration(
-                                                      color: isSelected
-                                                          ? const Color(
-                                                              0xFF426E55,
-                                                            )
-                                                          : Colors.transparent,
-                                                      shape: BoxShape.circle,
+                                                      color: const Color(
+                                                        0xFFFDFDFD,
+                                                      ),
                                                       border: Border.all(
                                                         color: const Color(
                                                           0xFF426E55,
                                                         ),
-                                                        width: 2,
+                                                        width: 0.85,
                                                       ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            53,
+                                                          ),
                                                     ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.end,
-                                            children: [
-                                              Text(
-                                                '${voucher['discount_percentage']}% Off',
-                                                style: const TextStyle(
-                                                  color: Color(0xFFCA748D),
-                                                  fontSize: 32,
-                                                  fontFamily: 'Poppins',
-                                                  fontWeight: FontWeight.w700,
-                                                  height: 1.0,
-                                                ),
-                                              ),
-                                              Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.end,
-                                                children: [
-                                                  if (expiryText.isNotEmpty)
-                                                    Text(
-                                                      expiryText,
-                                                      style: const TextStyle(
+                                                    child: const Text(
+                                                      'More Info',
+                                                      style: TextStyle(
                                                         color: Color(
-                                                          0xFFCA748D,
+                                                          0xFF426E55,
                                                         ),
                                                         fontSize: 10,
                                                         fontFamily: 'Poppins',
@@ -364,29 +270,85 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
                                                             FontWeight.w600,
                                                       ),
                                                     ),
-                                                  const Text(
-                                                    'Terms and conditions apply',
-                                                    style: TextStyle(
-                                                      color: Color(0xFFCA748D),
-                                                      fontSize: 10,
-                                                      fontFamily: 'Poppins',
-                                                      fontWeight:
-                                                          FontWeight.w600,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 10),
+                                                Container(
+                                                  width: 20,
+                                                  height: 20,
+                                                  decoration: BoxDecoration(
+                                                    color: isSelected
+                                                        ? const Color(
+                                                            0xFF426E55,
+                                                          )
+                                                        : Colors.transparent,
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(
+                                                      color: const Color(
+                                                        0xFF426E55,
+                                                      ),
+                                                      width: 2,
                                                     ),
                                                   ),
-                                                ],
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              '${voucher.discountPercentage}% Off',
+                                              style: const TextStyle(
+                                                color: Color(0xFFCA748D),
+                                                fontSize: 32,
+                                                fontFamily: 'Poppins',
+                                                fontWeight: FontWeight.w700,
+                                                height: 1.0,
                                               ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
+                                            ),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  expiryText,
+                                                  style: const TextStyle(
+                                                    color: Color(0xFFCA748D),
+                                                    fontSize: 10,
+                                                    fontFamily: 'Poppins',
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                                const Text(
+                                                  'Terms and conditions apply',
+                                                  style: TextStyle(
+                                                    color: Color(0xFFCA748D),
+                                                    fontSize: 10,
+                                                    fontFamily: 'Poppins',
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),

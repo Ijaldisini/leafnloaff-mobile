@@ -1,29 +1,27 @@
 import 'package:flutter/material.dart';
-import '../../viewmodels/admin/admin_notification_viewmodel.dart';
+import '../../viewmodels/cust/notification_viewmodel.dart';
 import '../../models/notification_model.dart';
 
-class AdminNotificationView extends StatefulWidget {
-  const AdminNotificationView({super.key});
+class NotificationView extends StatefulWidget {
+  const NotificationView({super.key});
 
   @override
-  State<AdminNotificationView> createState() => _AdminNotificationViewState();
+  State<NotificationView> createState() => _NotificationViewState();
 }
 
-class _AdminNotificationViewState extends State<AdminNotificationView> {
-  final AdminNotificationViewModel _viewModel = AdminNotificationViewModel();
+class _NotificationViewState extends State<NotificationView> {
+  final NotificationViewModel _viewModel = NotificationViewModel();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel.fetchNotifications();
+      _viewModel.loadNotifications();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
       body: Stack(
@@ -32,7 +30,7 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
             left: -17,
             top: -30,
             child: Container(
-              width: screenWidth + 34,
+              width: MediaQuery.of(context).size.width + 34,
               height: 289,
               decoration: const BoxDecoration(color: Color(0xFFD699AB)),
             ),
@@ -41,7 +39,7 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
             left: -17,
             top: 147,
             child: Container(
-              width: screenWidth + 34,
+              width: MediaQuery.of(context).size.width + 34,
               height: 114,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -52,6 +50,7 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
               ),
             ),
           ),
+
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,13 +63,6 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
                   ),
                   child: Row(
                     children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_ios_new,
-                          color: Colors.white,
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                      ),
                       const SizedBox(width: 5),
                       const Text(
                         'Messages',
@@ -88,10 +80,10 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
                           ],
                         ),
                       ),
-                      const Spacer(),
                     ],
                   ),
                 ),
+
                 Expanded(
                   child: ListenableBuilder(
                     listenable: _viewModel,
@@ -102,8 +94,7 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
                         );
                       }
 
-                      if (_viewModel.errorMessage != null &&
-                          _viewModel.groupedNotifications.isEmpty) {
+                      if (_viewModel.errorMessage != null) {
                         return Center(
                           child: Text(
                             _viewModel.errorMessage!,
@@ -111,7 +102,18 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
                               color: Colors.white,
                               fontFamily: 'Poppins',
                             ),
-                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      }
+
+                      if (_viewModel.groupedNotifications.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'Belum ada pesan.',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'Poppins',
+                            ),
                           ),
                         );
                       }
@@ -167,12 +169,61 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
             ),
           ),
 
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 30),
+              width: 340,
+              height: 42,
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                ),
+                borderRadius: BorderRadius.circular(120),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(child: Container(alignment: Alignment.center)),
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEED5DB),
+                        borderRadius: BorderRadius.circular(97.66),
+                      ),
+                      child: const Text(
+                        'Notification',
+                        style: TextStyle(
+                          color: Color(0xFFCA748D),
+                          fontSize:
+                              14,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           Positioned(
             left: -12,
             bottom: -2,
             child: IgnorePointer(
               child: Container(
-                width: screenWidth + 24,
+                width: MediaQuery.of(context).size.width + 24,
                 height: 130,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -195,28 +246,22 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFFDFDFD),
         borderRadius: BorderRadius.circular(16.69),
         border: isUnread
-            ? Border.all(color: const Color(0xFF73986F), width: 1.0)
-            : Border.all(color: Colors.transparent),
+            ? Border.all(color: const Color(0xFFCA748D), width: 0.5)
+            : null,
         boxShadow: isUnread
             ? const [
                 BoxShadow(
-                  color: Color(0xFF73986F),
-                  blurRadius: 7,
+                  color: Color(0xFFCA748D),
+                  blurRadius: 5,
                   offset: Offset(0, 0),
                 ),
               ]
-            : const [
-                BoxShadow(
-                  color: Color(0x1A000000),
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,6 +273,7 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
               fontSize: 16,
               fontFamily: 'Poppins',
               fontWeight: FontWeight.w700,
+              height: 1.10,
             ),
           ),
           const SizedBox(height: 5),
@@ -238,6 +284,7 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
               fontSize: 13,
               fontFamily: 'Poppins',
               fontWeight: FontWeight.w500,
+              height: 1.10,
             ),
           ),
         ],
