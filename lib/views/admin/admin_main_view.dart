@@ -4,9 +4,13 @@ import 'admin_menu_management_view.dart';
 import 'admin_order_management_view.dart';
 import 'admin_notification_view.dart';
 import 'admin_voucher_view.dart';
+import '../../models/user_model.dart';
+
 
 class AdminMainView extends StatefulWidget {
-  const AdminMainView({super.key});
+  final UserModel user;
+
+  const AdminMainView({super.key, required this.user});
 
   @override
   State<AdminMainView> createState() => _AdminMainViewState();

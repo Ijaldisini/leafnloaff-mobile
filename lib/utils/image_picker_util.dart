@@ -15,6 +15,11 @@ class ImagePickerUtil {
     return null;
   }
 
+  Future<List<File>> pickMultipleMedia() async {
+    final List<XFile> media = await _picker.pickMultipleMedia(imageQuality: 70);
+    return media.map((e) => File(e.path)).toList();
+  }
+
   Future<File?> pickFromCamera() async {
     final XFile? photo = await _picker.pickImage(
       source: ImageSource.camera,
@@ -22,6 +27,14 @@ class ImagePickerUtil {
     );
     if (photo != null) {
       return File(photo.path);
+    }
+    return null;
+  }
+
+  Future<File?> pickVideoFromCamera() async {
+    final XFile? video = await _picker.pickVideo(source: ImageSource.camera);
+    if (video != null) {
+      return File(video.path);
     }
     return null;
   }

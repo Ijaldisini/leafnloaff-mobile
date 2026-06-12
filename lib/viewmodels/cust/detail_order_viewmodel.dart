@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/cust/detail_order_service.dart';
 import '../../services/payments/midtrans_service.dart';
 import 'history_viewmodel.dart';
@@ -11,6 +12,7 @@ class DetailOrderViewModel extends ChangeNotifier {
   bool isLoading = true;
   String? errorMessage;
   Map<String, dynamic>? orderData;
+  bool isReviewed = false;
 
   double subTotal = 0;
   double shippingCost = 0;
@@ -31,6 +33,17 @@ class DetailOrderViewModel extends ChangeNotifier {
 
       if (orderData != null) {
         _calculateSummary();
+
+        if (orderData!['status'] == 'Selesai') {
+          final reviewCheck = await Supabase.instance.client
+              .from('reviews')
+              .select('id')
+              .eq('order_id', orderId)
+              .limit(1)
+              .maybeSingle();
+
+          isReviewed = reviewCheck != null;
+        }
 
         if (orderData!['status'] == 'Menunggu Pembayaran') {
           _startCountdown();
@@ -61,11 +74,9 @@ class DetailOrderViewModel extends ChangeNotifier {
           _countdownTimer?.cancel();
 
           await _service.updateOrderStatus(orderId, 'Diproses');
-
           await fetchOrder(orderId);
           HistoryViewModel().fetchHistory();
-        }
-        else if (transactionStatus == 'expire' ||
+        } else if (transactionStatus == 'expire' ||
             transactionStatus == 'cancel') {
           timer.cancel();
           _countdownTimer?.cancel();

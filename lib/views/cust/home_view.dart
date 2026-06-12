@@ -3,6 +3,9 @@ import 'package:intl/intl.dart';
 import '../../models/user_model.dart';
 import '../../viewmodels/cust/home_viewmodel.dart';
 import 'detail_menu_view.dart';
+import '../../models/voucher_model.dart';
+import '../../viewmodels/cust/cart_viewmodel.dart';
+import 'checkout_view.dart';
 
 class HomeView extends StatefulWidget {
   final UserModel user;
@@ -194,31 +197,62 @@ class _HomeViewState extends State<HomeView> {
                   offset: const Offset(0, -30),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Container(
-                      width: double.infinity,
-                      height: 130,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF426E55),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.25),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.network(
-                          _viewModel.activeVoucher?['image_url'] ??
-                              'https://picsum.photos/334/130',
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Center(
-                            child: Icon(
-                              Icons.broken_image,
-                              color: Colors.white54,
-                              size: 40,
+                    child: GestureDetector(
+                      onTap: () {
+                        final cartVM = CartViewModel();
+
+                        if (cartVM.selectedItemIds.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Silahkan untuk memilih menu untuk dibeli terlebih dahulu',
+                                style: TextStyle(fontFamily: 'Poppins'),
+                              ),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                          return;
+                        }
+
+                        if (_viewModel.activeVoucher != null) {
+                          final voucherData = VoucherModel.fromJson(
+                            _viewModel.activeVoucher!,
+                          );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  CheckoutView(initialVoucher: voucherData),
+                            ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        height: 130,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF426E55),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.25),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.network(
+                            _viewModel.activeVoucher?['image_url'] ??
+                                'https://picsum.photos/334/130',
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Center(
+                              child: Icon(
+                                Icons.broken_image,
+                                color: Colors.white54,
+                                size: 40,
+                              ),
                             ),
                           ),
                         ),
@@ -461,12 +495,8 @@ class _HomeViewState extends State<HomeView> {
                   height: 30,
                   decoration: BoxDecoration(
                     color: isAdded
-                        ? const Color(
-                            0xFFCA748D,
-                          )
-                        : Colors.white.withValues(
-                            alpha: 0.9,
-                          ),
+                        ? const Color(0xFFCA748D)
+                        : Colors.white.withValues(alpha: 0.9),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(

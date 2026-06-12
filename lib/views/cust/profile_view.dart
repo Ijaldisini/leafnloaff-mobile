@@ -66,15 +66,26 @@ class _ProfileViewState extends State<ProfileView> {
                       Container(
                         width: 80,
                         height: 80,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFDFDFD),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFDFDFD),
                           shape: BoxShape.circle,
+                          image: _currentUser.profileImageUrl != null
+                              ? DecorationImage(
+                                  image: NetworkImage(
+                                    _currentUser.profileImageUrl!,
+                                  ),
+                                  fit: BoxFit
+                                      .cover,
+                                )
+                              : null,
                         ),
-                        child: const Icon(
-                          Icons.person,
-                          size: 50,
-                          color: Color(0xFF3D5A4A),
-                        ),
+                        child: _currentUser.profileImageUrl == null
+                            ? const Icon(
+                                Icons.person,
+                                size: 50,
+                                color: Color(0xFF3D5A4A),
+                              )
+                            : null,
                       ),
                       const SizedBox(width: 16),
                       Expanded(

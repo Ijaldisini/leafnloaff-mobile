@@ -22,6 +22,8 @@ class _NotificationViewState extends State<NotificationView> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
       body: Stack(
@@ -30,7 +32,7 @@ class _NotificationViewState extends State<NotificationView> {
             left: -17,
             top: -30,
             child: Container(
-              width: MediaQuery.of(context).size.width + 34,
+              width: screenWidth + 34,
               height: 289,
               decoration: const BoxDecoration(color: Color(0xFFD699AB)),
             ),
@@ -39,7 +41,7 @@ class _NotificationViewState extends State<NotificationView> {
             left: -17,
             top: 147,
             child: Container(
-              width: MediaQuery.of(context).size.width + 34,
+              width: screenWidth + 34,
               height: 114,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -55,32 +57,23 @@ class _NotificationViewState extends State<NotificationView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 10.0,
-                    top: 10.0,
-                    bottom: 20.0,
-                  ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 5),
-                      const Text(
-                        'Messages',
-                        style: TextStyle(
-                          color: Color(0xFFFDFDFD),
-                          fontSize: 25,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w800,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(2, 2),
-                              blurRadius: 4,
-                              color: Colors.black26,
-                            ),
-                          ],
+                const Padding(
+                  padding: EdgeInsets.only(left: 25.0, top: 20.0, bottom: 20.0),
+                  child: Text(
+                    'Messages',
+                    style: TextStyle(
+                      color: Color(0xFFFDFDFD),
+                      fontSize: 25,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w800,
+                      shadows: [
+                        Shadow(
+                          offset: Offset(2, 2),
+                          blurRadius: 4,
+                          color: Colors.black26,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
 
@@ -169,61 +162,12 @@ class _NotificationViewState extends State<NotificationView> {
             ),
           ),
 
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 30),
-              width: 340,
-              height: 42,
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                ),
-                borderRadius: BorderRadius.circular(120),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(child: Container(alignment: Alignment.center)),
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEED5DB),
-                        borderRadius: BorderRadius.circular(97.66),
-                      ),
-                      child: const Text(
-                        'Notification',
-                        style: TextStyle(
-                          color: Color(0xFFCA748D),
-                          fontSize:
-                              14,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
           Positioned(
             left: -12,
             bottom: -2,
             child: IgnorePointer(
               child: Container(
-                width: MediaQuery.of(context).size.width + 24,
+                width: screenWidth + 24,
                 height: 130,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(

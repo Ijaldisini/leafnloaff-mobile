@@ -96,40 +96,97 @@ class _EditProfileViewState extends State<EditProfileView> {
 
                   const SizedBox(height: 30),
 
-                  Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFBFBFB),
-                          shape: BoxShape.circle,
+                  ListenableBuilder(
+                    listenable: _viewModel,
+                    builder: (context, _) {
+                      return GestureDetector(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20),
+                              ),
+                            ),
+                            builder: (context) => SafeArea(
+                              child: Wrap(
+                                children: [
+                                  ListTile(
+                                    leading: const Icon(
+                                      Icons.camera_alt,
+                                      color: Color(0xFF3D5A4A),
+                                    ),
+                                    title: const Text(
+                                      'Ambil dari Kamera',
+                                      style: TextStyle(fontFamily: 'Poppins'),
+                                    ),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      _viewModel.pickImageFromCamera();
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(
+                                      Icons.photo_library,
+                                      color: Color(0xFF3D5A4A),
+                                    ),
+                                    title: const Text(
+                                      'Pilih dari Galeri',
+                                      style: TextStyle(fontFamily: 'Poppins'),
+                                    ),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      _viewModel.pickImageFromGallery();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        child: Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors
+                                  .grey
+                                  .shade400,
+                              backgroundImage: _viewModel.selectedImage != null
+                                  ? FileImage(
+                                      _viewModel.selectedImage!,
+                                    )
+                                  : (widget.user.profileImageUrl != null
+                                        ? NetworkImage(
+                                            widget.user.profileImageUrl!,
+                                          )
+                                        : null),
+                              child:
+                                  _viewModel.selectedImage == null &&
+                                      widget.user.profileImageUrl == null
+                                  ? const Icon(
+                                      Icons.person,
+                                      size: 60,
+                                      color: Colors.white,
+                                    )
+                                  : null,
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFCA748D),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.edit,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ],
                         ),
-                        child: const Icon(
-                          Icons.person,
-                          size: 60,
-                          color: Color(0xFF3D5A4A),
-                        ),
-                      ),
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFDFDFD),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFF426E55),
-                            width: 2,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          size: 16,
-                          color: Color(0xFF426E55),
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
 
                   const SizedBox(height: 40),
@@ -189,10 +246,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                                       ),
                                     ),
                                   );
-                                  Navigator.pop(
-                                    context,
-                                    updatedUser,
-                                  );
+                                  Navigator.pop(context, updatedUser);
                                 }
                               },
                         child: Container(

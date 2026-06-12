@@ -43,7 +43,7 @@ class CheckoutViewModel extends ChangeNotifier {
     'BRI Virtual Account': 'bri',
   };
 
-  Future<void> initCheckoutData() async {
+  Future<void> initCheckoutData({VoucherModel? initialVoucher}) async {
     isLoading = true;
     notifyListeners();
 
@@ -62,6 +62,10 @@ class CheckoutViewModel extends ChangeNotifier {
 
       adminLocation = await _service.fetchAdminLocation();
       deliveryAddress = await _service.fetchDefaultAddress();
+
+      if (initialVoucher != null) {
+        selectedVoucher = initialVoucher;
+      }
 
       _calculateShippingCost();
       _recalculateDiscount();
@@ -215,7 +219,6 @@ class CheckoutViewModel extends ChangeNotifier {
         'payment_proof_url': proofUrl,
         'status': paymentMethod == 'COD' ? 'Diproses' : 'Menunggu Pembayaran',
         'notes': 'Pesanan dari aplikasi mobile',
-        // ID DIAMBIL DARI MODEL VOUCHER
         'voucher_id': selectedVoucher?.id,
         'discount_applied': discount,
       };

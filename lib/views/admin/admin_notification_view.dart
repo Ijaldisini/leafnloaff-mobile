@@ -52,46 +52,31 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
               ),
             ),
           ),
+
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 10.0,
-                    top: 10.0,
-                    bottom: 20.0,
-                  ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_ios_new,
-                          color: Colors.white,
+                const Padding(
+                  padding: EdgeInsets.only(left: 25.0, top: 20.0, bottom: 20.0),
+                  child: Text(
+                    'Messages',
+                    style: TextStyle(
+                      color: Color(0xFFFDFDFD),
+                      fontSize: 25,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w800,
+                      shadows: [
+                        Shadow(
+                          offset: Offset(2, 2),
+                          blurRadius: 4,
+                          color: Colors.black26,
                         ),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(width: 5),
-                      const Text(
-                        'Messages',
-                        style: TextStyle(
-                          color: Color(0xFFFDFDFD),
-                          fontSize: 25,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w800,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(2, 2),
-                              blurRadius: 4,
-                              color: Colors.black26,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Spacer(),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
+
                 Expanded(
                   child: ListenableBuilder(
                     listenable: _viewModel,
@@ -201,7 +186,7 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
         borderRadius: BorderRadius.circular(16.69),
         border: isUnread
             ? Border.all(color: const Color(0xFF73986F), width: 1.0)
-            : Border.all(color: Colors.transparent),
+            : null,
         boxShadow: isUnread
             ? const [
                 BoxShadow(

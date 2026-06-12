@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/cust/detail_order_viewmodel.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'see_review_view.dart';
+import 'write_review_view.dart';
 
 class DetailOrderView extends StatefulWidget {
   final String orderId;
@@ -532,8 +534,37 @@ class _DetailOrderViewState extends State<DetailOrderView> {
       );
     }
     if (status == 'Selesai') {
+      final order = _viewModel.orderData!;
+      final bool isReviewed = _viewModel.isReviewed; 
+
       return GestureDetector(
-        onTap: () {},
+        onTap: () {
+          if (isReviewed) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SeeReviewView(
+                  orderId: order['id'],
+                  orderItems: order['order_items'] ?? [],
+                ),
+              ),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => WriteReviewView(
+                  orderId: order['id'],
+                  orderItems: order['order_items'] ?? [],
+                ),
+              ),
+            ).then((value) {
+              if (value == true) {
+                _viewModel.fetchOrder(widget.orderId);
+              }
+            });
+          }
+        },
         child: Container(
           width: double.infinity,
           height: 40,
@@ -551,9 +582,9 @@ class _DetailOrderViewState extends State<DetailOrderView> {
             ],
           ),
           alignment: Alignment.center,
-          child: const Text(
-            'Write Review',
-            style: TextStyle(
+          child: Text(
+            isReviewed ? 'See Review' : 'Write Review',
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontFamily: 'Poppins',

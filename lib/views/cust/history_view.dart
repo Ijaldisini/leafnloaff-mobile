@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../viewmodels/cust/history_viewmodel.dart';
+import 'detail_order_view.dart';
 
 class HistoryView extends StatefulWidget {
   const HistoryView({super.key});
@@ -376,6 +377,15 @@ class _HistoryViewState extends State<HistoryView> {
             alignment: Alignment.centerLeft,
             child: InkWell(
               onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        DetailOrderView(orderId: order['id'].toString()),
+                  ),
+                ).then((_) {
+                  _viewModel.fetchHistory();
+                });
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(

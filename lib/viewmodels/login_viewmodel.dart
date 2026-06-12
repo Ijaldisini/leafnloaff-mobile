@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
 import '../views/register_view.dart';
-import '../views/cust/home_view.dart';
 import '../views/admin/admin_main_view.dart';
 import 'package:flutter/scheduler.dart';
 import '../views/cust/main_view.dart';
@@ -68,15 +67,16 @@ class LoginViewModel extends ChangeNotifier {
         if (loggedInUser.role == 'admin') {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const AdminMainView()),
+            MaterialPageRoute(
+              builder: (context) => AdminMainView(user: loggedInUser),
+            ),
             (route) => false,
           );
         } else {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  CustomerMainView(user: loggedInUser),
+              builder: (context) => CustomerMainView(user: loggedInUser),
             ),
             (route) => false,
           );

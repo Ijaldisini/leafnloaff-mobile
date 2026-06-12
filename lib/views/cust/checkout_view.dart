@@ -7,7 +7,9 @@ import '../cust/select_voucher_view.dart';
 import '../../models/voucher_model.dart';
 
 class CheckoutView extends StatefulWidget {
-  const CheckoutView({super.key});
+  final VoucherModel? initialVoucher;
+
+  const CheckoutView({super.key, this.initialVoucher});
 
   @override
   State<CheckoutView> createState() => _CheckoutViewState();
@@ -20,7 +22,7 @@ class _CheckoutViewState extends State<CheckoutView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel.initCheckoutData();
+      _viewModel.initCheckoutData(initialVoucher: widget.initialVoucher);
     });
   }
 

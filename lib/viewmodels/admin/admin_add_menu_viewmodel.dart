@@ -102,6 +102,7 @@ class AdminAddMenuViewModel extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       notifyListeners();
+      if (!context.mounted) return false;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Gagal menyimpan data, periksa jaringan Anda.'),
