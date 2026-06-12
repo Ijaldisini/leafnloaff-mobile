@@ -16,20 +16,46 @@ class AdminOrderManagementViewModel extends ChangeNotifier {
   List<OrderManagementModel> _yesterdayOrders = [];
   List<OrderManagementModel> get yesterdayOrders => _yesterdayOrders;
 
-  Future<void> fetchOrders() async {
+  DateTime? selectedStartDate;
+  DateTime? selectedEndDate;
+  bool get isFiltering => selectedStartDate != null && selectedEndDate != null;
+
+  List<OrderManagementModel> _filteredOrders = [];
+  List<OrderManagementModel> get filteredOrders => _filteredOrders;
+
+  Future<void> fetchOrders({DateTime? start, DateTime? end}) async {
     _isLoading = true;
+
+    if (start != null && end != null) {
+      selectedStartDate = start;
+      selectedEndDate = DateTime(
+        end.year,
+        end.month,
+        end.day,
+        23,
+        59,
+        59,
+      );
+    } else {
+      selectedStartDate = null;
+      selectedEndDate = null;
+    }
+
     notifyListeners();
 
     try {
-      final response = await _service.getAllOrders();
+      final response = await _service.getAllOrders(
+        startDate: selectedStartDate,
+        endDate: selectedEndDate,
+      );
+
       final List<Map<String, dynamic>> allOrders =
           List<Map<String, dynamic>>.from(response);
 
       final now = DateTime.now();
       final todayStart = DateTime(now.year, now.month, now.day);
 
-      List<OrderManagementModel> tempToday = [];
-      List<OrderManagementModel> tempYesterday = [];
+      List<OrderManagementModel> tempParsed = [];
 
       for (var order in allOrders) {
         final createdAt = DateTime.parse(order['created_at']).toLocal();
@@ -46,31 +72,46 @@ class AdminOrderManagementViewModel extends ChangeNotifier {
           }
         }
 
-        final orderModel = OrderManagementModel(
-          id: order['id'].toString(),
-          totalPrice: (order['total_price'] as num?)?.toDouble() ?? 0.0,
-          status: order['status']?.toString() ?? 'Menunggu Pembayaran',
-          createdAt: createdAt,
-          productDesc: productDesc,
-          totalQty: totalQty,
+        tempParsed.add(
+          OrderManagementModel(
+            id: order['id'].toString(),
+            totalPrice: (order['total_price'] as num?)?.toDouble() ?? 0.0,
+            status: order['status']?.toString() ?? 'Menunggu Pembayaran',
+            createdAt: createdAt,
+            productDesc: productDesc,
+            totalQty: totalQty,
+          ),
         );
-
-        if (createdAt.isAfter(todayStart) ||
-            createdAt.isAtSameMomentAs(todayStart)) {
-          tempToday.add(orderModel);
-        } else {
-          tempYesterday.add(orderModel);
-        }
       }
 
-      _todayOrders = tempToday;
-      _yesterdayOrders = tempYesterday;
+      if (isFiltering) {
+        _filteredOrders = tempParsed;
+      } else {
+        List<OrderManagementModel> tempToday = [];
+        List<OrderManagementModel> tempYesterday = [];
+
+        for (var orderModel in tempParsed) {
+          if (orderModel.createdAt.isAfter(todayStart) ||
+              orderModel.createdAt.isAtSameMomentAs(todayStart)) {
+            tempToday.add(orderModel);
+          } else {
+            tempYesterday.add(orderModel);
+          }
+        }
+
+        _todayOrders = tempToday;
+        _yesterdayOrders = tempYesterday;
+      }
     } catch (e) {
       debugPrint("Error fetching admin orders: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void clearFilter() {
+    fetchOrders();
   }
 
   String getTimeAgo(DateTime date) {
@@ -93,7 +134,9 @@ class AdminOrderManagementViewModel extends ChangeNotifier {
 
   Future<void> exportToPdf() async {
     try {
-      final allOrders = [...todayOrders, ...yesterdayOrders];
+      final allOrders = isFiltering
+          ? filteredOrders
+          : [...todayOrders, ...yesterdayOrders];
 
       if (allOrders.isEmpty) {
         throw Exception('Tidak ada data pesanan untuk di-export.');

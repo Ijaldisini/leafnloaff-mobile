@@ -4,9 +4,15 @@ import 'package:intl/intl.dart';
 import 'package:leafnloaff/viewmodels/admin/admin_dashboard_viewmodel.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../login_view.dart';
+import 'admin_add_menu_view.dart';
+import 'admin_add_voucher_view.dart';
+import 'admin_order_detail_view.dart';
+import 'admin_order_management_view.dart';
 
 class AdminDashboardView extends StatefulWidget {
-  const AdminDashboardView({super.key});
+  final Function(int)? onNavigate;
+
+  const AdminDashboardView({super.key, this.onNavigate});
 
   @override
   State<AdminDashboardView> createState() => _AdminDashboardViewState();
@@ -80,9 +86,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(
-          builder: (context) => const LoginView(),
-        ),
+        MaterialPageRoute(builder: (context) => const LoginView()),
         (Route<dynamic> route) => false,
       );
     }
@@ -145,8 +149,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(25, 20, 25, 20),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment
-                              .spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Column(
@@ -248,7 +251,6 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                       ),
 
                       const SizedBox(height: 25),
-
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 25),
                         child: Row(
@@ -257,20 +259,35 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                               child: _buildActionButton(
                                 title: 'Create a\nnew menu',
                                 icon: Icons.add_circle_outline,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AdminAddMenuView(),
+                                    ),
+                                  ).then((value) {
+                                    _viewModel.fetchDashboardData();
+                                  });
+                                },
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 15),
                             Expanded(
                               child: _buildActionButton(
                                 title: 'Create a\nnew voucher',
                                 icon: Icons.confirmation_number_outlined,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: _buildActionButton(
-                                title: 'See all\nreviews',
-                                icon: Icons.chat_bubble_outline,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AdminAddVoucherView(),
+                                    ),
+                                  ).then((value) {
+                                    _viewModel.fetchDashboardData();
+                                  });
+                                },
                               ),
                             ),
                           ],
@@ -303,6 +320,17 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                             ),
                             GestureDetector(
                               onTap: () {
+                                if (widget.onNavigate != null) {
+                                  widget.onNavigate!(1);
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AdminOrderManagementView(),
+                                    ),
+                                  );
+                                }
                               },
                               child: Opacity(
                                 opacity: 0.70,
@@ -359,14 +387,25 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                               right: 25,
                               bottom: 15,
                             ),
-                            child: _buildOrderCard(
-                              orderId: safeId,
-                              status: _capitalize(order.status),
-                              price: priceFormatted,
-                              productName: order.productName,
-                              qty: order.quantity.toString(),
-                              timeAgo: _viewModel.getTimeAgo(order.createdAt),
-                              notes: order.notes ?? '',
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        AdminOrderDetailView(orderId: order.id),
+                                  ),
+                                );
+                              },
+                              child: _buildOrderCard(
+                                orderId: safeId,
+                                status: _capitalize(order.status),
+                                price: priceFormatted,
+                                productName: order.productName,
+                                qty: order.quantity.toString(),
+                                timeAgo: _viewModel.getTimeAgo(order.createdAt),
+                                notes: order.notes ?? '',
+                              ),
                             ),
                           );
                         }),
@@ -481,10 +520,13 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     );
   }
 
-  Widget _buildActionButton({required String title, required IconData icon}) {
+  Widget _buildActionButton({
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
-      onTap: () {
-      },
+      onTap: onTap,
       child: Container(
         height: 90,
         padding: const EdgeInsets.all(16),

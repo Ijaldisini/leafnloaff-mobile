@@ -6,7 +6,6 @@ import 'admin_notification_view.dart';
 import 'admin_voucher_view.dart';
 import '../../models/user_model.dart';
 
-
 class AdminMainView extends StatefulWidget {
   final UserModel user;
 
@@ -27,12 +26,18 @@ class _AdminMainViewState extends State<AdminMainView> {
         children: [
           IndexedStack(
             index: _selectedIndex,
-            children: const [
-              AdminDashboardView(),
-              AdminOrderManagementView(),
-              AdminMenuManagementView(),
-              AdminNotificationView(),
-              AdminVoucherView(),
+            children: [
+              AdminDashboardView(
+                onNavigate: (index) {
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                },
+              ),
+              const AdminOrderManagementView(),
+              const AdminMenuManagementView(),
+              const AdminNotificationView(),
+              const AdminVoucherView(),
             ],
           ),
 
@@ -86,10 +91,7 @@ class _AdminMainViewState extends State<AdminMainView> {
                         _buildNavItem(index: 1, title: 'Order'),
                         _buildNavItem(index: 2, title: 'Menu'),
                         _buildNavItem(index: 3, title: 'Notif'),
-                        _buildNavItem(
-                          index: 4,
-                          title: 'Voucher',
-                        ),
+                        _buildNavItem(index: 4, title: 'Voucher'),
                       ],
                     ),
                   ),

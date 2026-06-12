@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../services/cust/review_menu_service.dart';
+import '../../models/review_model.dart';
 import 'cart_viewmodel.dart';
 
 class ReviewMenuViewModel extends ChangeNotifier {
   final ReviewMenuService _service = ReviewMenuService();
+
+  bool _isDisposed = false;
 
   bool _isLoading = true;
   bool get isLoading => _isLoading;
@@ -11,12 +14,24 @@ class ReviewMenuViewModel extends ChangeNotifier {
   bool _isAddingToCart = false;
   bool get isAddingToCart => _isAddingToCart;
 
-  List<Map<String, dynamic>> _reviews = [];
-  List<Map<String, dynamic>> get reviews => _reviews;
+  List<ReviewModel> _reviews = [];
+  List<ReviewModel> get reviews => _reviews;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
+  void safeNotifyListeners() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
 
   Future<void> fetchReviews(String productId) async {
     _isLoading = true;
-    notifyListeners();
+    safeNotifyListeners();
 
     try {
       _reviews = await _service.fetchReviews(productId);
@@ -24,13 +39,13 @@ class ReviewMenuViewModel extends ChangeNotifier {
       debugPrint('Error fetching reviews: $e');
     } finally {
       _isLoading = false;
-      notifyListeners();
+      safeNotifyListeners();
     }
   }
 
   Future<bool> addToCart(String productId) async {
     _isAddingToCart = true;
-    notifyListeners();
+    safeNotifyListeners();
 
     try {
       final userId = _service.getCurrentUserId();
@@ -45,13 +60,13 @@ class ReviewMenuViewModel extends ChangeNotifier {
       );
 
       CartViewModel().loadCartData();
-      
+
       _isAddingToCart = false;
-      notifyListeners();
+      safeNotifyListeners();
       return true;
     } catch (e) {
       _isAddingToCart = false;
-      notifyListeners();
+      safeNotifyListeners();
       throw Exception(e.toString().replaceAll("Exception: ", ""));
     }
   }

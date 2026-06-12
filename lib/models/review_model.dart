@@ -9,6 +9,7 @@ class ReviewModel {
   final String? comment;
   final String? imageUrl;
   final DateTime createdAt;
+  final String? userName;
 
   ReviewModel({
     required this.id,
@@ -19,18 +20,25 @@ class ReviewModel {
     this.comment,
     this.imageUrl,
     required this.createdAt,
+    this.userName,
   });
 
   factory ReviewModel.fromJson(Map<String, dynamic> json) {
+    String? fetchedUserName;
+    if (json['profiles'] != null && json['profiles'] is Map) {
+      fetchedUserName = json['profiles']['full_name'];
+    }
+
     return ReviewModel(
       id: json['id'].toString(),
-      orderId: json['order_id'].toString(),
+      orderId: json['order_id']?.toString() ?? '',
       menuId: json['menu_id'].toString(),
       userId: json['user_id'].toString(),
       rating: json['rating'] ?? 0,
       comment: json['comment'],
       imageUrl: json['image_url'],
       createdAt: DateTime.parse(json['created_at']),
+      userName: fetchedUserName,
     );
   }
 }

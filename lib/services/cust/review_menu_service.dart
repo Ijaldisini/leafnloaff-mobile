@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../models/review_model.dart';
 
 class ReviewMenuService {
   final _supabase = Supabase.instance.client;
@@ -7,7 +8,7 @@ class ReviewMenuService {
     return _supabase.auth.currentUser?.id;
   }
 
-  Future<List<Map<String, dynamic>>> fetchReviews(String productId) async {
+  Future<List<ReviewModel>> fetchReviews(String productId) async {
     try {
       final response = await _supabase
           .from('reviews')
@@ -17,13 +18,12 @@ class ReviewMenuService {
               full_name
             )
           ''')
-          .eq(
-            'menu_id',
-            productId,
-          )
+          .eq('menu_id', productId)
           .order('created_at', ascending: false);
 
-      return List<Map<String, dynamic>>.from(response);
+      return (response as List<dynamic>)
+          .map((json) => ReviewModel.fromJson(json))
+          .toList();
     } catch (e) {
       throw Exception('Gagal mengambil ulasan: $e');
     }

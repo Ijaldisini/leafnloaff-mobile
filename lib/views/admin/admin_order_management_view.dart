@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:leafnloaff/viewmodels/admin/admin_order_management_viewmodel.dart';
 import 'package:leafnloaff/models/order_management_model.dart';
 import 'package:leafnloaff/views/admin/admin_order_detail_view.dart';
@@ -44,6 +45,30 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
     }
   }
 
+  Future<void> _selectDateRange() async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFCA748D),
+              onPrimary: Colors.white,
+              onSurface: Color(0xFF2D4839),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      _viewModel.fetchOrders(start: picked.start, end: picked.end);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -57,6 +82,17 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
             return const Center(
               child: CircularProgressIndicator(color: Color(0xFFD699AB)),
             );
+          }
+
+          String periodText = 'Select period';
+          if (_viewModel.isFiltering) {
+            final startStr = DateFormat(
+              'dd MMM yyyy',
+            ).format(_viewModel.selectedStartDate!);
+            final endStr = DateFormat(
+              'dd MMM yyyy',
+            ).format(_viewModel.selectedEndDate!);
+            periodText = '$startStr - $endStr';
           }
 
           return Stack(
@@ -87,7 +123,8 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
               ),
               SafeArea(
                 child: RefreshIndicator(
-                  onRefresh: _viewModel.fetchOrders,
+                  onRefresh: () => _viewModel
+                      .fetchOrders(),
                   color: const Color(0xFFCA748D),
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(25, 20, 25, 120),
@@ -158,113 +195,169 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      Container(
-                        height: 36,
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFFDFDFD),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(103),
-                          ),
-                          shadows: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.25),
-                              blurRadius: 4,
-                              offset: const Offset(0, 4),
+
+                      GestureDetector(
+                        onTap: _selectDateRange,
+                        child: Container(
+                          height: 36,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: ShapeDecoration(
+                            color: const Color(0xFFFDFDFD),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(103),
                             ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.only(left: 12),
-                              child: Text(
-                                'Select period',
-                                style: TextStyle(
-                                  color: Color(0xFF51725F),
-                                  fontSize: 14,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w500,
+                            shadows: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 12),
+                                child: Text(
+                                  periodText,
+                                  style: const TextStyle(
+                                    color: Color(0xFF51725F),
+                                    fontSize: 14,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Container(
-                              width: 30,
-                              height: 30,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF426E55),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.calendar_month,
-                                size: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
+                              if (_viewModel.isFiltering)
+                                GestureDetector(
+                                  onTap: _viewModel
+                                      .clearFilter,
+                                  child: Container(
+                                    width: 30,
+                                    height: 30,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFC23437),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                )
+                              else
+                                Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF426E55),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.calendar_month,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 30),
-                      Text(
-                        'Today',
-                        style: TextStyle(
-                          color: const Color(0xFFFDFDFD),
-                          fontSize: 17,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w800,
-                          shadows: [
-                            Shadow(
-                              offset: const Offset(2, 2),
-                              blurRadius: 4,
-                              color: Colors.black.withValues(alpha: 0.25),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      if (_viewModel.todayOrders.isEmpty)
-                        const Text(
-                          "Belum ada order hari ini.",
+
+                      if (_viewModel.isFiltering) ...[
+                        Text(
+                          'Filtered Results',
                           style: TextStyle(
-                            color: Colors.white70,
+                            color: const Color(0xFFFDFDFD),
+                            fontSize: 17,
                             fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w800,
+                            shadows: [
+                              Shadow(
+                                offset: const Offset(2, 2),
+                                blurRadius: 4,
+                                color: Colors.black.withValues(alpha: 0.25),
+                              ),
+                            ],
                           ),
-                        )
-                      else
-                        ..._viewModel.todayOrders.map(
-                          (o) => _buildOrderCard(o),
                         ),
-                      const SizedBox(height: 25),
-                      Text(
-                        'Yesterday',
-                        style: TextStyle(
-                          color: const Color(0xFFFDFDFD),
-                          fontSize: 17,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w800,
-                          shadows: [
-                            Shadow(
-                              offset: const Offset(2, 2),
-                              blurRadius: 4,
-                              color: Colors.black.withValues(alpha: 0.25),
+                        const SizedBox(height: 10),
+                        if (_viewModel.filteredOrders.isEmpty)
+                          const Text(
+                            "Tidak ada order pada periode ini.",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontFamily: 'Poppins',
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      if (_viewModel.yesterdayOrders.isEmpty)
-                        const Text(
-                          "Tidak ada order kemarin.",
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontFamily: 'Poppins',
+                          )
+                        else
+                          ..._viewModel.filteredOrders.map(
+                            (o) => _buildOrderCard(o),
                           ),
-                        )
-                      else
-                        ..._viewModel.yesterdayOrders.map(
-                          (o) => _buildOrderCard(o),
+                      ] else ...[
+                        Text(
+                          'Today',
+                          style: TextStyle(
+                            color: const Color(0xFFFDFDFD),
+                            fontSize: 17,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w800,
+                            shadows: [
+                              Shadow(
+                                offset: const Offset(2, 2),
+                                blurRadius: 4,
+                                color: Colors.black.withValues(alpha: 0.25),
+                              ),
+                            ],
+                          ),
                         ),
+                        const SizedBox(height: 10),
+                        if (_viewModel.todayOrders.isEmpty)
+                          const Text(
+                            "Belum ada order hari ini.",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontFamily: 'Poppins',
+                            ),
+                          )
+                        else
+                          ..._viewModel.todayOrders.map(
+                            (o) => _buildOrderCard(o),
+                          ),
+                        const SizedBox(height: 25),
+                        Text(
+                          'Yesterday',
+                          style: TextStyle(
+                            color: const Color(0xFFFDFDFD),
+                            fontSize: 17,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w800,
+                            shadows: [
+                              Shadow(
+                                offset: const Offset(2, 2),
+                                blurRadius: 4,
+                                color: Colors.black.withValues(alpha: 0.25),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        if (_viewModel.yesterdayOrders.isEmpty)
+                          const Text(
+                            "Tidak ada order kemarin.",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontFamily: 'Poppins',
+                            ),
+                          )
+                        else
+                          ..._viewModel.yesterdayOrders.map(
+                            (o) => _buildOrderCard(o),
+                          ),
+                      ],
                     ],
                   ),
                 ),
