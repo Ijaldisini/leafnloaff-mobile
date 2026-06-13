@@ -32,17 +32,16 @@ class CheckoutService {
           .or('expires_at.is.null,expires_at.gte.$now');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error mengambil voucher: $e');
       return [];
     }
   }
 
   Future<String> uploadPaymentProof(File imageFile) async {
-    final userId = getCurrentUserId();
-    final fileName = '${DateTime.now().millisecondsSinceEpoch}_$userId.jpg';
+    final fileExt = imageFile.path.split('.').last;
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}_${getCurrentUserId()}.$fileExt';
 
     await _supabase.storage.from('payment_proofs').upload(fileName, imageFile);
-
     return _supabase.storage.from('payment_proofs').getPublicUrl(fileName);
   }
 
@@ -50,28 +49,40 @@ class CheckoutService {
     required Map<String, dynamic> orderData,
     required List<Map<String, dynamic>> cartItems,
   }) async {
-    final orderResponse = await _supabase
-        .from('orders')
-        .insert(orderData)
-        .select('id')
-        .single();
+    try {
+      final orderResponse = await _supabase
+          .from('orders')
+          .insert(orderData)
+          .select('id')
+          .single();
 
-    final orderId = orderResponse['id'];
+      final orderId = orderResponse['id'];
 
-    final orderItemsData = cartItems.map((item) {
-      return {
+      final orderItemsData = cartItems.map((item) {
+        return {
+          'order_id': orderId,
+          'menu_id': item['menu_id'],
+          'quantity': item['quantity'],
+          'price_at_time': item['menus']['price'],
+        };
+      }).toList();
+      await _supabase.from('order_items').insert(orderItemsData);
+
+      final cartIds = cartItems.map((e) => e['id']).toList();
+      await _supabase.from('cart').delete().inFilter('id', cartIds);
+
+      await _supabase.from('notifications').insert({
+        'user_id': null,
         'order_id': orderId,
-        'menu_id': item['menu_id'],
-        'quantity': item['quantity'],
-        'price_at_time': item['menus']['price'],
-      };
-    }).toList();
-    await _supabase.from('order_items').insert(orderItemsData);
+        'title': 'Pesanan Baru Masuk!',
+        'message':
+            'Seseorang baru saja membuat pesanan. Harap periksa detailnya.',
+      });
 
-    final cartIds = cartItems.map((e) => e['id']).toList();
-    await _supabase.from('cart').delete().inFilter('id', cartIds);
-
-    return orderId;
+      return orderId;
+    } catch (e) {
+      throw Exception('Gagal menyimpan pesanan: $e');
+    }
   }
 
   Future<Map<String, double>?> fetchAdminLocation() async {
@@ -79,10 +90,7 @@ class CheckoutService {
       final adminProfile = await _supabase
           .from('profiles')
           .select('id')
-          .eq(
-            'role',
-            'admin',
-          )
+          .eq('role', 'admin')
           .limit(1)
           .maybeSingle();
 
@@ -98,12 +106,11 @@ class CheckoutService {
 
       if (addressResponse != null && addressResponse['latitude'] != null) {
         return {
-          'latitude': (addressResponse['latitude'] as num).toDouble(),
-          'longitude': (addressResponse['longitude'] as num).toDouble(),
+          'latitude': addressResponse['latitude'],
+          'longitude': addressResponse['longitude'],
         };
       }
     } catch (e) {
-      print('Error mengambil lokasi admin: $e');
     }
     return null;
   }

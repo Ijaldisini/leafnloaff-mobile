@@ -9,15 +9,11 @@ class AdminOrderReviewService {
       final response = await _supabase
           .from('reviews')
           .select('''
-            rating, review_text, image_urls,
-            orders!inner (
-              order_items (
-                quantity, notes,
-                menus ( name, price, image_url )
-              )
-            )
+            id, order_id, menu_id, user_id, rating, comment, image_url, created_at,
+            menus ( name, price, image_url )
           ''')
-          .eq('order_id', orderId);
+          .eq('order_id', orderId)
+          .order('created_at', ascending: false);
 
       return response;
     } catch (e) {

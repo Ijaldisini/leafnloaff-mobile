@@ -28,7 +28,6 @@ class CheckoutViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> selectedCartItems = [];
 
   VoucherModel? selectedVoucher;
-
   Map<String, double>? adminLocation;
 
   double subTotal = 0;
@@ -103,7 +102,6 @@ class CheckoutViewModel extends ChangeNotifier {
       if (deliveryAddress!['latitude'] == null ||
           deliveryAddress!['longitude'] == null) {
         shippingCost = 0;
-        debugPrint('Koordinat alamat customer kosong!');
         return;
       }
 
@@ -215,10 +213,15 @@ class CheckoutViewModel extends ChangeNotifier {
         'longitude': shippingMethod == 'Delivery'
             ? deliveryAddress!['longitude']
             : null,
+
         'payment_method': paymentMethod,
         'payment_proof_url': proofUrl,
         'status': paymentMethod == 'COD' ? 'Diproses' : 'Menunggu Pembayaran',
-        'notes': 'Pesanan dari aplikasi mobile',
+
+        'notes': paymentMethod == 'Virtual Account Bank'
+            ? 'Pesanan dari aplikasi mobile ($selectedBank)'
+            : 'Pesanan dari aplikasi mobile',
+
         'voucher_id': selectedVoucher?.id,
         'discount_applied': discount,
       };
@@ -263,7 +266,7 @@ class CheckoutViewModel extends ChangeNotifier {
 
       return {'orderId': orderId};
     } catch (e) {
-      errorMessage = "Gagal memproses pesanan: $e";
+      errorMessage = e.toString().replaceAll('Exception: ', '');
       return null;
     } finally {
       isPlacingOrder = false;

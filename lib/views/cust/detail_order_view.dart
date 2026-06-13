@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/cust/detail_order_viewmodel.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'see_review_view.dart';
 import 'write_review_view.dart';
+import 'see_review_view.dart';
 
 class DetailOrderView extends StatefulWidget {
   final String orderId;
@@ -327,7 +327,22 @@ class _DetailOrderViewState extends State<DetailOrderView> {
     bool isPaid,
     Map<String, dynamic> order,
   ) {
-    bool isVA = paymentMethod == 'Virtual Account Bank';
+    bool isVA = paymentMethod.toLowerCase().contains('virtual account');
+
+    String displayMethod = paymentMethod;
+    if (isVA) {
+      if (paymentMethod.toLowerCase() == 'virtual account bank' ||
+          paymentMethod.toLowerCase() == 'virtual account') {
+        displayMethod = "Virtual Account";
+      } else {
+        String bankName = paymentMethod
+            .toLowerCase()
+            .replaceAll('virtual account', '')
+            .replaceAll('bank', '')
+            .trim();
+        displayMethod = "Bank ${bankName.toUpperCase()}";
+      }
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
@@ -353,10 +368,10 @@ class _DetailOrderViewState extends State<DetailOrderView> {
           const SizedBox(height: 20),
 
           if (isVA && !isPaid) ...[
-            const Center(
+            Center(
               child: Text(
-                'Virtual Account',
-                style: TextStyle(
+                displayMethod,
+                style: const TextStyle(
                   color: Color(0xFF2D4839),
                   fontSize: 14,
                   fontFamily: 'Poppins',
@@ -441,7 +456,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              _buildPill(isVA ? 'Bank Transfer' : paymentMethod, false),
+              _buildPill(displayMethod, false),
             ],
           ),
           const SizedBox(height: 12),
@@ -533,35 +548,29 @@ class _DetailOrderViewState extends State<DetailOrderView> {
         ),
       );
     }
-    if (status == 'Selesai') {
-      final order = _viewModel.orderData!;
-      final bool isReviewed = _viewModel.isReviewed; 
 
+    if (status == 'Selesai') {
       return GestureDetector(
         onTap: () {
-          if (isReviewed) {
+          final items = _viewModel.orderData!['order_items'] as List<dynamic>;
+
+          if (_viewModel.isReviewed) {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => SeeReviewView(
-                  orderId: order['id'],
-                  orderItems: order['order_items'] ?? [],
-                ),
+                builder: (context) =>
+                    SeeReviewView(orderId: widget.orderId, orderItems: items),
               ),
             );
           } else {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => WriteReviewView(
-                  orderId: order['id'],
-                  orderItems: order['order_items'] ?? [],
-                ),
+                builder: (context) =>
+                    WriteReviewView(orderId: widget.orderId, orderItems: items),
               ),
-            ).then((value) {
-              if (value == true) {
-                _viewModel.fetchOrder(widget.orderId);
-              }
+            ).then((_) {
+              _viewModel.fetchOrder(widget.orderId);
             });
           }
         },
@@ -583,7 +592,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
           ),
           alignment: Alignment.center,
           child: Text(
-            isReviewed ? 'See Review' : 'Write Review',
+            _viewModel.isReviewed ? 'See Review' : 'Write Review',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 16,

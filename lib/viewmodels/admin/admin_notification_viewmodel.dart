@@ -4,6 +4,9 @@ import '../../models/notification_model.dart';
 import '../../services/admin/admin_notification_service.dart';
 
 class AdminNotificationViewModel extends ChangeNotifier {
+  AdminNotificationViewModel() {
+    _service.listenToAdminNotifications();
+  }
   final AdminNotificationService _service = AdminNotificationService();
 
   bool _isLoading = true;
@@ -24,10 +27,21 @@ class AdminNotificationViewModel extends ChangeNotifier {
       final List<NotificationModel> rawNotifications = await _service
           .fetchAdminNotifications();
 
-      if (rawNotifications.isEmpty) {
+      final filteredNotifications = rawNotifications.where((notif) {
+        final titleLower = notif.title.toLowerCase();
+        if (titleLower.contains('ulasan') ||
+            titleLower.contains('pesanan') ||
+            titleLower.contains('review')) {
+          return notif.orderId != null && notif.orderId!.isNotEmpty;
+        }
+        return true;
+      }).toList();
+
+      if (filteredNotifications.isEmpty) {
         _errorMessage = "Tidak ada notifikasi untuk ditampilkan.";
+        _groupedNotifications = [];
       } else {
-        _groupDataByDate(rawNotifications);
+        _groupDataByDate(filteredNotifications);
       }
     } catch (e) {
       _errorMessage = e.toString();
@@ -65,8 +79,8 @@ class AdminNotificationViewModel extends ChangeNotifier {
       grouped[groupKey]!.add(item);
     }
 
-    _groupedNotifications = grouped.entries.map((e) {
-      return {'date': e.key, 'items': e.value};
+    _groupedNotifications = grouped.entries.map((entry) {
+      return {'date': entry.key, 'items': entry.value};
     }).toList();
   }
 }

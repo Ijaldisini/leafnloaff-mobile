@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../viewmodels/admin/admin_notification_viewmodel.dart';
 import '../../models/notification_model.dart';
+import 'admin_order_detail_view.dart';
+import 'admin_order_review_view.dart';
 
 class AdminNotificationView extends StatefulWidget {
   const AdminNotificationView({super.key});
@@ -177,55 +179,86 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
   Widget _buildNotificationCard(NotificationModel item) {
     final isUnread = !item.isRead;
 
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFDFDFD),
-        borderRadius: BorderRadius.circular(16.69),
-        border: isUnread
-            ? Border.all(color: const Color(0xFF73986F), width: 1.0)
-            : null,
-        boxShadow: isUnread
-            ? const [
-                BoxShadow(
-                  color: Color(0xFF73986F),
-                  blurRadius: 7,
-                  offset: Offset(0, 0),
-                ),
-              ]
-            : const [
-                BoxShadow(
-                  color: Color(0x1A000000),
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            item.title,
-            style: const TextStyle(
-              color: Color(0xFF2D4839),
-              fontSize: 16,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w700,
+    return GestureDetector(
+      onTap: () {
+        if (item.orderId != null && item.orderId!.isNotEmpty) {
+          final titleLower = item.title.toLowerCase();
+          if (titleLower.contains('ulasan') || titleLower.contains('review')) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    AdminOrderReviewView(orderId: item.orderId!),
+              ),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    AdminOrderDetailView(orderId: item.orderId!),
+              ),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Notifikasi ini tidak memiliki tautan pesanan.'),
+              backgroundColor: Color(0xFFC23437),
             ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            item.message,
-            style: const TextStyle(
-              color: Color(0xFF51725F),
-              fontSize: 13,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w500,
+          );
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFDFDFD),
+          borderRadius: BorderRadius.circular(16.69),
+          border: isUnread
+              ? Border.all(color: const Color(0xFF73986F), width: 1.0)
+              : null,
+          boxShadow: isUnread
+              ? const [
+                  BoxShadow(
+                    color: Color(0xFF73986F),
+                    blurRadius: 7,
+                    offset: Offset(0, 0),
+                  ),
+                ]
+              : const [
+                  BoxShadow(
+                    color: Color(0x1A000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.title,
+              style: const TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 16,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 5),
+            Text(
+              item.message,
+              style: const TextStyle(
+                color: Color(0xFF51725F),
+                fontSize: 13,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

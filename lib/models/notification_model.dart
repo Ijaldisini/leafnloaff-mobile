@@ -4,6 +4,7 @@ class NotificationModel {
   final String message;
   final bool isRead;
   final DateTime createdAt;
+  final String? orderId;
 
   NotificationModel({
     required this.id,
@@ -11,6 +12,7 @@ class NotificationModel {
     required this.message,
     required this.isRead,
     required this.createdAt,
+    this.orderId,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,8 @@ class NotificationModel {
       message: json['message'] ?? '',
       isRead: json['is_read'] ?? false,
       createdAt: DateTime.parse(json['created_at']).toLocal(),
+      orderId: json['order_id']
+          ?.toString(),
     );
   }
 }

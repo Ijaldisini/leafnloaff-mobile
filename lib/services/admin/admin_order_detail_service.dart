@@ -9,6 +9,7 @@ class AdminOrderDetailService {
         .from('orders')
         .select('''
           id, created_at, status, total_price, notes, payment_method, address_detail,
+          va_number, latitude, longitude, payment_proof_url,
           profiles:user_id ( full_name, phone_number ),
           order_items (
             quantity,
@@ -25,6 +26,21 @@ class AdminOrderDetailService {
           .from('orders')
           .update({'status': newStatus})
           .eq('id', orderId);
+
+      final orderData = await _supabase
+          .from('orders')
+          .select('user_id')
+          .eq('id', orderId)
+          .single();
+
+      if (orderData['user_id'] != null) {
+        await _supabase.from('notifications').insert({
+          'user_id': orderData['user_id'],
+          'order_id': orderId,
+          'title': 'Status Pesanan Diperbarui',
+          'message': 'Pesanan Anda sekarang berstatus: $newStatus.',
+        });
+      }
 
       debugPrint(
         "✅ Perintah update dikirim untuk Order ID: $orderId, Status baru: $newStatus",

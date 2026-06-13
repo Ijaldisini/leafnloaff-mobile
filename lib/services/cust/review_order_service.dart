@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/review_model.dart';
 
@@ -27,8 +28,9 @@ class ReviewOrderService {
     ReviewSubmitModel reviewData,
   ) async {
     final userId = getCurrentUserId();
-    if (userId == null)
+    if (userId == null) {
       throw Exception('User not logged in. Sesi telah habis.');
+    }
 
     List<String> uploadedUrls = [];
 
@@ -53,15 +55,29 @@ class ReviewOrderService {
     });
   }
 
+  Future<void> sendReviewNotificationToAdmin(String orderId) async {
+    try {
+      await _supabase.from('notifications').insert({
+        'user_id': null,
+        'order_id': orderId,
+        'title': 'Ulasan Baru!',
+        'message': 'Customer baru saja memberikan ulasan untuk pesanannya.',
+      });
+    } catch (e) {
+      debugPrint('Gagal mengirim notif ulasan ke admin: $e');
+    }
+  }
+
   Future<List<ReviewModel>> fetchReviewsByOrder(String orderId) async {
     try {
       final response = await _supabase
           .from('reviews')
-          .select('*')
-          .eq('order_id', orderId);
+          .select('*, profiles:user_id(full_name)')
+          .eq('order_id', orderId)
+          .order('created_at', ascending: false);
 
-      return (response as List<dynamic>)
-          .map((json) => ReviewModel.fromJson(json))
+      return (response as List)
+          .map((data) => ReviewModel.fromJson(data))
           .toList();
     } catch (e) {
       throw Exception('Gagal mengambil ulasan: $e');

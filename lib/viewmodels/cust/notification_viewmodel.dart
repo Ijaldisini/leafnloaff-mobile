@@ -4,6 +4,9 @@ import '../../models/notification_model.dart';
 import '../../services/cust/notification_service.dart';
 
 class NotificationViewModel extends ChangeNotifier {
+  NotificationViewModel() {
+    _service.listenToCustomerNotifications();
+  }
   final NotificationService _service = NotificationService();
 
   bool isLoading = false;

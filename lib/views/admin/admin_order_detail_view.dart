@@ -304,72 +304,91 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
           ),
         ),
         const SizedBox(width: 15),
-
         Expanded(
           flex: 6,
-          child: GestureDetector(
-            onTap: () async {
-              final success = await _viewModel.changeOrderStatus(
-                order.id,
-                nextStatusValue,
-              );
+          child: nextStatusValue != null
+              ? GestureDetector(
+                  onTap: () async {
+                    final success = await _viewModel.changeOrderStatus(
+                      order.id,
+                      nextStatusValue,
+                    );
 
-              if (context.mounted) {
-                if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Status berhasil diupdate!'),
-                      backgroundColor: Color(0xFF73986F),
+                    if (context.mounted) {
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Status berhasil diupdate!'),
+                            backgroundColor: Color(0xFF73986F),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Gagal update! Cek RLS Supabase.'),
+                            backgroundColor: Color(0xFFC23437),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: Container(
+                    height: 45,
+                    decoration: ShapeDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(87.79),
+                      ),
+                      shadows: const [
+                        BoxShadow(
+                          color: Color(0x3F000000),
+                          blurRadius: 3.51,
+                          offset: Offset(0, 3.51),
+                        ),
+                      ],
                     ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Gagal update! Cek RLS Supabase.'),
-                      backgroundColor: Color(0xFFC23437),
+                    alignment: Alignment.center,
+                    child: Text(
+                      nextStatusText ?? '',
+                      style: TextStyle(
+                        color: const Color(0xFFFBFBFB),
+                        fontSize: 14,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w800,
+                        shadows: [
+                          Shadow(
+                            offset: const Offset(2, 2),
+                            blurRadius: 2,
+                            color: Colors.black.withValues(alpha: 0.25),
+                          ),
+                        ],
+                      ),
                     ),
-                  );
-                }
-              }
-            },
-            child: Container(
-              height: 45,
-              decoration: ShapeDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(87.79),
-                ),
-                shadows: const [
-                  BoxShadow(
-                    color: Color(0x3F000000),
-                    blurRadius: 3.51,
-                    offset: Offset(0, 3.51),
                   ),
-                ],
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                nextStatusText,
-                style: TextStyle(
-                  color: const Color(0xFFFBFBFB),
-                  fontSize: 14,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w800,
-                  shadows: [
-                    Shadow(
-                      offset: const Offset(2, 2),
-                      blurRadius: 2,
-                      color: Colors.black.withValues(alpha: 0.25),
+                )
+              : Container(
+                  height: 45,
+                  decoration: ShapeDecoration(
+                    color: Colors.grey,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(87.79),
                     ),
-                  ],
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'Waiting for Customer',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ),
         ),
       ],
     );
@@ -455,6 +474,8 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
   );
 
   Widget _buildCustomerInfoCard(OrderDetailModel order) {
+    bool hasLocation = order.latitude != null && order.longitude != null;
+
     return _buildWhiteContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -474,29 +495,41 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
           _buildInfoRow('Phone Number', order.profile.phoneNumber),
           const SizedBox(height: 5),
           _buildInfoRow('Address', order.addressDetail),
-          const SizedBox(height: 15),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-              decoration: ShapeDecoration(
-                color: const Color(0xFFEED5DB),
-                shape: RoundedRectangleBorder(
-                  side: const BorderSide(width: 1, color: Color(0xFFCA748D)),
-                  borderRadius: BorderRadius.circular(62.50),
-                ),
-              ),
-              child: const Text(
-                'View Maps',
-                style: TextStyle(
-                  color: Color(0xFFCA748D),
-                  fontSize: 11.39,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
+          if (hasLocation) ...[
+            const SizedBox(height: 15),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: GestureDetector(
+                onTap: () =>
+                    _viewModel.openMap(order.latitude!, order.longitude!),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 5,
+                  ),
+                  decoration: ShapeDecoration(
+                    color: const Color(0xFFEED5DB),
+                    shape: RoundedRectangleBorder(
+                      side: const BorderSide(
+                        width: 1,
+                        color: Color(0xFFCA748D),
+                      ),
+                      borderRadius: BorderRadius.circular(62.50),
+                    ),
+                  ),
+                  child: const Text(
+                    'View Maps',
+                    style: TextStyle(
+                      color: Color(0xFFCA748D),
+                      fontSize: 11.39,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -692,8 +725,32 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
   }
 
   Widget _buildPaymentCard(OrderDetailModel order) {
-    final method = order.paymentMethod.toUpperCase();
-    final isPaid = order.status.toLowerCase() != 'menunggu pembayaran';
+    final methodStr = order.paymentMethod;
+    final isCOD = methodStr.toUpperCase() == 'COD';
+    final isQris = methodStr.toLowerCase().contains('qris');
+    final isVA = methodStr.toLowerCase().contains('virtual account');
+
+    bool isPaid = true;
+    if (isCOD) {
+      isPaid =
+          order.status.toLowerCase().contains('selesai') ||
+          order.status.toLowerCase().contains('delivered');
+    }
+
+    String displayMethod = methodStr;
+    if (isVA) {
+      if (methodStr.toLowerCase() == 'virtual account bank' ||
+          methodStr.toLowerCase() == 'virtual account') {
+        displayMethod = "Virtual Account";
+      } else {
+        String bankName = methodStr
+            .toLowerCase()
+            .replaceAll('virtual account', '')
+            .replaceAll('bank', '')
+            .trim();
+        displayMethod = "Bank ${bankName.toUpperCase()}";
+      }
+    }
 
     return _buildWhiteContainer(
       child: Column(
@@ -711,6 +768,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'Payment Method',
@@ -721,7 +779,12 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              _buildPill(method),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: _buildPill(displayMethod, isPaidStyle: false),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -737,9 +800,28 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              _buildPill(isPaid ? 'Paid' : 'Unpaid'),
+              _buildPill(isPaid ? 'Paid' : 'Unpaid', isPaidStyle: isPaid),
             ],
           ),
+
+          if (isQris && order.paymentProofUrl != null) ...[
+            const SizedBox(height: 15),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          FullScreenImagePage(imageUrl: order.paymentProofUrl!),
+                    ),
+                  );
+                },
+                child: _buildPill('See proof of payment', isPaidStyle: false),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -817,24 +899,65 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
     );
   }
 
-  Widget _buildPill(String text) {
+  Widget _buildPill(String text, {bool isPaidStyle = false}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: ShapeDecoration(
         color: const Color(0xFFEED5DB),
         shape: RoundedRectangleBorder(
-          side: const BorderSide(width: 1, color: Color(0xFFCA748D)),
+          side: BorderSide(
+            width: 1,
+            color: isPaidStyle
+                ? const Color(0xFF426E55)
+                : const Color(0xFFCA748D),
+          ),
           borderRadius: BorderRadius.circular(62.50),
         ),
       ),
       child: Text(
         text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Color(0xFFCA748D),
+        textAlign: TextAlign.right,
+        style: TextStyle(
+          color: isPaidStyle
+              ? const Color(0xFF426E55)
+              : const Color(0xFFCA748D),
           fontSize: 11.39,
           fontFamily: 'Poppins',
           fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class FullScreenImagePage extends StatelessWidget {
+  final String imageUrl;
+
+  const FullScreenImagePage({super.key, required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
+      ),
+      body: Center(
+        child: InteractiveViewer(
+          panEnabled: true,
+          minScale: 0.5,
+          maxScale: 4.0,
+          child: Image.network(
+            imageUrl,
+            errorBuilder: (context, error, stackTrace) {
+              return const Text(
+                "Gagal memuat gambar bukti pembayaran",
+                style: TextStyle(color: Colors.white),
+              );
+            },
+          ),
         ),
       ),
     );

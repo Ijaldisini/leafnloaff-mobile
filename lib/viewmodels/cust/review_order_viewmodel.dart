@@ -23,6 +23,8 @@ class ReviewOrderViewModel extends ChangeNotifier {
         await _service.submitReview(orderId, review);
       }
 
+      await _service.sendReviewNotificationToAdmin(orderId);
+
       isLoading = false;
       notifyListeners();
       return true;

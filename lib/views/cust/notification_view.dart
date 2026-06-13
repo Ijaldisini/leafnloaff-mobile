@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../viewmodels/cust/notification_viewmodel.dart';
 import '../../models/notification_model.dart';
+import 'detail_order_view.dart';
 
 class NotificationView extends StatefulWidget {
   const NotificationView({super.key});
@@ -52,7 +53,6 @@ class _NotificationViewState extends State<NotificationView> {
               ),
             ),
           ),
-
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,7 +60,7 @@ class _NotificationViewState extends State<NotificationView> {
                 const Padding(
                   padding: EdgeInsets.only(left: 25.0, top: 20.0, bottom: 20.0),
                   child: Text(
-                    'Messages',
+                    'Notifications',
                     style: TextStyle(
                       color: Color(0xFFFDFDFD),
                       fontSize: 25,
@@ -76,25 +76,22 @@ class _NotificationViewState extends State<NotificationView> {
                     ),
                   ),
                 ),
-
                 Expanded(
                   child: ListenableBuilder(
                     listenable: _viewModel,
-                    builder: (context, child) {
+                    builder: (context, _) {
                       if (_viewModel.isLoading) {
                         return const Center(
                           child: CircularProgressIndicator(color: Colors.white),
                         );
                       }
 
-                      if (_viewModel.errorMessage != null) {
+                      if (_viewModel.errorMessage != null &&
+                          _viewModel.groupedNotifications.isEmpty) {
                         return Center(
                           child: Text(
                             _viewModel.errorMessage!,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'Poppins',
-                            ),
+                            style: const TextStyle(color: Colors.white),
                           ),
                         );
                       }
@@ -102,7 +99,7 @@ class _NotificationViewState extends State<NotificationView> {
                       if (_viewModel.groupedNotifications.isEmpty) {
                         return const Center(
                           child: Text(
-                            'Belum ada pesan.',
+                            "Belum ada notifikasi",
                             style: TextStyle(
                               color: Colors.white,
                               fontFamily: 'Poppins',
@@ -121,6 +118,7 @@ class _NotificationViewState extends State<NotificationView> {
                         itemCount: _viewModel.groupedNotifications.length,
                         itemBuilder: (context, index) {
                           final group = _viewModel.groupedNotifications[index];
+                          final dateLabel = group['date'] as String;
                           final items =
                               group['items'] as List<NotificationModel>;
 
@@ -132,7 +130,7 @@ class _NotificationViewState extends State<NotificationView> {
                                   vertical: 15.0,
                                 ),
                                 child: Text(
-                                  group['date'],
+                                  dateLabel,
                                   style: const TextStyle(
                                     color: Color(0xFFFDFDFD),
                                     fontSize: 17,
@@ -161,7 +159,6 @@ class _NotificationViewState extends State<NotificationView> {
               ],
             ),
           ),
-
           Positioned(
             left: -12,
             bottom: -2,
@@ -187,51 +184,69 @@ class _NotificationViewState extends State<NotificationView> {
   Widget _buildNotificationCard(NotificationModel item) {
     final isUnread = !item.isRead;
 
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFDFDFD),
-        borderRadius: BorderRadius.circular(16.69),
-        border: isUnread
-            ? Border.all(color: const Color(0xFFCA748D), width: 0.5)
-            : null,
-        boxShadow: isUnread
-            ? const [
-                BoxShadow(
-                  color: Color(0xFFCA748D),
-                  blurRadius: 5,
-                  offset: Offset(0, 0),
-                ),
-              ]
-            : null,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            item.title,
-            style: const TextStyle(
-              color: Color(0xFF2D4839),
-              fontSize: 16,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w700,
-              height: 1.10,
+    return GestureDetector(
+      onTap: () {
+        if (item.orderId != null && item.orderId!.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetailOrderView(orderId: item.orderId!),
             ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            item.message,
-            style: const TextStyle(
-              color: Color(0xFF51725F),
-              fontSize: 13,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w500,
-              height: 1.10,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Notifikasi ini tidak memiliki tautan pesanan.'),
+              backgroundColor: Color(0xFFC23437),
             ),
-          ),
-        ],
+          );
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFDFDFD),
+          borderRadius: BorderRadius.circular(16.69),
+          border: isUnread
+              ? Border.all(color: const Color(0xFFCA748D), width: 0.5)
+              : null,
+          boxShadow: isUnread
+              ? const [
+                  BoxShadow(
+                    color: Color(0xFFCA748D),
+                    blurRadius: 5,
+                    offset: Offset(0, 0),
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.title,
+              style: const TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 16,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w700,
+                height: 1.10,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              item.message,
+              style: const TextStyle(
+                color: Color(0xFF51725F),
+                fontSize: 13,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

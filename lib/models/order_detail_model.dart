@@ -44,6 +44,10 @@ class OrderDetailModel {
   final String notes;
   final String paymentMethod;
   final String addressDetail;
+  final String? vaNumber;
+  final double? latitude;
+  final double? longitude;
+  final String? paymentProofUrl;
   final OrderProfileModel profile;
   final List<OrderItemModel> items;
 
@@ -55,6 +59,10 @@ class OrderDetailModel {
     required this.notes,
     required this.paymentMethod,
     required this.addressDetail,
+    this.vaNumber,
+    this.latitude,
+    this.longitude,
+    this.paymentProofUrl,
     required this.profile,
     required this.items,
   });
@@ -68,6 +76,10 @@ class OrderDetailModel {
       notes: json['notes'] ?? '',
       paymentMethod: json['payment_method'] ?? '',
       addressDetail: json['address_detail'] ?? '',
+      vaNumber: json['va_number']?.toString(),
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      paymentProofUrl: json['payment_proof_url']?.toString(),
       profile: json['profiles'] != null
           ? OrderProfileModel.fromJson(json['profiles'])
           : OrderProfileModel(fullName: 'Unknown', phoneNumber: '-'),
