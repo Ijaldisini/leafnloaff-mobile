@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../models/menu_model.dart';
-import '../../services/admin/admin_add_menu_service.dart';
+import '../../services/admin/admin_menu_service.dart';
 import '../../utils/image_picker_util.dart';
 
 class AdminAddMenuViewModel extends ChangeNotifier {
-  final AdminAddMenuService _service = AdminAddMenuService();
+  final AdminMenuService _service = AdminMenuService();
   final ImagePickerUtil _imagePickerUtil = ImagePickerUtil();
 
   final TextEditingController nameController = TextEditingController();
@@ -60,14 +60,11 @@ class AdminAddMenuViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> saveMenu(BuildContext context) async {
+  Future<String?> saveMenu() async {
     if (nameController.text.isEmpty ||
         priceController.text.isEmpty ||
         stockController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nama, Harga, dan Stok wajib diisi!')),
-      );
-      return false;
+      return 'Nama, Harga, dan Stok wajib diisi!';
     }
 
     _isLoading = true;
@@ -98,17 +95,11 @@ class AdminAddMenuViewModel extends ChangeNotifier {
 
       _isLoading = false;
       notifyListeners();
-      return true;
+      return null;
     } catch (e) {
       _isLoading = false;
       notifyListeners();
-      if (!context.mounted) return false;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gagal menyimpan data, periksa jaringan Anda.'),
-        ),
-      );
-      return false;
+      return 'Gagal menyimpan data, periksa jaringan Anda.';
     }
   }
 

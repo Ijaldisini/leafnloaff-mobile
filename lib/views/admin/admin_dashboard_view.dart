@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:intl/intl.dart';
 import 'package:leafnloaff/viewmodels/admin/admin_dashboard_viewmodel.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../login_view.dart';
 import 'admin_add_menu_view.dart';
 import 'admin_add_voucher_view.dart';
@@ -82,13 +81,21 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
     );
 
     if (confirm == true) {
-      await Supabase.instance.client.auth.signOut();
+      final errorMessage = await _viewModel.performLogout();
+
       if (!mounted) return;
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginView()),
-        (Route<dynamic> route) => false,
-      );
+
+      if (errorMessage == null) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginView()),
+          (Route<dynamic> route) => false,
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      }
     }
   }
 
@@ -404,7 +411,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                                 productName: order.productName,
                                 qty: order.quantity.toString(),
                                 timeAgo: _viewModel.getTimeAgo(order.createdAt),
-                                notes: order.notes ?? '',
+                                notes: order.notes,
                               ),
                             ),
                           );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/menu_model.dart';
+import '../../models/review_model.dart';
 import '../../viewmodels/admin/admin_review_menu_viewmodel.dart';
 
 class AdminReviewMenuView extends StatefulWidget {
@@ -191,6 +192,18 @@ class _AdminReviewMenuViewState extends State<AdminReviewMenuView> {
                           );
                         }
 
+                        if (_viewModel.errorMessage != null) {
+                          return Center(
+                            child: Text(
+                              _viewModel.errorMessage!,
+                              style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                          );
+                        }
+
                         if (_viewModel.reviews.isEmpty) {
                           return const Center(
                             child: Text(
@@ -227,13 +240,10 @@ class _AdminReviewMenuViewState extends State<AdminReviewMenuView> {
     );
   }
 
-  Widget _buildReviewItem(Map<String, dynamic> review) {
-    final profile = review['profiles'] ?? {};
-    final fullName = profile['full_name'] ?? 'Pengguna Anonim';
-    final comment = review['comment'] ?? '';
-    final imageUrl = review['image_url'] as String?;
-    final createdAt = review['created_at'] ?? '';
-    final rating = review['rating'] ?? 5;
+  Widget _buildReviewItem(ReviewModel review) {
+    final fullName = review.userName ?? 'Pengguna Anonim';
+    final comment = review.comment ?? '';
+    final imageUrl = review.imageUrl;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,7 +287,9 @@ class _AdminReviewMenuViewState extends State<AdminReviewMenuView> {
                       Row(
                         children: List.generate(5, (index) {
                           return Icon(
-                            index < rating ? Icons.star : Icons.star_border,
+                            index < review.rating
+                                ? Icons.star
+                                : Icons.star_border,
                             size: 12,
                             color: const Color(0xFFCA748D),
                           );
@@ -286,7 +298,7 @@ class _AdminReviewMenuViewState extends State<AdminReviewMenuView> {
                     ],
                   ),
                   Text(
-                    _viewModel.formatDate(createdAt),
+                    _viewModel.formatDate(review.createdAt),
                     style: TextStyle(
                       color: const Color(0xFF426E55).withOpacity(0.6),
                       fontSize: 9,
@@ -300,15 +312,17 @@ class _AdminReviewMenuViewState extends State<AdminReviewMenuView> {
           ],
         ),
         const SizedBox(height: 10),
-        Text(
-          comment,
-          style: const TextStyle(
-            color: Color(0xFF51725F),
-            fontSize: 12,
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w500,
+        if (comment.isNotEmpty) ...[
+          Text(
+            comment,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontSize: 12,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
+        ],
         if (imageUrl != null && imageUrl.isNotEmpty) ...[
           const SizedBox(height: 10),
           ClipRRect(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:video_player/video_player.dart';
 import '../../viewmodels/admin/admin_order_review_viewmodel.dart';
+import '../../models/order_model.dart';
 
 class AdminOrderReviewView extends StatefulWidget {
   final String orderId;
@@ -133,10 +134,9 @@ class _AdminOrderReviewViewState extends State<AdminOrderReviewView> {
                         physics: const BouncingScrollPhysics(),
                         itemCount: _viewModel.reviews.length,
                         itemBuilder: (context, index) {
-                          final reviewData = _viewModel.reviews[index];
-                          final menu = reviewData['menus'] ?? {};
-
-                          return _buildReviewedCard(menu, reviewData);
+                          final OrderReviewModel reviewData =
+                              _viewModel.reviews[index];
+                          return _buildReviewedCard(reviewData);
                         },
                       );
                     },
@@ -150,14 +150,7 @@ class _AdminOrderReviewViewState extends State<AdminOrderReviewView> {
     );
   }
 
-  Widget _buildReviewedCard(
-    Map<String, dynamic> menu,
-    Map<String, dynamic> reviewData,
-  ) {
-    int rating = reviewData['rating'] ?? 0;
-    String comment = reviewData['comment'] ?? 'Belum ada ulasan';
-    String? imageUrl = reviewData['image_url'];
-
+  Widget _buildReviewedCard(OrderReviewModel review) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
@@ -179,7 +172,7 @@ class _AdminOrderReviewViewState extends State<AdminOrderReviewView> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.network(
-                    menu['image_url'] ?? 'https://placehold.co/80x80',
+                    review.itemImageUrl ?? 'https://placehold.co/80x80',
                     width: 70,
                     height: 70,
                     fit: BoxFit.cover,
@@ -196,7 +189,7 @@ class _AdminOrderReviewViewState extends State<AdminOrderReviewView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        menu['name'] ?? 'Item\'s Name',
+                        review.itemName,
                         style: const TextStyle(
                           color: Color(0xFF2D4839),
                           fontSize: 16,
@@ -208,9 +201,7 @@ class _AdminOrderReviewViewState extends State<AdminOrderReviewView> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        _viewModel.formatCurrency(
-                          (menu['price'] as num?)?.toDouble() ?? 0,
-                        ),
+                        _viewModel.formatCurrency(review.price),
                         style: const TextStyle(
                           color: Color(0xFF2D4839),
                           fontSize: 14,
@@ -242,7 +233,7 @@ class _AdminOrderReviewViewState extends State<AdminOrderReviewView> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(5, (starIndex) {
               return Icon(
-                starIndex < rating ? Icons.star : Icons.star_border,
+                starIndex < review.rating ? Icons.star : Icons.star_border,
                 color: const Color(0xFFF6D060),
                 size: 35,
               );
@@ -269,7 +260,7 @@ class _AdminOrderReviewViewState extends State<AdminOrderReviewView> {
               border: Border.all(color: const Color(0xFFCA748D)),
             ),
             child: Text(
-              comment,
+              review.reviewText,
               style: const TextStyle(
                 fontSize: 12,
                 fontFamily: 'Poppins',
@@ -279,11 +270,11 @@ class _AdminOrderReviewViewState extends State<AdminOrderReviewView> {
           ),
           const SizedBox(height: 15),
 
-          if (imageUrl != null && imageUrl.isNotEmpty)
+          if (review.reviewImages.isNotEmpty)
             Wrap(
               spacing: 10,
               runSpacing: 10,
-              children: imageUrl.split(',').map((url) {
+              children: review.reviewImages.map((url) {
                 bool isVideo =
                     url.toLowerCase().contains('.mp4') ||
                     url.toLowerCase().contains('.mov');

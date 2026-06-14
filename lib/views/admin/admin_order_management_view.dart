@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:leafnloaff/viewmodels/admin/admin_order_management_viewmodel.dart';
-import 'package:leafnloaff/models/order_management_model.dart';
-import 'package:leafnloaff/views/admin/admin_order_detail_view.dart';
+import '../../viewmodels/admin/admin_order_management_viewmodel.dart';
+import '../../models/order_model.dart';
+import 'admin_order_detail_view.dart';
 
 class AdminOrderManagementView extends StatefulWidget {
   const AdminOrderManagementView({super.key});
@@ -123,8 +123,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
               ),
               SafeArea(
                 child: RefreshIndicator(
-                  onRefresh: () => _viewModel
-                      .fetchOrders(),
+                  onRefresh: () => _viewModel.fetchOrders(),
                   color: const Color(0xFFCA748D),
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(25, 20, 25, 120),
@@ -231,8 +230,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                               ),
                               if (_viewModel.isFiltering)
                                 GestureDetector(
-                                  onTap: _viewModel
-                                      .clearFilter,
+                                  onTap: _viewModel.clearFilter,
                                   child: Container(
                                     width: 30,
                                     height: 30,
@@ -358,79 +356,6 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                             (o) => _buildOrderCard(o),
                           ),
                       ],
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 25,
-                right: 25,
-                bottom: 30,
-                child: Container(
-                  height: 48,
-                  decoration: ShapeDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(120),
-                    ),
-                    shadows: const [
-                      BoxShadow(
-                        color: Color(0x3F000000),
-                        blurRadius: 4,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {},
-                          child: Container(
-                            alignment: Alignment.center,
-                            child: const Text(
-                              'Order',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.all(4),
-                        padding: const EdgeInsets.symmetric(horizontal: 28),
-                        decoration: ShapeDecoration(
-                          color: const Color(0xFFEED5DB),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100),
-                          ),
-                        ),
-                        child: GestureDetector(
-                          onTap: _handlePdfExport,
-                          child: const SizedBox(
-                            height: 40,
-                            child: Center(
-                              child: Text(
-                                'PDF',
-                                style: TextStyle(
-                                  color: Color(0xFFCA748D),
-                                  fontSize: 16,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),

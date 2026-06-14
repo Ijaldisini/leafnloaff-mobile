@@ -2,7 +2,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
-import '../../models/order_management_model.dart';
+import '../../models/order_model.dart';
 
 class PdfExportService {
   Future<void> exportOrdersToPdf(List<OrderManagementModel> orders) async {
@@ -19,9 +19,7 @@ class PdfExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-
         theme: pw.ThemeData.withFont(base: fontRegular, bold: fontBold),
-
         build: (pw.Context context) {
           return [
             pw.Row(
@@ -56,11 +54,8 @@ class PdfExportService {
             ),
             pw.Divider(thickness: 2, color: PdfColors.black),
             pw.SizedBox(height: 20),
-
             _buildOrderTable(orders, fontRegular, fontBold),
-
             pw.SizedBox(height: 20),
-
             pw.Align(
               alignment: pw.Alignment.centerRight,
               child: pw.Text(
@@ -117,7 +112,6 @@ class PdfExportService {
       headers: headers,
       data: data,
       border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
-
       headerStyle: pw.TextStyle(
         fontWeight: pw.FontWeight.bold,
         color: PdfColors.white,
@@ -128,7 +122,6 @@ class PdfExportService {
         color: PdfColor.fromInt(0xFF3D5A4A),
       ),
       cellStyle: pw.TextStyle(fontSize: 9, font: fontRegular),
-
       cellPadding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 4),
       cellAlignments: {
         0: pw.Alignment.centerLeft,

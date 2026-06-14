@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../services/admin/admin_review_service.dart';
 
 class AdminPreviewMenuViewModel extends ChangeNotifier {
-  final _supabase = Supabase.instance.client;
+  final AdminReviewService _service = AdminReviewService();
 
   bool _isLoading = true;
   bool get isLoading => _isLoading;
@@ -21,10 +21,7 @@ class AdminPreviewMenuViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _supabase
-          .from('reviews')
-          .select('rating')
-          .eq('menu_id', menuId);
+      final response = await _service.getMenuRatings(menuId);
 
       _totalReviews = response.length;
 
@@ -47,7 +44,7 @@ class AdminPreviewMenuViewModel extends ChangeNotifier {
         _ratingDistribution = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
       }
     } catch (e) {
-      debugPrint("Error fetching reviews: $e");
+      debugPrint("Error fetching preview reviews: $e");
     } finally {
       _isLoading = false;
       notifyListeners();

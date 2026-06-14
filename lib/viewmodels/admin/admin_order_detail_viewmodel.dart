@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../models/order_detail_model.dart';
-import '../../services/admin/admin_order_detail_service.dart';
+import '../../models/order_model.dart';
+import '../../services/admin/admin_order_service.dart';
 
 class AdminOrderDetailViewModel extends ChangeNotifier {
-  final AdminOrderDetailService _service = AdminOrderDetailService();
+  final AdminOrderService _service = AdminOrderService();
 
   bool _isLoading = true;
   bool get isLoading => _isLoading;
@@ -35,7 +35,6 @@ class AdminOrderDetailViewModel extends ChangeNotifier {
       notifyListeners();
 
       await _service.updateOrderStatus(orderId, newStatus);
-
       await fetchOrderDetail(orderId);
       return true;
     } catch (e) {

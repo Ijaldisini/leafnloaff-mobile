@@ -1,55 +1,51 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../models/review_model.dart';
+import '../../services/admin/admin_review_service.dart';
 
 class AdminReviewMenuViewModel extends ChangeNotifier {
-  final _supabase = Supabase.instance.client;
+  final AdminReviewService _service = AdminReviewService();
 
   bool _isLoading = true;
   bool get isLoading => _isLoading;
 
-  List<Map<String, dynamic>> _reviews = [];
-  List<Map<String, dynamic>> get reviews => _reviews;
+  List<ReviewModel> _reviews = [];
+  List<ReviewModel> get reviews => _reviews;
+
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
 
   Future<void> fetchReviewsDetail(String menuId) async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
-      final response = await _supabase
-          .from('reviews')
-          .select('*, profiles(full_name)')
-          .eq('menu_id', menuId)
-          .order('created_at', ascending: false);
-
-      _reviews = List<Map<String, dynamic>>.from(response);
+      _reviews = await _service.getMenuReviewsDetail(menuId);
     } catch (e) {
       debugPrint("Error fetching review details: $e");
+      _errorMessage = e.toString();
+      _reviews = [];
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  String formatDate(String isoDate) {
-    try {
-      DateTime date = DateTime.parse(isoDate);
-      List<String> months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
-      ];
-      return '${months[date.month - 1]} ${date.day.toString().padLeft(2, '0')}, ${date.year}';
-    } catch (e) {
-      return isoDate;
-    }
+  String formatDate(DateTime date) {
+    List<String> months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day.toString().padLeft(2, '0')}, ${date.year}';
   }
 }

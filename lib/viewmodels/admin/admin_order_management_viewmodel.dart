@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../models/order_management_model.dart';
-import '../../services/admin/admin_order_management_service.dart';
+import '../../models/order_model.dart';
+import '../../services/admin/admin_order_service.dart';
 import '../../services/pdf/pdf_export_service.dart';
 
 class AdminOrderManagementViewModel extends ChangeNotifier {
-  final AdminOrderManagementService _service = AdminOrderManagementService();
+  final AdminOrderService _service = AdminOrderService();
 
   bool _isLoading = true;
   bool get isLoading => _isLoading;
@@ -28,19 +28,11 @@ class AdminOrderManagementViewModel extends ChangeNotifier {
 
     if (start != null && end != null) {
       selectedStartDate = start;
-      selectedEndDate = DateTime(
-        end.year,
-        end.month,
-        end.day,
-        23,
-        59,
-        59,
-      );
+      selectedEndDate = DateTime(end.year, end.month, end.day, 23, 59, 59);
     } else {
       selectedStartDate = null;
       selectedEndDate = null;
     }
-
     notifyListeners();
 
     try {
@@ -49,44 +41,16 @@ class AdminOrderManagementViewModel extends ChangeNotifier {
         endDate: selectedEndDate,
       );
 
-      final List<Map<String, dynamic>> allOrders =
-          List<Map<String, dynamic>>.from(response);
-
-      final now = DateTime.now();
-      final todayStart = DateTime(now.year, now.month, now.day);
-
-      List<OrderManagementModel> tempParsed = [];
-
-      for (var order in allOrders) {
-        final createdAt = DateTime.parse(order['created_at']).toLocal();
-
-        String productDesc = "Unknown Item";
-        int totalQty = 0;
-        final items = order['order_items'] as List<dynamic>? ?? [];
-
-        if (items.isNotEmpty) {
-          totalQty = items[0]['quantity'] ?? 0;
-          productDesc = items[0]['menus']?['name'] ?? "Unknown Item";
-          if (items.length > 1) {
-            productDesc += " +${items.length - 1} lainnya";
-          }
-        }
-
-        tempParsed.add(
-          OrderManagementModel(
-            id: order['id'].toString(),
-            totalPrice: (order['total_price'] as num?)?.toDouble() ?? 0.0,
-            status: order['status']?.toString() ?? 'Menunggu Pembayaran',
-            createdAt: createdAt,
-            productDesc: productDesc,
-            totalQty: totalQty,
-          ),
-        );
-      }
+      List<OrderManagementModel> tempParsed = (response as List)
+          .map((data) => OrderManagementModel.fromJson(data))
+          .toList();
 
       if (isFiltering) {
         _filteredOrders = tempParsed;
       } else {
+        final now = DateTime.now();
+        final todayStart = DateTime(now.year, now.month, now.day);
+
         List<OrderManagementModel> tempToday = [];
         List<OrderManagementModel> tempYesterday = [];
 
@@ -98,7 +62,6 @@ class AdminOrderManagementViewModel extends ChangeNotifier {
             tempYesterday.add(orderModel);
           }
         }
-
         _todayOrders = tempToday;
         _yesterdayOrders = tempYesterday;
       }
@@ -110,9 +73,7 @@ class AdminOrderManagementViewModel extends ChangeNotifier {
     }
   }
 
-  void clearFilter() {
-    fetchOrders();
-  }
+  void clearFilter() => fetchOrders();
 
   String getTimeAgo(DateTime date) {
     final diff = DateTime.now().difference(date);
@@ -137,11 +98,8 @@ class AdminOrderManagementViewModel extends ChangeNotifier {
       final allOrders = isFiltering
           ? filteredOrders
           : [...todayOrders, ...yesterdayOrders];
-
-      if (allOrders.isEmpty) {
+      if (allOrders.isEmpty)
         throw Exception('Tidak ada data pesanan untuk di-export.');
-      }
-
       await _pdfService.exportOrdersToPdf(allOrders);
     } catch (e) {
       debugPrint("Gagal Export PDF: $e");

@@ -1,12 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/admin/admin_voucher_service.dart';
 
 class AdminEditVoucherViewModel extends ChangeNotifier {
   final VoucherService _voucherService = VoucherService();
-  final _supabase = Supabase.instance.client;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -21,33 +19,9 @@ class AdminEditVoucherViewModel extends ChangeNotifier {
     _selectedExpiryDate = initialDate;
   }
 
-  Future<void> pickExpiryDate(
-    BuildContext context,
-    DateTime minimumDate,
-  ) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedExpiryDate ?? minimumDate,
-      firstDate: minimumDate,
-      lastDate: DateTime(2030),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: const Color(0xFF3D5A4A),
-            colorScheme: const ColorScheme.light(primary: Color(0xFF3D5A4A)),
-            buttonTheme: const ButtonThemeData(
-              textTheme: ButtonTextTheme.primary,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null && picked != _selectedExpiryDate) {
-      _selectedExpiryDate = picked;
-      notifyListeners();
-    }
+  void setExpiryDate(DateTime date) {
+    _selectedExpiryDate = date;
+    notifyListeners();
   }
 
   String get formattedSelectedExpiryDate {
@@ -79,14 +53,16 @@ class AdminEditVoucherViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateVoucherData({
+  Future<String?> updateVoucherData({
     required String id,
     required String name,
     required int discount,
     required String terms,
     required DateTime expiresAt,
   }) async {
-    if (name.isEmpty || discount <= 0) return false;
+    if (name.isEmpty || discount <= 0) {
+      return 'Data tidak boleh kosong atau tidak valid.';
+    }
 
     _isLoading = true;
     notifyListeners();
@@ -95,26 +71,10 @@ class AdminEditVoucherViewModel extends ChangeNotifier {
       String? newImageUrl;
 
       if (_newSelectedImage != null) {
-        final fileExt = _newSelectedImage!.path.split('.').last;
-        final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-
-        await _supabase.storage
-            .from('voucher_images')
-            .upload(
-              fileName,
-              _newSelectedImage!,
-              fileOptions: const FileOptions(
-                cacheControl: '3600',
-                upsert: false,
-              ),
-            );
-
-        newImageUrl = _supabase.storage
-            .from('voucher_images')
-            .getPublicUrl(fileName);
+        newImageUrl = await _voucherService.uploadImage(_newSelectedImage!);
       }
 
-      final success = await _voucherService.updateVoucher(
+      await _voucherService.updateVoucher(
         id: id,
         title: name,
         discountPercentage: discount,
@@ -125,12 +85,11 @@ class AdminEditVoucherViewModel extends ChangeNotifier {
 
       _isLoading = false;
       notifyListeners();
-      return success;
+      return null;
     } catch (e) {
-      debugPrint("Error updating voucher: $e");
       _isLoading = false;
       notifyListeners();
-      return false;
+      return 'Gagal menyimpan perubahan. Coba lagi.';
     }
   }
 }

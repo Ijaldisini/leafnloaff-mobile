@@ -1,11 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../services/admin/admin_voucher_service.dart';
 
 class AdminAddVoucherViewModel extends ChangeNotifier {
-  final _supabase = Supabase.instance.client;
-
+  final VoucherService _voucherService = VoucherService();
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -22,57 +21,57 @@ class AdminAddVoucherViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> saveVoucher({
+  Future<String?> saveVoucher({
     required String name,
     required int discount,
     required String terms,
     required String expiration,
   }) async {
-    if (name.isEmpty || discount <= 0) return false;
+    if (name.isEmpty || expiration.isEmpty) {
+      return 'Nama dan tanggal kedaluwarsa wajib diisi!';
+    }
+    if (discount <= 0 || discount > 100) {
+      return 'Diskon harus berupa angka antara 1 hingga 100!';
+    }
 
     _isLoading = true;
     notifyListeners();
 
     try {
-      String? imageUrl;
-
-      if (_selectedImage != null) {
-        final fileExt = _selectedImage!.path.split('.').last;
-        final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-
-        await _supabase.storage
-            .from('voucher_images')
-            .upload(
-              fileName,
-              _selectedImage!,
-              fileOptions: const FileOptions(
-                cacheControl: '3600',
-                upsert: false,
-              ),
-            );
-
-        imageUrl = _supabase.storage
-            .from('voucher_images')
-            .getPublicUrl(fileName);
+      DateTime expiresAt;
+      try {
+        final parts = expiration.split('/');
+        expiresAt = DateTime(
+          int.parse(parts[2]),
+          int.parse(parts[1]),
+          int.parse(parts[0]),
+        );
+      } catch (e) {
+        _isLoading = false;
+        notifyListeners();
+        return 'Format tanggal tidak valid. Gunakan DD/MM/YYYY.';
       }
 
-      await _supabase.from('vouchers').insert({
-        'title': name,
-        'discount_percentage': discount,
-        'image_url':
-            imageUrl ?? 'https://placehold.co/334x121',
-        'is_active': true,
-        'terms_and_condition': terms,
-      });
+      String? imageUrl;
+      if (_selectedImage != null) {
+        imageUrl = await _voucherService.uploadImage(_selectedImage!);
+      }
+
+      await _voucherService.createVoucher(
+        title: name,
+        discountPercentage: discount,
+        termsAndCondition: terms,
+        expiresAt: expiresAt,
+        imageUrl: imageUrl,
+      );
 
       _isLoading = false;
       notifyListeners();
-      return true;
+      return null;
     } catch (e) {
-      debugPrint("Error saving voucher: $e");
       _isLoading = false;
       notifyListeners();
-      return false;
+      return e.toString().replaceAll('Exception: ', ''); 
     }
   }
 }

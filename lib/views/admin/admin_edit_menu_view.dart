@@ -138,10 +138,19 @@ class _AdminEditMenuViewState extends State<AdminEditMenuView> {
                                   onTap: _viewModel.isLoading
                                       ? null
                                       : () async {
-                                          bool success = await _viewModel
-                                              .saveMenu(context);
-                                          if (success && context.mounted) {
+                                          final errorMsg = await _viewModel
+                                              .saveMenu();
+
+                                          if (!context.mounted) return;
+
+                                          if (errorMsg == null) {
                                             Navigator.pop(context, true);
+                                          } else {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(content: Text(errorMsg)),
+                                            );
                                           }
                                         },
                                 ),

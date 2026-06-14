@@ -32,24 +32,24 @@ class _AdminAddVoucherViewState extends State<AdminAddVoucherView> {
   }
 
   void _onSave() async {
-    final success = await _viewModel.saveVoucher(
+    final errorMsg = await _viewModel.saveVoucher(
       name: _nameController.text,
       discount: int.tryParse(_discountController.text) ?? 0,
       terms: _termsController.text,
       expiration: _expirationController.text,
     );
 
-    if (success && mounted) {
+    if (!mounted) return;
+
+    if (errorMsg == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Voucher berhasil ditambahkan!')),
       );
       Navigator.pop(context);
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gagal menyimpan voucher. Cek kembali isian Anda.'),
-        ),
-      );
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMsg)));
     }
   }
 
@@ -114,8 +114,7 @@ class _AdminAddVoucherViewState extends State<AdminAddVoucherView> {
                         const Expanded(
                           child: Text(
                             'New Voucher',
-                            textAlign: TextAlign
-                                .center,
+                            textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Color(0xFFFDFDFD),
                               fontSize: 25,

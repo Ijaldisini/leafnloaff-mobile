@@ -1,12 +1,15 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/menu_model.dart';
-import '../../services/admin/admin_menu_management_service.dart';
+import '../../services/admin/admin_menu_service.dart';
 
 class AdminMenuManagementViewModel extends ChangeNotifier {
-  final AdminMenuManagementService _service = AdminMenuManagementService();
+  final AdminMenuService _service = AdminMenuService();
 
-  bool _isLoading = false;
+  StreamSubscription<List<Map<String, dynamic>>>? _menuSubscription;
+
+  bool _isLoading = true;
   bool get isLoading => _isLoading;
 
   List<MenuModel> _allMenus = [];
@@ -22,7 +25,34 @@ class AdminMenuManagementViewModel extends ChangeNotifier {
   final List<String> categories = ['All', 'Makanan', 'Minuman', 'Snack'];
 
   AdminMenuManagementViewModel() {
-    Future.microtask(() => fetchMenus());
+    _listenToMenus();
+  }
+
+  void _listenToMenus() {
+    _menuSubscription = _service.streamAllMenus().listen(
+      (data) {
+        _allMenus = data
+            .map<MenuModel>((json) => MenuModel.fromJson(json))
+            .toList();
+        _filterMenus();
+
+        if (_isLoading) {
+          _isLoading = false;
+        }
+        notifyListeners();
+      },
+      onError: (error) {
+        debugPrint("Gagal stream dari DB: $error");
+        if (_isLoading) {
+          _isLoading = false;
+        }
+        notifyListeners();
+      },
+    );
+  }
+
+  Future<void> fetchMenus() async {
+    await Future.delayed(const Duration(milliseconds: 300));
   }
 
   void setCategory(String category) {
@@ -53,88 +83,26 @@ class AdminMenuManagementViewModel extends ChangeNotifier {
     }
 
     tempMenus.sort((a, b) {
-      if (a.isActive == b.isActive) {
-        return a.name.compareTo(b.name);
+      if (a.isActive && !b.isActive) return -1;
+      if (!a.isActive && b.isActive) return 1;
+
+      if (a.stock != b.stock) {
+        return a.stock.compareTo(b.stock);
       }
-      return a.isActive ? -1 : 1;
+
+      return a.name.compareTo(b.name);
     });
 
     _menus = tempMenus;
     notifyListeners();
   }
 
-  Future<void> fetchMenus() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final response = await _service.getAllMenus();
-
-      _allMenus = response.map<MenuModel>((data) {
-        String? rawImageUrl = data['image_url']?.toString();
-        if (rawImageUrl != null && rawImageUrl.contains('example.com')) {
-          rawImageUrl = 'https://placehold.co/113x100/png?text=Image+Not+Found';
-        }
-
-        return MenuModel(
-          id: data['id']?.toString() ?? '',
-          name: data['name']?.toString() ?? 'Unknown Name',
-          description: data['description']?.toString() ?? '-',
-          price: (data['price'] as num?)?.toDouble() ?? 0.0,
-          category: data['category']?.toString() ?? 'Makanan',
-          imageUrl: rawImageUrl,
-          stock: data['stock'] ?? 0,
-          isActive: data['is_active'] ?? true,
-          createdAt: data['created_at'] != null
-              ? DateTime.parse(data['created_at'].toString())
-              : DateTime.now(),
-        );
-      }).toList();
-
-      _filterMenus();
-    } catch (e) {
-      debugPrint("Gagal fetch dari DB: $e");
-      _allMenus = [];
-      _menus = [];
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> deleteMenu(String id, BuildContext context) async {
+  Future<String?> deleteMenu(String id) async {
     try {
       await _service.deleteMenu(id);
-
-      final index = _allMenus.indexWhere((menu) => menu.id == id);
-      if (index != -1) {
-        final oldMenu = _allMenus[index];
-        _allMenus[index] = MenuModel(
-          id: oldMenu.id,
-          name: oldMenu.name,
-          description: oldMenu.description,
-          price: oldMenu.price,
-          category: oldMenu.category,
-          imageUrl: oldMenu.imageUrl,
-          stock: oldMenu.stock,
-          isActive: false,
-          createdAt: oldMenu.createdAt,
-        );
-      }
-
-      _filterMenus();
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Menu berhasil dinonaktifkan')),
-        );
-      }
+      return null;
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal menonaktifkan menu, coba lagi.')),
-        );
-      }
+      return 'Gagal menonaktifkan menu, coba lagi.';
     }
   }
 
@@ -144,5 +112,11 @@ class AdminMenuManagementViewModel extends ChangeNotifier {
       symbol: 'Rp. ',
       decimalDigits: 0,
     ).format(amount);
+  }
+
+  @override
+  void dispose() {
+    _menuSubscription?.cancel();
+    super.dispose();
   }
 }

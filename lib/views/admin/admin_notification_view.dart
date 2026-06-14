@@ -181,6 +181,8 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
 
     return GestureDetector(
       onTap: () {
+        if (!mounted) return;
+
         if (item.orderId != null && item.orderId!.isNotEmpty) {
           final titleLower = item.title.toLowerCase();
           if (titleLower.contains('ulasan') || titleLower.contains('review')) {

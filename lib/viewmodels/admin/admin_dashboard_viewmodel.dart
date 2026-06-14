@@ -56,14 +56,14 @@ class AdminDashboardViewModel extends ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint("Error Fetching Orders Today: $e");
+      debugPrint("VM Error: $e");
     }
 
     try {
       final newUsers = await _service.getNewCustomersThisWeek(startOfWeek);
       newUsersCount = newUsers.length;
     } catch (e) {
-      debugPrint("Error Fetching Customers: $e");
+      debugPrint("VM Error: $e");
     }
 
     try {
@@ -86,7 +86,7 @@ class AdminDashboardViewModel extends ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint("Error Fetching Best Seller: $e");
+      debugPrint("VM Error: $e");
     }
 
     try {
@@ -115,7 +115,7 @@ class AdminDashboardViewModel extends ChangeNotifier {
         );
       }).toList();
     } catch (e) {
-      debugPrint("Error Fetching Recent Orders: $e");
+      debugPrint("VM Error: $e");
     }
 
     final formattedRevenue = NumberFormat.currency(
@@ -153,6 +153,15 @@ class AdminDashboardViewModel extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  Future<String?> performLogout() async {
+    try {
+      await _service.logout();
+      return null;
+    } catch (e) {
+      return "Terjadi kesalahan saat logout. Silahkan coba lagi.";
+    }
   }
 
   String getTimeAgo(DateTime date) {

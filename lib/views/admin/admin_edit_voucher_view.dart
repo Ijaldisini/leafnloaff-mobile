@@ -40,8 +40,33 @@ class _AdminEditVoucherViewState extends State<AdminEditVoucherView> {
     super.dispose();
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _viewModel.selectedExpiryDate ?? widget.voucher.expiresAt,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: const Color(0xFF3D5A4A),
+            colorScheme: const ColorScheme.light(primary: Color(0xFF3D5A4A)),
+            buttonTheme: const ButtonThemeData(
+              textTheme: ButtonTextTheme.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      _viewModel.setExpiryDate(picked);
+    }
+  }
+
   void _onUpdate() async {
-    final success = await _viewModel.updateVoucherData(
+    final errorMsg = await _viewModel.updateVoucherData(
       id: widget.voucher.id,
       name: _nameController.text,
       discount: int.tryParse(_discountController.text) ?? 0,
@@ -49,16 +74,18 @@ class _AdminEditVoucherViewState extends State<AdminEditVoucherView> {
       expiresAt: _viewModel.selectedExpiryDate!,
     );
 
-    if (success && mounted) {
+    if (!mounted) return;
+
+    if (errorMsg == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Voucher berhasil diperbarui!')),
       );
       Navigator.pop(context, true);
       Navigator.pop(context, true);
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal memperbarui voucher.')),
-      );
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMsg)));
     }
   }
 
@@ -237,12 +264,7 @@ class _AdminEditVoucherViewState extends State<AdminEditVoucherView> {
                       listenable: _viewModel,
                       builder: (context, child) {
                         return GestureDetector(
-                          onTap: () {
-                            _viewModel.pickExpiryDate(
-                              context,
-                              widget.voucher.expiresAt,
-                            );
-                          },
+                          onTap: () => _selectDate(context),
                           child: Container(
                             height: 45,
                             width: double.infinity,

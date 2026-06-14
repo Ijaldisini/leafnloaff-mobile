@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../services/admin/admin_order_review_service.dart';
+import '../../models/order_model.dart';
+import '../../services/admin/admin_order_service.dart';
 
 class AdminOrderReviewViewModel extends ChangeNotifier {
-  final AdminOrderReviewService _service = AdminOrderReviewService();
+  final AdminOrderService _service = AdminOrderService();
 
   bool _isLoading = true;
   bool get isLoading => _isLoading;
 
-  List<Map<String, dynamic>> _reviews = [];
-  List<Map<String, dynamic>> get reviews => _reviews;
+  List<OrderReviewModel> _reviews = [];
+  List<OrderReviewModel> get reviews => _reviews;
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
@@ -21,8 +22,9 @@ class AdminOrderReviewViewModel extends ChangeNotifier {
 
     try {
       final response = await _service.getReviewsByOrderId(orderId);
-
-      _reviews = List<Map<String, dynamic>>.from(response);
+      _reviews = (response as List)
+          .map((data) => OrderReviewModel.fromJson(data))
+          .toList();
     } catch (e) {
       debugPrint("Gagal mengambil data review dari DB: $e");
       _errorMessage = e.toString();

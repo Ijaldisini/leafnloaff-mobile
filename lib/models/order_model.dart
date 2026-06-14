@@ -91,3 +91,89 @@ class OrderDetailModel {
     );
   }
 }
+
+class OrderManagementModel {
+  final String id;
+  final double totalPrice;
+  final String status;
+  final DateTime createdAt;
+  final String productDesc;
+  final int totalQty;
+
+  OrderManagementModel({
+    required this.id,
+    required this.totalPrice,
+    required this.status,
+    required this.createdAt,
+    required this.productDesc,
+    required this.totalQty,
+  });
+
+  factory OrderManagementModel.fromJson(Map<String, dynamic> json) {
+    final createdAt = DateTime.parse(json['created_at']).toLocal();
+    String productDesc = "Unknown Item";
+    int totalQty = 0;
+
+    final items = json['order_items'] as List<dynamic>? ?? [];
+
+    if (items.isNotEmpty) {
+      totalQty = items[0]['quantity'] ?? 0;
+      productDesc = items[0]['menus']?['name'] ?? "Unknown Item";
+      if (items.length > 1) {
+        productDesc += " +${items.length - 1} lainnya";
+      }
+    }
+
+    return OrderManagementModel(
+      id: json['id'].toString(),
+      totalPrice: (json['total_price'] as num?)?.toDouble() ?? 0.0,
+      status: json['status']?.toString() ?? 'Menunggu Pembayaran',
+      createdAt: createdAt,
+      productDesc: productDesc,
+      totalQty: totalQty,
+    );
+  }
+}
+
+class OrderReviewModel {
+  final String itemName;
+  final String? itemImageUrl;
+  final String notes;
+  final int qty;
+  final double price;
+  final int rating;
+  final String reviewText;
+  final List<String> reviewImages;
+
+  OrderReviewModel({
+    required this.itemName,
+    this.itemImageUrl,
+    required this.notes,
+    required this.qty,
+    required this.price,
+    required this.rating,
+    required this.reviewText,
+    required this.reviewImages,
+  });
+
+  factory OrderReviewModel.fromJson(Map<String, dynamic> json) {
+    final menu = json['menus'] ?? {};
+    final String? rawImageUrls = json['image_url'];
+    List<String> images = [];
+
+    if (rawImageUrls != null && rawImageUrls.isNotEmpty) {
+      images = rawImageUrls.split(',').map((e) => e.trim()).toList();
+    }
+
+    return OrderReviewModel(
+      itemName: menu['name'] ?? 'Item\'s Name',
+      itemImageUrl: menu['image_url'],
+      notes: json['notes'] ?? '',
+      qty: json['quantity'] ?? 1,
+      price: (menu['price'] as num?)?.toDouble() ?? 0.0,
+      rating: json['rating'] ?? 0,
+      reviewText: json['comment'] ?? 'Belum ada ulasan',
+      reviewImages: images,
+    );
+  }
+}
