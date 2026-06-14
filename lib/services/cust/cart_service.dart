@@ -3,6 +3,41 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class CartService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  String? getCurrentUserId() {
+    return _supabase.auth.currentUser?.id;
+  }
+
+  Future<void> addToCart({
+    required String userId,
+    required String productId,
+    required int quantity,
+  }) async {
+    try {
+      final existingCart = await _supabase
+          .from('cart')
+          .select()
+          .eq('user_id', userId)
+          .eq('menu_id', productId)
+          .maybeSingle();
+
+      if (existingCart != null) {
+        final currentQty = (existingCart['quantity'] as num).toInt();
+        await _supabase
+            .from('cart')
+            .update({'quantity': currentQty + quantity})
+            .eq('id', existingCart['id']);
+      } else {
+        await _supabase.from('cart').insert({
+          'user_id': userId,
+          'menu_id': productId,
+          'quantity': quantity,
+        });
+      }
+    } catch (e) {
+      throw Exception('Gagal menambahkan ke keranjang: $e');
+    }
+  }
+
   Future<List<Map<String, dynamic>>> fetchCartItems() async {
     final user = _supabase.auth.currentUser;
     if (user == null) throw Exception('User belum login.');

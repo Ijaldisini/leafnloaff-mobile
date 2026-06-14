@@ -2,24 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../services/maps/maps_service.dart';
 import '../../services/cust/address_service.dart';
-
-import 'home_viewmodel.dart';
-import 'address_viewmodel.dart';
+import '../../models/address_model.dart';
 
 class FormAddressViewModel extends ChangeNotifier {
-  final MapsService _mapsService = MapsService();
-  final AddressService _addressService = AddressService();
+  final MapsService _mapsService;
+  final AddressService _addressService;
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
 
+  String? addressId;
   bool isLoading = false;
   bool isSaving = false;
   String? errorMessage;
 
   LatLng selectedLocation = const LatLng(-8.1689, 113.7020);
   GoogleMapController? mapController;
+
+  FormAddressViewModel({
+    required MapsService mapsService,
+    required AddressService addressService,
+  }) : _mapsService = mapsService,
+       _addressService = addressService;
+
+  void initData(AddressModel? existingAddress) {
+    if (existingAddress != null) {
+      addressId = existingAddress.id;
+      nameController.text = existingAddress.recipientName;
+      phoneController.text = existingAddress.phoneNumber;
+      addressController.text = existingAddress.addressDetail;
+      selectedLocation = LatLng(
+        existingAddress.latitude,
+        existingAddress.longitude,
+      );
+    }
+  }
 
   void onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -36,14 +54,6 @@ class FormAddressViewModel extends ChangeNotifier {
     );
   }
 
-  void zoomIn() {
-    mapController?.animateCamera(CameraUpdate.zoomIn());
-  }
-
-  void zoomOut() {
-    mapController?.animateCamera(CameraUpdate.zoomOut());
-  }
-
   Future<void> fetchCurrentLocation() async {
     isLoading = true;
     errorMessage = null;
@@ -51,7 +61,6 @@ class FormAddressViewModel extends ChangeNotifier {
 
     try {
       final position = await _mapsService.getCurrentLocation();
-
       await mapController?.animateCamera(
         CameraUpdate.newLatLngZoom(
           LatLng(position.latitude, position.longitude),
@@ -66,13 +75,16 @@ class FormAddressViewModel extends ChangeNotifier {
     }
   }
 
+  void zoomIn() => mapController?.animateCamera(CameraUpdate.zoomIn());
+  void zoomOut() => mapController?.animateCamera(CameraUpdate.zoomOut());
+
   Future<void> _updateAddressText(double lat, double lng) async {
     final addressText = await _mapsService.getAddressFromLatLng(lat, lng);
     addressController.text = addressText;
     notifyListeners();
   }
 
-  Future<bool> saveAddressToDatabase() async {
+  Future<bool> saveOrUpdateAddress() async {
     if (nameController.text.trim().isEmpty ||
         addressController.text.trim().isEmpty ||
         phoneController.text.trim().isEmpty) {
@@ -86,7 +98,7 @@ class FormAddressViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final newAddress = {
+      final addressData = {
         'recipient_name': nameController.text.trim(),
         'phone_number': phoneController.text.trim(),
         'address_detail': addressController.text.trim(),
@@ -94,10 +106,11 @@ class FormAddressViewModel extends ChangeNotifier {
         'longitude': selectedLocation.longitude,
       };
 
-      await _addressService.saveNewAddress(newAddress);
-
-      HomeViewModel().fetchHomeData();
-      AddressViewModel().fetchAddresses();
+      if (addressId == null) {
+        await _addressService.saveNewAddress(addressData);
+      } else {
+        await _addressService.updateAddress(addressId!, addressData);
+      }
 
       return true;
     } catch (e) {

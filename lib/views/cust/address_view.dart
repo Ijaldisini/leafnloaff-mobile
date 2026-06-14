@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../viewmodels/cust/address_viewmodel.dart';
-import 'add_address_view.dart';
-import 'edit_address_view.dart';
+import '../../services/cust/address_service.dart';
+import '../../models/address_model.dart';
+import 'form_address_view.dart';
 
 class AddressView extends StatefulWidget {
   const AddressView({super.key});
@@ -11,11 +12,13 @@ class AddressView extends StatefulWidget {
 }
 
 class _AddressViewState extends State<AddressView> {
-  final AddressViewModel _viewModel = AddressViewModel();
+  late final AddressViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
+    _viewModel = AddressViewModel(service: AddressService());
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.fetchAddresses();
     });
@@ -24,6 +27,19 @@ class _AddressViewState extends State<AddressView> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Future<void> _navigateToForm({AddressModel? addressToEdit}) async {
+    final bool? shouldRefresh = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FormAddressView(existingAddress: addressToEdit),
+      ),
+    );
+
+    if (shouldRefresh == true) {
+      _viewModel.fetchAddresses();
+    }
   }
 
   @override
@@ -169,18 +185,7 @@ class _AddressViewState extends State<AddressView> {
               ),
               child: Center(
                 child: GestureDetector(
-                  onTap: () async {
-                    final shouldRefresh = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FormAddressView(),
-                      ),
-                    );
-
-                    if (shouldRefresh == true) {
-                      _viewModel.fetchAddresses();
-                    }
-                  },
+                  onTap: () => _navigateToForm(),
                   child: Container(
                     width: 145,
                     height: 32,
@@ -215,11 +220,9 @@ class _AddressViewState extends State<AddressView> {
     );
   }
 
-  Widget _buildAddressCard(Map<String, dynamic> address) {
+  Widget _buildAddressCard(AddressModel address) {
     return GestureDetector(
-      onTap: () {
-        Navigator.pop(context, address);
-      },
+      onTap: () => Navigator.pop(context, address),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16.0),
         padding: const EdgeInsets.all(16.0),
@@ -243,7 +246,7 @@ class _AddressViewState extends State<AddressView> {
               children: [
                 Expanded(
                   child: Text(
-                    address['recipient_name'] ?? 'Recipient’s Name',
+                    address.recipientName,
                     style: const TextStyle(
                       color: Color(0xFF2D4839),
                       fontSize: 16,
@@ -255,18 +258,7 @@ class _AddressViewState extends State<AddressView> {
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () async {
-                        final shouldRefresh = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                EditAddressView(address: address),
-                          ),
-                        );
-                        if (shouldRefresh == true) {
-                          _viewModel.fetchAddresses();
-                        }
-                      },
+                      onTap: () => _navigateToForm(addressToEdit: address),
                       child: const Icon(
                         Icons.edit_outlined,
                         color: Color(0xFF2D4839),
@@ -275,9 +267,7 @@ class _AddressViewState extends State<AddressView> {
                     ),
                     const SizedBox(width: 10),
                     GestureDetector(
-                      onTap: () {
-                        _showDeleteConfirmation(context, address['id']);
-                      },
+                      onTap: () => _showDeleteConfirmation(context, address.id),
                       child: const Icon(
                         Icons.delete_outline,
                         color: Color(0xFF2D4839),
@@ -294,7 +284,7 @@ class _AddressViewState extends State<AddressView> {
                 const Icon(Icons.phone, color: Color(0xFF426E55), size: 16),
                 const SizedBox(width: 8),
                 Text(
-                  address['phone_number'] ?? '08123456789',
+                  address.phoneNumber,
                   style: const TextStyle(
                     color: Color(0xFF426E55),
                     fontSize: 13,
@@ -316,7 +306,7 @@ class _AddressViewState extends State<AddressView> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    address['address_detail'] ?? 'Street, No. 00',
+                    address.addressDetail,
                     style: const TextStyle(
                       color: Color(0xFF426E55),
                       fontSize: 13,
@@ -329,9 +319,8 @@ class _AddressViewState extends State<AddressView> {
             ),
             const SizedBox(height: 12),
             GestureDetector(
-              onTap: () {
-                _viewModel.openMaps(address['latitude'], address['longitude']);
-              },
+              onTap: () =>
+                  _viewModel.openMaps(address.latitude, address.longitude),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,

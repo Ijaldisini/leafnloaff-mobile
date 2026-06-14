@@ -1,9 +1,10 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../models/address_model.dart';
 
 class AddressService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  Future<List<Map<String, dynamic>>> fetchUserAddresses() async {
+  Future<List<AddressModel>> fetchUserAddresses() async {
     final user = _supabase.auth.currentUser;
     if (user == null) throw Exception('User belum login.');
 
@@ -14,7 +15,9 @@ class AddressService {
         .order('is_default', ascending: false)
         .order('created_at', ascending: false);
 
-    return List<Map<String, dynamic>>.from(response);
+    return List<Map<String, dynamic>>.from(
+      response,
+    ).map((data) => AddressModel.fromJson(data)).toList();
   }
 
   Future<void> saveNewAddress(Map<String, dynamic> addressData) async {

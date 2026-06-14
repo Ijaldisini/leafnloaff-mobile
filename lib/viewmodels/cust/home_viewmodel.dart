@@ -1,19 +1,24 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../services/cust/home_service.dart';
-import 'cart_viewmodel.dart';
+import '../../services/cust/cart_service.dart';
 
 class HomeViewModel extends ChangeNotifier {
-  static final HomeViewModel _instance = HomeViewModel._internal();
-  factory HomeViewModel() => _instance;
-  HomeViewModel._internal();
+  final HomeService _homeService;
+  final CartService _cartService;
+  final VoidCallback? onCartUpdated;
 
-  final HomeService _service = HomeService();
+  HomeViewModel({
+    required HomeService homeService,
+    required CartService cartService,
+    this.onCartUpdated,
+  }) : _homeService = homeService,
+       _cartService = cartService;
 
   bool _isLoading = true;
   bool get isLoading => _isLoading;
 
-  List<String> _categories = ['All', 'Sandwich', 'Drink', 'Snack'];
+  final List<String> _categories = ['All', 'Sandwich', 'Drink', 'Snack'];
   List<String> get categories => _categories;
 
   String _selectedCategory = 'All';
@@ -59,12 +64,17 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final address = await _service.fetchDefaultAddress();
-      _currentLocation =
-          address ?? 'Belum ada alamat, silakan tambah di profil.';
+      final results = await Future.wait([
+        _homeService.fetchDefaultAddress(),
+        _homeService.fetchActiveVoucher(),
+        _homeService.fetchActiveMenus(),
+      ]);
 
-      _activeVoucher = await _service.fetchActiveVoucher();
-      _menus = await _service.fetchActiveMenus();
+      _currentLocation =
+          (results[0] as String?) ??
+          'Belum ada alamat, silakan tambah di profil.';
+      _activeVoucher = results[1] as Map<String, dynamic>?;
+      _menus = results[2] as List<Map<String, dynamic>>;
     } catch (e) {
       debugPrint('Error fetching home data: $e');
     } finally {
@@ -88,7 +98,7 @@ class HomeViewModel extends ChangeNotifier {
     if (_recentlyAddedItems.contains(productId)) return;
 
     try {
-      final userId = _service.getCurrentUserId();
+      final userId = _cartService.getCurrentUserId();
       if (userId == null) {
         throw Exception("Sesi telah habis, silakan login ulang.");
       }
@@ -96,13 +106,13 @@ class HomeViewModel extends ChangeNotifier {
       _recentlyAddedItems.add(productId);
       notifyListeners();
 
-      await _service.addToCart(
+      await _cartService.addToCart(
         userId: userId,
         productId: productId,
         quantity: 1,
       );
 
-      CartViewModel().loadCartData();
+      onCartUpdated?.call();
 
       Timer(const Duration(milliseconds: 1500), () {
         _recentlyAddedItems.remove(productId);

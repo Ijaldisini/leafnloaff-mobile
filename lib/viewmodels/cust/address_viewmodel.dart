@@ -1,17 +1,16 @@
 import 'package:flutter/foundation.dart';
 import '../../services/cust/address_service.dart';
+import '../../models/address_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AddressViewModel extends ChangeNotifier {
-  static final AddressViewModel _instance = AddressViewModel._internal();
-  factory AddressViewModel() => _instance;
-  AddressViewModel._internal();
+  final AddressService _service;
 
-  final AddressService _service = AddressService();
+  AddressViewModel({required AddressService service}) : _service = service;
 
   bool isLoading = false;
   String? errorMessage;
-  List<Map<String, dynamic>> addresses = [];
+  List<AddressModel> addresses = [];
 
   Future<void> fetchAddresses() async {
     isLoading = true;
@@ -31,9 +30,8 @@ class AddressViewModel extends ChangeNotifier {
   Future<void> openMaps(double? lat, double? long) async {
     if (lat != null && long != null) {
       final Uri url = Uri.parse(
-        'https://www.google.com/maps/search/?api=1&query=$lat,$long',
+        'https://www.google.com/maps/search/?api=1&query=$lat,$long?q=$lat,$long',
       );
-
       try {
         if (await canLaunchUrl(url)) {
           await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -55,7 +53,7 @@ class AddressViewModel extends ChangeNotifier {
       await _service.deleteAddress(id);
       await fetchAddresses();
     } catch (e) {
-      errorMessage = "Gagal menghapus alamat: $e";
+      errorMessage = e.toString();
       isLoading = false;
       notifyListeners();
     }

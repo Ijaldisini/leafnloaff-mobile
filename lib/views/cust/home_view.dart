@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/user_model.dart';
-import '../../viewmodels/cust/home_viewmodel.dart';
-import 'detail_menu_view.dart';
 import '../../models/voucher_model.dart';
+import '../../services/cust/home_service.dart';
+import '../../services/cust/cart_service.dart';
+import '../../viewmodels/cust/home_viewmodel.dart';
 import '../../viewmodels/cust/cart_viewmodel.dart';
+import 'detail_menu_view.dart';
 import 'checkout_view.dart';
 
 class HomeView extends StatefulWidget {
@@ -17,12 +19,19 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  final HomeViewModel _viewModel = HomeViewModel();
+  late final HomeViewModel _viewModel;
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _viewModel = HomeViewModel(
+      homeService: HomeService(),
+      cartService: CartService(),
+      onCartUpdated: () {
+        CartViewModel().loadCartData();
+      },
+    );
     _viewModel.fetchHomeData();
   }
 
@@ -62,7 +71,6 @@ class _HomeViewState extends State<HomeView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 12),
-
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: Row(
@@ -117,9 +125,7 @@ class _HomeViewState extends State<HomeView> {
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 16),
-
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: Container(
@@ -137,8 +143,7 @@ class _HomeViewState extends State<HomeView> {
                             ),
                             child: TextField(
                               controller: _searchController,
-                              onChanged: (value) =>
-                                  _viewModel.setSearchQuery(value),
+                              onChanged: _viewModel.setSearchQuery,
                               style: const TextStyle(
                                 color: Color(0xFF2D4839),
                                 fontFamily: 'Poppins',
