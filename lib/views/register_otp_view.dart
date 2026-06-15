@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../viewmodels/register_otp_viewmodel.dart';
 import '../models/user_model.dart';
+import 'cust/main_view.dart';
 
 class RegisterOtpView extends StatefulWidget {
   final UserModel user;
@@ -14,6 +15,31 @@ class RegisterOtpView extends StatefulWidget {
 
 class _RegisterOtpViewState extends State<RegisterOtpView> {
   final RegisterOtpViewModel _viewModel = RegisterOtpViewModel();
+
+  void _handleVerify() async {
+    final success = await _viewModel.verifyOtp(widget.user);
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Verifikasi Email Berhasil!')),
+      );
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CustomerMainView(user: widget.user),
+        ),
+        (route) => false,
+      );
+    } else if (_viewModel.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_viewModel.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +76,6 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                       ),
                     ),
                   ),
-
                   Positioned(
                     top: 180,
                     child: SizedBox(
@@ -87,7 +112,6 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                       ),
                     ),
                   ),
-
                   Positioned(
                     top: 400,
                     child: const Text(
@@ -114,13 +138,12 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                       ),
                     ),
                   ),
-
                   Positioned(
                     top: 520,
                     child: GestureDetector(
                       onTap: _viewModel.isLoading
                           ? null
-                          : () => _viewModel.verifyOtp(context, widget.user),
+                          : _handleVerify,
                       child: Container(
                         width: 189,
                         height: 38,

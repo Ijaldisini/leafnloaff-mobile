@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../viewmodels/login_viewmodel.dart';
-import '../views/cust/main_view.dart';
+import 'cust/main_view.dart';
+import 'admin/admin_main_view.dart';
+import 'register_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -25,17 +27,11 @@ class _LoginViewState extends State<LoginView>
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    _fadeAnim = CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeOut,
-    );
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.06),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeOutCubic,
-    ));
+    _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+        );
     _animController.forward();
   }
 
@@ -44,6 +40,38 @@ class _LoginViewState extends State<LoginView>
     _animController.dispose();
     _viewModel.dispose();
     super.dispose();
+  }
+
+  void _handleLogin() async {
+    final user = await _viewModel.login();
+
+    if (!mounted) return;
+
+    if (user != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Selamat datang, ${user.fullName}!')),
+      );
+      if (user.role == 'admin') {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => AdminMainView(user: user)),
+          (route) => false,
+        );
+      } else {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => CustomerMainView(user: user)),
+          (route) => false,
+        );
+      }
+    } else if (_viewModel.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_viewModel.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -70,7 +98,8 @@ class _LoginViewState extends State<LoginView>
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: screenHeight -
+                    minHeight:
+                        screenHeight -
                         MediaQuery.of(context).padding.top -
                         MediaQuery.of(context).padding.bottom,
                   ),
@@ -83,15 +112,10 @@ class _LoginViewState extends State<LoginView>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 28),
-
                             Center(child: _buildTabBar(context)),
-
                             const SizedBox(height: 36),
-
                             Center(child: _buildLogo()),
-
                             const SizedBox(height: 40),
-
                             _fieldLabel('Email'),
                             const SizedBox(height: 8),
                             _buildInputField(
@@ -100,9 +124,7 @@ class _LoginViewState extends State<LoginView>
                               isPassword: false,
                               keyboardType: TextInputType.emailAddress,
                             ),
-
                             const SizedBox(height: 20),
-
                             _fieldLabel('Password'),
                             const SizedBox(height: 8),
                             _buildInputField(
@@ -110,18 +132,13 @@ class _LoginViewState extends State<LoginView>
                               hint: '',
                               isPassword: true,
                             ),
-
                             const SizedBox(height: 12),
-
                             if (_viewModel.errorMessage != null &&
                                 _viewModel.errorMessage!.isNotEmpty)
                               _buildErrorBox(_viewModel.errorMessage!),
-
                             const Spacer(),
                             const SizedBox(height: 36),
-
                             Center(child: _buildLoginButton()),
-
                             const SizedBox(height: 36),
                           ],
                         ),
@@ -170,7 +187,17 @@ class _LoginViewState extends State<LoginView>
           ),
           Expanded(
             child: GestureDetector(
-              onTap: () => _viewModel.navigateToRegister(context),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, anim1, anim2) =>
+                        const RegisterView(),
+                    transitionDuration: Duration.zero,
+                    reverseTransitionDuration: Duration.zero,
+                  ),
+                );
+              },
               child: const Center(
                 child: Text(
                   'Register',
@@ -192,10 +219,7 @@ class _LoginViewState extends State<LoginView>
   Widget _buildLogo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _logoLine('Leaf'),
-        _logoLine('Loaff'),
-      ],
+      children: [_logoLine('Leaf'), _logoLine('Loaff')],
     );
   }
 
@@ -256,11 +280,7 @@ class _LoginViewState extends State<LoginView>
         fontFamily: 'Poppins',
         fontWeight: FontWeight.w700,
         shadows: [
-          Shadow(
-            offset: Offset(1, 1),
-            blurRadius: 3,
-            color: Colors.black26,
-          ),
+          Shadow(offset: Offset(1, 1), blurRadius: 3, color: Colors.black26),
         ],
       ),
     );
@@ -304,8 +324,7 @@ class _LoginViewState extends State<LoginView>
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
                   hintText: hint,
-                  hintStyle:
-                      const TextStyle(color: Colors.grey, fontSize: 13),
+                  hintStyle: const TextStyle(color: Colors.grey, fontSize: 13),
                 ),
               ),
             ),
@@ -334,13 +353,11 @@ class _LoginViewState extends State<LoginView>
       decoration: BoxDecoration(
         color: const Color(0xFFCA748D).withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: const Color(0xFFCA748D).withOpacity(0.5)),
+        border: Border.all(color: const Color(0xFFCA748D).withOpacity(0.5)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline,
-              color: Color(0xFFEED5DB), size: 16),
+          const Icon(Icons.error_outline, color: Color(0xFFEED5DB), size: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -361,7 +378,7 @@ class _LoginViewState extends State<LoginView>
     return GestureDetector(
       onTap: _viewModel.isLoading
           ? null
-          : () => _viewModel.login(context),
+          : _handleLogin,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         width: 200,
@@ -390,7 +407,9 @@ class _LoginViewState extends State<LoginView>
                 width: 22,
                 height: 22,
                 child: CircularProgressIndicator(
-                    color: Colors.white, strokeWidth: 2.5),
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
               )
             : const Text(
                 'Login',

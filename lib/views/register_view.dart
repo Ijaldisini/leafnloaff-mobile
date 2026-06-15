@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../viewmodels/register_viewmodel.dart';
 import 'login_view.dart';
+import 'register_otp_view.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -25,13 +26,11 @@ class _RegisterViewState extends State<RegisterView>
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    _fadeAnim =
-        CurvedAnimation(parent: _animController, curve: Curves.easeOut);
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.06),
-      end: Offset.zero,
-    ).animate(
-        CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic));
+    _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+        );
     _animController.forward();
   }
 
@@ -40,6 +39,31 @@ class _RegisterViewState extends State<RegisterView>
     _animController.dispose();
     _viewModel.dispose();
     super.dispose();
+  }
+
+  void _handleRegister() async {
+    final newUser = await _viewModel.register();
+
+    if (!mounted) return;
+
+    if (newUser != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pendaftaran berhasil! Silakan periksa email Anda.'),
+        ),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => RegisterOtpView(user: newUser)),
+      );
+    } else if (_viewModel.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_viewModel.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -71,7 +95,8 @@ class _RegisterViewState extends State<RegisterView>
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: screenHeight -
+                    minHeight:
+                        screenHeight -
                         MediaQuery.of(context).padding.top -
                         MediaQuery.of(context).padding.bottom,
                   ),
@@ -84,33 +109,24 @@ class _RegisterViewState extends State<RegisterView>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 28),
-
                             Center(child: _buildTabBar()),
-
                             const SizedBox(height: 28),
-
                             Center(child: _buildLogo()),
-
                             const SizedBox(height: 28),
-
                             _fieldLabel('Name'),
                             const SizedBox(height: 8),
                             _buildInputField(
                               controller: _viewModel.nameController,
                               isPassword: false,
                             ),
-
                             const SizedBox(height: 16),
-
                             _fieldLabel('Username'),
                             const SizedBox(height: 8),
                             _buildInputField(
                               controller: _viewModel.usernameController,
                               isPassword: false,
                             ),
-
                             const SizedBox(height: 16),
-
                             _fieldLabel('Email'),
                             const SizedBox(height: 8),
                             _buildInputField(
@@ -118,27 +134,20 @@ class _RegisterViewState extends State<RegisterView>
                               isPassword: false,
                               keyboardType: TextInputType.emailAddress,
                             ),
-
                             const SizedBox(height: 16),
-
                             _fieldLabel('Password'),
                             const SizedBox(height: 8),
                             _buildInputField(
                               controller: _viewModel.passwordController,
                               isPassword: true,
                             ),
-
                             const SizedBox(height: 12),
-
                             if (_viewModel.errorMessage != null &&
                                 _viewModel.errorMessage!.isNotEmpty)
                               _buildErrorBox(_viewModel.errorMessage!),
-
                             const Spacer(),
                             const SizedBox(height: 28),
-
                             Center(child: _buildRegisterButton()),
-
                             const SizedBox(height: 36),
                           ],
                         ),
@@ -160,10 +169,7 @@ class _RegisterViewState extends State<RegisterView>
       height: 36,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [
-            Color(0xFFD699AB),  
-            Color(0xFFCA748D),  
-          ],
+          colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
         ),
         borderRadius: BorderRadius.circular(100),
       ),
@@ -180,7 +186,7 @@ class _RegisterViewState extends State<RegisterView>
                 child: Text(
                   'Login',
                   style: TextStyle(
-                    color: Colors.white70,  
+                    color: Colors.white70,
                     fontSize: 15,
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.w700,
@@ -193,14 +199,14 @@ class _RegisterViewState extends State<RegisterView>
             child: Container(
               margin: const EdgeInsets.all(3),
               decoration: BoxDecoration(
-                color: const Color(0xFFEED5DB),  
+                color: const Color(0xFFEED5DB),
                 borderRadius: BorderRadius.circular(100),
               ),
               alignment: Alignment.center,
               child: const Text(
                 'Register',
                 style: TextStyle(
-                  color: Color(0xFFCA748D),  
+                  color: Color(0xFFCA748D),
                   fontSize: 15,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w700,
@@ -277,11 +283,7 @@ class _RegisterViewState extends State<RegisterView>
         fontFamily: 'Poppins',
         fontWeight: FontWeight.w700,
         shadows: [
-          Shadow(
-            offset: Offset(1, 1),
-            blurRadius: 3,
-            color: Colors.black26,
-          ),
+          Shadow(offset: Offset(1, 1), blurRadius: 3, color: Colors.black26),
         ],
       ),
     );
@@ -335,7 +337,7 @@ class _RegisterViewState extends State<RegisterView>
                       ? Icons.visibility_off_outlined
                       : Icons.visibility_outlined,
                   size: 19,
-                  color: const Color(0xFFCA748D),  
+                  color: const Color(0xFFCA748D),
                 ),
               ),
           ],
@@ -351,17 +353,11 @@ class _RegisterViewState extends State<RegisterView>
       decoration: BoxDecoration(
         color: const Color(0xFFE76F51).withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE76F51).withOpacity(0.5),
-        ),
+        border: Border.all(color: const Color(0xFFE76F51).withOpacity(0.5)),
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.error_outline,
-            color: Color(0xFFEED5DB),
-            size: 16,
-          ),
+          const Icon(Icons.error_outline, color: Color(0xFFEED5DB), size: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -380,7 +376,7 @@ class _RegisterViewState extends State<RegisterView>
 
   Widget _buildRegisterButton() {
     return GestureDetector(
-      onTap: _viewModel.isLoading ? null : () => _viewModel.register(context),
+      onTap: _viewModel.isLoading ? null : _handleRegister,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         width: 200,
@@ -392,10 +388,7 @@ class _RegisterViewState extends State<RegisterView>
                     const Color(0xFFD699AB).withOpacity(0.6),
                     const Color(0xFFCA748D).withOpacity(0.6),
                   ]
-                : const [
-                    Color(0xFFD699AB),  
-                    Color(0xFFCA748D),  
-                  ],
+                : const [Color(0xFFD699AB), Color(0xFFCA748D)],
           ),
           borderRadius: BorderRadius.circular(100),
           boxShadow: [

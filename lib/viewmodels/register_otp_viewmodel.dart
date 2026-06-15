@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
-import '../views/cust/main_view.dart';
 import '../services/auth_service.dart';
 
 class RegisterOtpViewModel extends ChangeNotifier {
@@ -15,16 +14,28 @@ class RegisterOtpViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
   String get otpCode => otpControllers.map((c) => c.text).join();
 
-  void verifyOtp(BuildContext context, UserModel user) async {
+  void _setError(String message) {
+    _errorMessage = message;
+    notifyListeners();
+  }
+
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
+
+  Future<bool> verifyOtp(UserModel user) async {
     final code = otpCode;
+    clearError();
 
     if (code.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Masukkan 8 digit kode OTP')),
-      );
-      return;
+      _setError('Masukkan 8 digit kode OTP');
+      return false;
     }
 
     _isLoading = true;
@@ -32,27 +43,10 @@ class RegisterOtpViewModel extends ChangeNotifier {
 
     try {
       await _authService.verifyEmailOtp(user.email, code);
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Verifikasi Email Berhasil!')),
-        );
-
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => CustomerMainView(user: user)),
-          (route) => false,
-        );
-      }
+      return true;
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      _setError(e.toString().replaceAll('Exception: ', ''));
+      return false;
     } finally {
       _isLoading = false;
       notifyListeners();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../viewmodels/welcome_viewmodel.dart';
+import 'login_view.dart';
 
 class WelcomeView extends StatefulWidget {
   const WelcomeView({super.key});
@@ -73,6 +74,17 @@ class _WelcomeViewState extends State<WelcomeView>
     _fadeController.dispose();
     _slideController.dispose();
     super.dispose();
+  }
+
+  void _handleNext() {
+    final hasNextSlide = _viewModel.onNextPressed();
+
+    if (!hasNextSlide) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginView()),
+      );
+    }
   }
 
   @override
@@ -190,7 +202,7 @@ class _WelcomeViewState extends State<WelcomeView>
                   left: 16,
                   right: 16,
                   child: GestureDetector(
-                    onTap: () => _viewModel.onNextPressed(context),
+                    onTap: _handleNext,
                     child: Container(
                       height: 48,
                       decoration: ShapeDecoration(

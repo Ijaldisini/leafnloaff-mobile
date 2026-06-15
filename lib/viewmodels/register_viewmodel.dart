@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
-import '../views/register_otp_view.dart';
 
 class RegisterViewModel extends ChangeNotifier {
   final TextEditingController nameController = TextEditingController();
@@ -21,29 +20,22 @@ class RegisterViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _clearError() {
+  void clearError() {
     _errorMessage = null;
     notifyListeners();
   }
 
-  void navigateToRegisterOtp(BuildContext context, UserModel user) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => RegisterOtpView(user: user)),
-    );
-  }
-
-  Future<void> register(BuildContext context) async {
+  Future<UserModel?> register() async {
     final name = nameController.text.trim();
     final username = usernameController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text;
 
-    _clearError();
+    clearError();
 
     if (name.isEmpty || username.isEmpty || email.isEmpty || password.isEmpty) {
       _setError('Semua form pendaftaran wajib diisi');
-      return;
+      return null;
     }
 
     _isLoading = true;
@@ -58,25 +50,10 @@ class RegisterViewModel extends ChangeNotifier {
       );
 
       await _authService.register(newUser, password);
-
-      debugPrint("Register Berhasil! Menunggu verifikasi OTP");
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pendaftaran berhasil! Silakan periksa email Anda.'),
-          ),
-        );
-        navigateToRegisterOtp(context, newUser);
-      }
+      return newUser;
     } catch (e) {
-      final errorMsg = e.toString().replaceAll('Exception: ', '');
-      _setError(errorMsg);
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
-        );
-      }
+      _setError(e.toString().replaceAll('Exception: ', ''));
+      return null;
     } finally {
       _isLoading = false;
       notifyListeners();
