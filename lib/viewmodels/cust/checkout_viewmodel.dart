@@ -1,9 +1,10 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../utils/image_picker_util.dart';
 import '../../services/cust/checkout_service.dart';
 import 'cart_viewmodel.dart';
-import 'package:geolocator/geolocator.dart';
+import 'dart:math' as math;
 import '../../services/payments/midtrans_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/voucher_model.dart';
@@ -36,142 +37,157 @@ class CheckoutViewModel extends ChangeNotifier {
   double discount = 0;
   double get totalPayment => subTotal + shippingCost - discount;
 
+  double _calculateDistanceInMeters(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
+    const p = 0.017453292519943295;
+    var a =
+        0.5 -
+        math.cos((lat2 - lat1) * p) / 2 +
+        math.cos(lat1 * p) *
+            math.cos(lat2 * p) *
+            (1 - math.cos((lon2 - lon1) * p)) /
+            2;
+    return 12742 * math.asin(math.sqrt(a)) * 1000;
+  }
+
   final Map<String, String> bankCodes = {
-    'BCA Virtual Account': 'bca',
-    'Mandiri Virtual Account': 'echannel',
-    'BNI Virtual Account': 'bni',
-    'BRI Virtual Account': 'bri',
+    'BCA': 'bca',
+    'BNI': 'bni',
+    'BRI': 'bri',
+    'Mandiri': 'echannel',
+    'Permata': 'permata',
   };
 
-  Future<void> initCheckoutData({VoucherModel? initialVoucher}) async {
+  void initCheckoutData({VoucherModel? initialVoucher}) async {
     isLoading = true;
     notifyListeners();
 
     try {
+      deliveryAddress = await _service.fetchDefaultAddress();
+      adminLocation = await _service.fetchAdminLocation();
+
       final cartVM = CartViewModel();
+      await cartVM.loadCartData();
+
       selectedCartItems = cartVM.cartItems
           .where((item) => cartVM.selectedItemIds.contains(item.id))
           .toList();
 
-      subTotal = 0;
-      for (var item in selectedCartItems) {
-        subTotal += (item.menuPrice * item.quantity);
-      }
+      selectedVoucher = initialVoucher;
 
-      adminLocation = await _service.fetchAdminLocation();
-      deliveryAddress = await _service.fetchDefaultAddress();
-
-      if (initialVoucher != null) selectedVoucher = initialVoucher;
-
-      _calculateShippingCost();
-      _recalculateDiscount();
+      _calculateSummary();
+      await _calculateDistance();
     } catch (e) {
-      errorMessage = e.toString();
+      errorMessage = "Gagal memuat data checkout: $e";
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  void updateSelectedAddress(dynamic newAddress) {
-    if (newAddress is AddressModel) {
-      deliveryAddress = newAddress;
-    } else if (newAddress is Map<String, dynamic>) {
-      deliveryAddress = AddressModel.fromJson(newAddress);
-    }
-    _calculateShippingCost();
-    _recalculateDiscount();
+  void selectVoucher(VoucherModel? voucher) {
+    selectedVoucher = voucher;
+    _calculateSummary();
     notifyListeners();
   }
 
   void setShippingMethod(String method) {
     shippingMethod = method;
-    _calculateShippingCost();
-    notifyListeners();
-  }
-
-  void _calculateShippingCost() {
-    if (shippingMethod != 'Delivery' || deliveryAddress == null) {
+    if (method == 'Pickup') {
       shippingCost = 0;
-      return;
+    } else {
+      _calculateDistance();
     }
-
-    try {
-      final double storeLatitude = adminLocation?['latitude'] ?? -8.1689;
-      final double storeLongitude = adminLocation?['longitude'] ?? 113.7020;
-
-      if (deliveryAddress!.latitude == 0.0 &&
-          deliveryAddress!.longitude == 0.0) {
-        shippingCost = 0;
-        return;
-      }
-
-      double distanceInMeters = Geolocator.distanceBetween(
-        storeLatitude,
-        storeLongitude,
-        deliveryAddress!.latitude,
-        deliveryAddress!.longitude,
-      );
-
-      double distanceInKm = distanceInMeters / 1000;
-      shippingCost = distanceInKm <= 5.0
-          ? 0
-          : (distanceInKm - 5.0).ceil() * 10000.0;
-    } catch (e) {
-      shippingCost = 0;
-    }
-  }
-
-  void selectVoucher(VoucherModel? voucher) {
-    selectedVoucher = voucher;
-    _recalculateDiscount();
+    _calculateSummary();
     notifyListeners();
-  }
-
-  void _recalculateDiscount() {
-    discount = selectedVoucher != null
-        ? (subTotal * selectedVoucher!.discountPercentage / 100)
-        : 0;
   }
 
   void setPaymentMethod(String method) {
     paymentMethod = method;
-    if (method != 'Virtual Account Bank') selectedBank = null;
+    if (method != 'Virtual Account Bank') {
+      selectedBank = null;
+    }
     notifyListeners();
   }
 
-  void setBank(String bankName) {
-    selectedBank = bankName;
+  void setBank(String? bank) {
+    selectedBank = bank;
+    notifyListeners();
+  }
+
+  void updateSelectedAddress(AddressModel? address) {
+    deliveryAddress = address;
+    if (shippingMethod == 'Delivery') {
+      _calculateDistance();
+    }
     notifyListeners();
   }
 
   Future<void> pickPaymentProof() async {
-    try {
-      final file = await _imagePickerUtil.pickFromGallery();
-      if (file != null) {
-        paymentProofFile = file;
-        errorMessage = null;
-        notifyListeners();
-      }
-    } catch (e) {
-      errorMessage = "Gagal mengambil gambar: $e";
+    final file = await _imagePickerUtil.pickFromGallery();
+    if (file != null) {
+      paymentProofFile = file;
       notifyListeners();
     }
   }
 
+  void _calculateSummary() {
+    subTotal = selectedCartItems.fold(
+      0,
+      (sum, item) => sum + (item.menuPrice * item.quantity),
+    );
+
+    if (selectedVoucher != null) {
+      discount = subTotal * (selectedVoucher!.discountPercentage / 100);
+    } else {
+      discount = 0;
+    }
+  }
+
+  Future<void> _calculateDistance() async {
+    if (deliveryAddress == null || adminLocation == null) {
+      shippingCost = 0;
+      _calculateSummary();
+      return;
+    }
+
+    try {
+      double distanceInMeters = _calculateDistanceInMeters(
+        deliveryAddress!.latitude,
+        deliveryAddress!.longitude,
+        adminLocation!['latitude']!,
+        adminLocation!['longitude']!,
+      );
+
+      shippingCost = (distanceInMeters / 1000) * 2000;
+      if (shippingCost < 10000) shippingCost = 10000;
+    } catch (e) {
+      debugPrint('Error calculating distance: $e');
+      shippingCost = 10000;
+    }
+
+    _calculateSummary();
+  }
+
   Future<Map<String, dynamic>?> placeOrder() async {
     if (shippingMethod == 'Delivery' && deliveryAddress == null) {
-      errorMessage = "Alamat pengiriman harus diisi!";
+      errorMessage = 'Silakan pilih alamat pengiriman';
       notifyListeners();
       return null;
     }
-    if (paymentMethod == 'QRIS Statis' && paymentProofFile == null) {
-      errorMessage = "Harap unggah bukti pembayaran QRIS!";
+
+    if (paymentMethod == 'Transfer Bank' && paymentProofFile == null) {
+      errorMessage = 'Silakan unggah bukti pembayaran';
       notifyListeners();
       return null;
     }
+
     if (paymentMethod == 'Virtual Account Bank' && selectedBank == null) {
-      errorMessage = "Harap pilih bank terlebih dahulu!";
+      errorMessage = 'Silakan pilih bank untuk Virtual Account';
       notifyListeners();
       return null;
     }
@@ -182,29 +198,29 @@ class CheckoutViewModel extends ChangeNotifier {
 
     try {
       String? proofUrl;
-      if (paymentMethod == 'QRIS Statis' && paymentProofFile != null) {
+      if (paymentProofFile != null) {
         proofUrl = await _service.uploadPaymentProof(paymentProofFile!);
       }
 
+      final userId = _service.getCurrentUserId();
+
       final orderData = {
-        'user_id': _service.getCurrentUserId(),
+        'user_id': userId,
         'total_price': totalPayment,
         'delivery_type': shippingMethod,
+        'status': paymentMethod == 'COD' ? 'Diproses' : 'Menunggu Pembayaran',
+        'notes': selectedCartItems.map((e) => e.notes).join(', '),
         'address_detail': shippingMethod == 'Delivery'
             ? deliveryAddress!.addressDetail
-            : null,
+            : 'Diambil di Toko',
+        'payment_method': paymentMethod,
+        'payment_proof_url': proofUrl,
         'latitude': shippingMethod == 'Delivery'
             ? deliveryAddress!.latitude
             : null,
         'longitude': shippingMethod == 'Delivery'
             ? deliveryAddress!.longitude
             : null,
-        'payment_method': paymentMethod,
-        'payment_proof_url': proofUrl,
-        'status': paymentMethod == 'COD' ? 'Diproses' : 'Menunggu Pembayaran',
-        'notes': paymentMethod == 'Virtual Account Bank'
-            ? 'Pesanan ($selectedBank)'
-            : 'Pesanan aplikasi',
         'voucher_id': selectedVoucher?.id,
         'discount_applied': discount,
       };
@@ -229,8 +245,9 @@ class CheckoutViewModel extends ChangeNotifier {
               '${transactionResponse['biller_code'] ?? ''} ${transactionResponse['bill_key'] ?? ''}';
         } else {
           final vaNumbers = transactionResponse['va_numbers'] as List<dynamic>?;
-          if (vaNumbers != null && vaNumbers.isNotEmpty)
+          if (vaNumbers != null && vaNumbers.isNotEmpty) {
             vaNumber = vaNumbers[0]['va_number'];
+          }
         }
 
         await Supabase.instance.client
@@ -246,7 +263,7 @@ class CheckoutViewModel extends ChangeNotifier {
 
       return {'orderId': orderId};
     } catch (e) {
-      errorMessage = e.toString().replaceAll('Exception: ', '');
+      errorMessage = e.toString();
       return null;
     } finally {
       isPlacingOrder = false;

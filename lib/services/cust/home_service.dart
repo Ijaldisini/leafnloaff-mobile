@@ -4,19 +4,35 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class HomeService {
   final _supabase = Supabase.instance.client;
 
-  Future<Map<String, dynamic>?> fetchActiveVoucher() async {
+  Future<List<Map<String, dynamic>>> fetchActiveVouchers() async {
     try {
       final voucherData = await _supabase
           .from('vouchers')
           .select()
           .eq('is_active', true)
-          .order('created_at', ascending: false)
-          .limit(1);
+          .order('created_at', ascending: false);
 
-      if (voucherData.isNotEmpty) {
-        return voucherData.first;
+      final now = DateTime.now();
+      List<Map<String, dynamic>> validVouchers = [];
+
+      for (var v in voucherData) {
+        final expiresAt = v['expires_at'] != null
+            ? DateTime.parse(v['expires_at']).toLocal()
+            : DateTime.parse(
+                v['created_at'],
+              ).toLocal().add(const Duration(days: 30));
+
+        if (now.isAfter(expiresAt)) {
+          _supabase
+              .from('vouchers')
+              .update({'is_active': false})
+              .eq('id', v['id']);
+        } else {
+          validVouchers.add(v);
+        }
       }
-      return null;
+
+      return validVouchers;
     } catch (e) {
       throw Exception('Gagal mengambil data voucher: $e');
     }

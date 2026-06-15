@@ -134,21 +134,29 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Order Management',
-                            style: TextStyle(
-                              color: const Color(0xFFFDFDFD),
-                              fontSize: 25,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w800,
-                              shadows: [
-                                Shadow(
-                                  offset: const Offset(2, 2),
-                                  blurRadius: 4,
-                                  color: Colors.black.withValues(alpha: 0.25),
-                                ),
-                              ],
+                          Expanded(
+                            child: Text(
+                              'Order Management',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: const Color(0xFFFDFDFD),
+                                fontSize:
+                                    24,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w800,
+                                shadows: [
+                                  Shadow(
+                                    offset: const Offset(2, 2),
+                                    blurRadius: 4,
+                                    color: Colors.black.withValues(alpha: 0.25),
+                                  ),
+                                ],
+                              ),
                             ),
+                          ),
+                          const SizedBox(
+                            width: 8,
                           ),
                           GestureDetector(
                             onTap: _handlePdfExport,

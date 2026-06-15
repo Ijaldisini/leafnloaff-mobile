@@ -21,6 +21,12 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
   }
 
   @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -39,30 +45,18 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
                 decoration: const BoxDecoration(color: Color(0xFFD699AB)),
               ),
             ),
-            Positioned(
-              left: -17,
-              top: 147,
-              child: Container(
-                width: screenWidth + 34,
-                height: 114,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0x003D5A4A), Color(0xFF3D5A4A)],
-                  ),
-                ),
-              ),
-            ),
-
             SafeArea(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Padding(
-                    padding: EdgeInsets.only(left: 25, right: 25, top: 15),
+                    padding: EdgeInsets.only(
+                      left: 25.0,
+                      top: 20.0,
+                      bottom: 20.0,
+                    ),
                     child: Text(
-                      'Voucher',
+                      'Voucher Management',
                       style: TextStyle(
                         color: Color(0xFFFDFDFD),
                         fontSize: 25,
@@ -72,123 +66,56 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
                           Shadow(
                             offset: Offset(2, 2),
                             blurRadius: 4,
-                            color: Color(0x3F000000),
+                            color: Colors.black26,
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 36,
-                            decoration: ShapeDecoration(
-                              color: const Color(0xFFFDFDFD),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(103.61),
-                              ),
-                              shadows: const [
-                                BoxShadow(
-                                  color: Color(0x3F000000),
-                                  blurRadius: 4,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: TextField(
-                              onChanged: _viewModel.searchVoucher,
-                              style: const TextStyle(
-                                color: Color(0xFF2D4839),
-                                fontSize: 13,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w500,
-                              ),
-                              decoration: const InputDecoration(
-                                hintText: 'Search vouchers...',
-                                hintStyle: TextStyle(
-                                  color: Color(0xFF73986F),
-                                  fontSize: 13,
-                                  fontFamily: 'Poppins',
-                                ),
-                                prefixIcon: Icon(
-                                  Icons.search,
-                                  color: Color(0xFF426E55),
-                                  size: 20,
-                                ),
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.symmetric(
-                                  vertical: 10,
-                                ),
-                              ),
-                            ),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      height: 45,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
                           ),
+                        ],
+                      ),
+                      child: TextField(
+                        onChanged: _viewModel.searchVoucher,
+                        style: const TextStyle(
+                          color: Color(0xFF2D4839),
+                          fontFamily: 'Poppins',
+                          fontSize: 14,
                         ),
-                        const SizedBox(width: 10),
-
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const AdminAddVoucherView(),
-                              ),
-                            ).then((_) {
-                              _viewModel.fetchVouchers();
-                            });
-                          },
-                          child: Container(
-                            width: 37,
-                            height: 37,
-                            decoration: const ShapeDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomRight,
-                                end: Alignment.topLeft,
-                                colors: [Color(0xFF73986F), Color(0xFFFDFDFD)],
-                              ),
-                              shape: OvalBorder(),
-                              shadows: [
-                                BoxShadow(
-                                  color: Color(0x3F000000),
-                                  blurRadius: 4,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Container(
-                                width: 22,
-                                height: 22,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: const Color(0xFF2D4839),
-                                    width: 2.64,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.add,
-                                  size: 16,
-                                  color: Color(0xFF2D4839),
-                                ),
-                              ),
-                            ),
+                        decoration: const InputDecoration(
+                          hintText: 'Search voucher...',
+                          hintStyle: TextStyle(
+                            color: Colors.grey,
+                            fontFamily: 'Poppins',
+                            fontSize: 14,
                           ),
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: Color(0xFF426E55),
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 12),
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 25),
-
+                  const SizedBox(height: 20),
                   Expanded(
                     child: ListenableBuilder(
                       listenable: _viewModel,
-                      builder: (context, child) {
+                      builder: (context, _) {
                         if (_viewModel.isLoading) {
                           return const Center(
                             child: CircularProgressIndicator(
@@ -197,24 +124,23 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
                           );
                         }
 
-                        if (_viewModel.errorMessage != null) {
+                        if (_viewModel.errorMessage != null &&
+                            _viewModel.filteredVouchers.isEmpty) {
                           return Center(
                             child: Text(
                               _viewModel.errorMessage!,
                               style: const TextStyle(
-                                color: Colors.redAccent,
+                                color: Colors.white,
                                 fontFamily: 'Poppins',
                               ),
                             ),
                           );
                         }
 
-                        final listData = _viewModel.filteredVouchers;
-
-                        if (listData.isEmpty) {
+                        if (_viewModel.filteredVouchers.isEmpty) {
                           return const Center(
                             child: Text(
-                              "Tidak ada voucher yang sesuai pencarian.",
+                              "Belum ada voucher.",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontFamily: 'Poppins',
@@ -223,16 +149,19 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
                           );
                         }
 
-                        return ListView.builder(
+                        return ListView.separated(
                           padding: const EdgeInsets.only(
-                            left: 25,
-                            right: 25,
-                            bottom: 120,
+                            left: 24,
+                            right: 24,
+                            bottom: 100,
                           ),
                           physics: const BouncingScrollPhysics(),
-                          itemCount: listData.length,
+                          itemCount: _viewModel.filteredVouchers.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 16),
                           itemBuilder: (context, index) {
-                            return _buildVoucherCard(listData[index]);
+                            final voucher = _viewModel.filteredVouchers[index];
+                            return _buildVoucherCard(voucher);
                           },
                         );
                       },
@@ -244,16 +173,26 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFCA748D),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminAddVoucherView(),
+            ),
+          );
+        },
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 
   Widget _buildVoucherCard(VoucherModel voucher) {
-    String imageUrl = voucher.imageUrl;
-    String title = voucher.title;
-    String discount = "${voucher.discountPercentage}% Off";
-    String expiry = _viewModel.formatExpiryDate(voucher.createdAt);
+    final expiry = _viewModel.formatExpiryDate(voucher.expiresAt);
+    final bool isExpired = !voucher.isActive;
 
-    return GestureDetector(
+    Widget cardContent = GestureDetector(
       onTap: () {
         Navigator.push(
           context,
@@ -263,65 +202,68 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
         );
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 25),
         width: double.infinity,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.bottomRight,
-            end: Alignment.topLeft,
-            colors: [Color(0xFFD699AB), Color(0xFFFDFDFD)],
-          ),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Color(0x3F000000),
-              blurRadius: 4,
-              offset: Offset(0, 4),
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: 121,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFCA748D)),
-                image: DecorationImage(
-                  image: NetworkImage(imageUrl),
-                  fit: BoxFit.cover,
-                  onError: (exception, stackTrace) =>
-                      const NetworkImage("https://placehold.co/334x121"),
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              child: Image.network(
+                voucher.imageUrl,
+                height: 120,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 120,
+                  color: Colors.grey.shade300,
+                  child: const Icon(
+                    Icons.broken_image,
+                    color: Colors.grey,
+                    size: 40,
+                  ),
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(15),
+              padding: const EdgeInsets.all(16),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          title,
+                          voucher.title,
                           style: const TextStyle(
-                            color: Color(0xFFCA748D),
+                            color: Color(0xFF2D4839),
                             fontSize: 16,
                             fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
+                        const SizedBox(height: 4),
                         Text(
-                          discount,
+                          'Discount ${voucher.discountPercentage}%',
                           style: const TextStyle(
-                            color: Color(0xFFCA748D),
-                            fontSize: 35,
+                            color: Color(0xFF51725F),
+                            fontSize: 14,
                             fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w700,
-                            height: 1.1,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -332,12 +274,12 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 3,
+                          horizontal: 10,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFDFDFD),
-                          borderRadius: BorderRadius.circular(50),
+                          color: const Color(0xFFEED5DB),
+                          borderRadius: BorderRadius.circular(100),
                           border: Border.all(
                             color: const Color(0xFF426E55),
                             width: 0.85,
@@ -355,18 +297,22 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Expires on $expiry',
-                        style: const TextStyle(
-                          color: Color(0xFFCA748D),
+                        isExpired ? 'Expired' : 'Expires on $expiry',
+                        style: TextStyle(
+                          color: isExpired
+                              ? Colors.grey.shade700
+                              : const Color(0xFFCA748D),
                           fontSize: 10,
                           fontFamily: 'Poppins',
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const Text(
+                      Text(
                         'Terms and conditions apply',
                         style: TextStyle(
-                          color: Color(0xFFCA748D),
+                          color: isExpired
+                              ? Colors.grey.shade700
+                              : const Color(0xFFCA748D),
                           fontSize: 10,
                           fontFamily: 'Poppins',
                           fontWeight: FontWeight.w600,
@@ -381,5 +327,38 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
         ),
       ),
     );
+
+    if (isExpired) {
+      return Opacity(
+        opacity: 0.65,
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.matrix(<double>[
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+          ]),
+          child: cardContent,
+        ),
+      );
+    }
+
+    return cardContent;
   }
 }

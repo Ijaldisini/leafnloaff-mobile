@@ -37,6 +37,21 @@ class CheckoutService {
     required List<CartItemModel> cartItems,
   }) async {
     try {
+      for (var item in cartItems) {
+        final menuResponse = await _supabase
+            .from('menus')
+            .select('stock')
+            .eq('id', item.menuId)
+            .single();
+
+        final currentStock = menuResponse['stock'] as int;
+
+        await _supabase
+            .from('menus')
+            .update({'stock': currentStock - item.quantity})
+            .eq('id', item.menuId);
+      }
+
       final orderResponse = await _supabase
           .from('orders')
           .insert(orderData)
@@ -70,8 +85,7 @@ class CheckoutService {
       if (userId != null) {
         await _supabase.from('notifications').insert({
           'user_id': userId,
-          'order_id':
-              orderId,
+          'order_id': orderId,
           'title': 'Pesanan Berhasil Dibuat',
           'message':
               'Pesanan Anda sedang menunggu konfirmasi/pembayaran dari toko.',
@@ -80,7 +94,7 @@ class CheckoutService {
 
       return orderId;
     } catch (e) {
-      throw Exception('Gagal menyimpan pesanan: $e');
+      throw Exception(e.toString().replaceAll('Exception: ', ''));
     }
   }
 

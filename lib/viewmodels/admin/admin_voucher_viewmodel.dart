@@ -24,7 +24,27 @@ class AdminVoucherViewModel extends ChangeNotifier {
   void _listenToVouchers() {
     _voucherSubscription = _voucherService.streamVouchers().listen(
       (data) {
-        _vouchers = data.map((json) => VoucherModel.fromJson(json)).toList();
+        final now = DateTime.now();
+        List<VoucherModel> parsedVouchers = [];
+
+        for (var json in data) {
+          final expiresAt = json['expires_at'] != null
+              ? DateTime.parse(json['expires_at']).toLocal()
+              : DateTime.parse(
+                  json['created_at'],
+                ).toLocal().add(const Duration(days: 30));
+
+          bool isActive = json['is_active'] ?? false;
+
+          if (isActive && now.isAfter(expiresAt)) {
+            _voucherService.deactivateVoucher(json['id']);
+            json['is_active'] = false;
+          }
+
+          parsedVouchers.add(VoucherModel.fromJson(json));
+        }
+
+        _vouchers = parsedVouchers;
         _errorMessage = null;
 
         if (_isLoading) {
@@ -54,15 +74,24 @@ class AdminVoucherViewModel extends ChangeNotifier {
   }
 
   List<VoucherModel> get filteredVouchers {
-    if (_searchQuery.isEmpty) return _vouchers;
+    List<VoucherModel> result = List.from(_vouchers);
 
-    return _vouchers.where((v) {
-      return v.title.toLowerCase().contains(_searchQuery);
-    }).toList();
+    if (_searchQuery.isNotEmpty) {
+      result = result.where((v) {
+        return v.title.toLowerCase().contains(_searchQuery);
+      }).toList();
+    }
+
+    result.sort((a, b) {
+      if (a.isActive && !b.isActive) return -1;
+      if (!a.isActive && b.isActive) return 1;
+      return b.createdAt.compareTo(a.createdAt);
+    });
+
+    return result;
   }
 
-  String formatExpiryDate(DateTime createdAt) {
-    final expiryDate = createdAt.add(const Duration(days: 30));
+  String formatExpiryDate(DateTime expiresAt) {
     const months = [
       'Jan',
       'Feb',
@@ -77,7 +106,7 @@ class AdminVoucherViewModel extends ChangeNotifier {
       'Nov',
       'Dec',
     ];
-    return '${months[expiryDate.month - 1]} ${expiryDate.day.toString().padLeft(2, '0')}, ${expiryDate.year}';
+    return '${months[expiresAt.month - 1]} ${expiresAt.day.toString().padLeft(2, '0')}, ${expiresAt.year}';
   }
 
   @override

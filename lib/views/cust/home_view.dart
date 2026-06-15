@@ -198,73 +198,84 @@ class _HomeViewState extends State<HomeView> {
                   ),
                 ),
 
-                Transform.translate(
-                  offset: const Offset(0, -30),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: GestureDetector(
-                      onTap: () {
-                        final cartVM = CartViewModel();
+                if (_viewModel.activeVouchers.isNotEmpty)
+                  Transform.translate(
+                    offset: const Offset(0, -30),
+                    child: SizedBox(
+                      height: 130,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        itemCount: _viewModel.activeVouchers.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(width: 16),
+                        itemBuilder: (context, index) {
+                          final voucher = _viewModel.activeVouchers[index];
+                          return GestureDetector(
+                            onTap: () {
+                              final cartVM = CartViewModel();
 
-                        if (cartVM.selectedItemIds.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Silahkan untuk memilih menu untuk dibeli terlebih dahulu',
-                                style: TextStyle(fontFamily: 'Poppins'),
-                              ),
-                              backgroundColor: Colors.orange,
-                            ),
-                          );
-                          return;
-                        }
+                              if (cartVM.selectedItemIds.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Silahkan untuk memilih menu untuk dibeli terlebih dahulu',
+                                      style: TextStyle(fontFamily: 'Poppins'),
+                                    ),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                                return;
+                              }
 
-                        if (_viewModel.activeVoucher != null) {
-                          final voucherData = VoucherModel.fromJson(
-                            _viewModel.activeVoucher!,
-                          );
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  CheckoutView(initialVoucher: voucherData),
-                            ),
-                          );
-                        }
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        height: 130,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF426E55),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.25),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image.network(
-                            _viewModel.activeVoucher?['image_url'] ??
-                                'https://picsum.photos/334/130',
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Center(
-                              child: Icon(
-                                Icons.broken_image,
-                                color: Colors.white54,
-                                size: 40,
+                              final voucherData = VoucherModel.fromJson(
+                                voucher,
+                              );
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      CheckoutView(initialVoucher: voucherData),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width:
+                                  MediaQuery.of(context).size.width -
+                                  48,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF426E55),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.25),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Image.network(
+                                  voucher['image_url'] ??
+                                      'https://picsum.photos/334/130',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Center(
+                                    child: Icon(
+                                      Icons.broken_image,
+                                      color: Colors.white54,
+                                      size: 40,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ),
                   ),
-                ),
 
                 Transform.translate(
                   offset: const Offset(0, -20),

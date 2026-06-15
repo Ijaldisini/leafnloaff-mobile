@@ -42,7 +42,7 @@ class CartService {
 
   Future<List<CartItemModel>> fetchCartItems() async {
     final user = _supabase.auth.currentUser;
-    if (user == null) throw Exception('User belum login.');
+    if (user == null) return [];
 
     final response = await _supabase
         .from('cart')
@@ -94,5 +94,23 @@ class CartService {
       return AddressModel.fromJson(response);
     }
     return null;
+  }
+
+  Future<void> checkStock(List<CartItemModel> selectedItems) async {
+    for (var item in selectedItems) {
+      final menuResponse = await _supabase
+          .from('menus')
+          .select('stock, name')
+          .eq('id', item.menuId)
+          .single();
+
+      final currentStock = menuResponse['stock'] as int;
+
+      if (currentStock < item.quantity) {
+        throw Exception(
+          'Stok tidak mencukupi untuk menu ${menuResponse['name']} (Sisa stok: $currentStock)',
+        );
+      }
+    }
   }
 }

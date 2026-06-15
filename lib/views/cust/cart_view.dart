@@ -129,8 +129,9 @@ class _CartViewState extends State<CartView> {
                       ListenableBuilder(
                         listenable: _viewModel,
                         builder: (context, _) {
-                          if (_viewModel.selectedItemIds.isEmpty)
+                          if (_viewModel.selectedItemIds.isEmpty) {
                             return const SizedBox.shrink();
+                          }
                           return IconButton(
                             icon: const Icon(
                               Icons.delete_outline,
@@ -270,19 +271,56 @@ class _CartViewState extends State<CartView> {
                               ),
                             ),
                           ),
+
                           GestureDetector(
                             onTap: _viewModel.selectedItemIds.isEmpty
                                 ? null
-                                : () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const CheckoutView(),
-                                      ),
-                                    ).then((_) {
-                                      _viewModel.loadCartData();
-                                    });
+                                : () async {
+                                    final errorMsg = await _viewModel
+                                        .validateStockBeforeCheckout();
+
+                                    if (errorMsg != null) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              errorMsg,
+                                              style: const TextStyle(
+                                                fontFamily: 'Poppins',
+                                              ),
+                                            ),
+                                            backgroundColor: const Color(
+                                              0xFFC23437,
+                                            ),
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            margin: const EdgeInsets.fromLTRB(
+                                              16,
+                                              0,
+                                              16,
+                                              16,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    } else {
+                                      if (context.mounted) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const CheckoutView(),
+                                          ),
+                                        ).then((_) {
+                                          _viewModel.loadCartData();
+                                        });
+                                      }
+                                    }
                                   },
                             child: Container(
                               padding: const EdgeInsets.symmetric(
@@ -411,7 +449,7 @@ class _CartViewState extends State<CartView> {
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 color: Color(0xFF2D4839),
-                                fontSize: 20,
+                                fontSize: 18,
                                 fontFamily: 'Poppins',
                                 fontWeight: FontWeight.w800,
                                 height: 1.1,
@@ -438,7 +476,7 @@ class _CartViewState extends State<CartView> {
                                 text: 'Notes: ',
                                 style: TextStyle(
                                   color: Color(0xFF51725F),
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -464,16 +502,22 @@ class _CartViewState extends State<CartView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            _formatCurrency(item.menuPrice),
-                            style: const TextStyle(
-                              color: Color(0xFF2D4839),
-                              fontSize: 20,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w800,
+                          Expanded(
+                            child: Text(
+                              _formatCurrency(item.menuPrice),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF2D4839),
+                                fontSize: 16,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
+                          const SizedBox(width: 4),
                           Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               GestureDetector(
                                 onTap: () => _viewModel.decrementQuantity(
@@ -481,25 +525,25 @@ class _CartViewState extends State<CartView> {
                                   item.quantity,
                                 ),
                                 child: Container(
-                                  width: 28,
-                                  height: 28,
+                                  width: 24,
+                                  height: 24,
                                   decoration: const BoxDecoration(
                                     color: Color(0xFF2D4839),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
                                     Icons.remove,
-                                    size: 18,
+                                    size: 16,
                                     color: Colors.white,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 8),
                               Text(
                                 item.quantity.toString(),
                                 style: const TextStyle(
                                   color: Color(0xFF2D4839),
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -511,8 +555,8 @@ class _CartViewState extends State<CartView> {
                                   item.quantity,
                                 ),
                                 child: Container(
-                                  width: 28,
-                                  height: 28,
+                                  width: 24,
+                                  height: 24,
                                   decoration: const BoxDecoration(
                                     color: Color(0xFF2D4839),
                                     shape: BoxShape.circle,

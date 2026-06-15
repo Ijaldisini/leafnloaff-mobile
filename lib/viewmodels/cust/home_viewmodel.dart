@@ -27,8 +27,8 @@ class HomeViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _menus = [];
   List<Map<String, dynamic>> get menus => _menus;
 
-  Map<String, dynamic>? _activeVoucher;
-  Map<String, dynamic>? get activeVoucher => _activeVoucher;
+  List<Map<String, dynamic>> _activeVouchers = [];
+  List<Map<String, dynamic>> get activeVouchers => _activeVouchers;
 
   final Set<String> _recentlyAddedItems = {};
   Set<String> get recentlyAddedItems => _recentlyAddedItems;
@@ -66,14 +66,15 @@ class HomeViewModel extends ChangeNotifier {
     try {
       final results = await Future.wait([
         _homeService.fetchDefaultAddress(),
-        _homeService.fetchActiveVoucher(),
+        _homeService
+            .fetchActiveVouchers(),
         _homeService.fetchActiveMenus(),
       ]);
 
       _currentLocation =
           (results[0] as String?) ??
           'Belum ada alamat, silakan tambah di profil.';
-      _activeVoucher = results[1] as Map<String, dynamic>?;
+      _activeVouchers = results[1] as List<Map<String, dynamic>>;
       _menus = results[2] as List<Map<String, dynamic>>;
     } catch (e) {
       debugPrint('Error fetching home data: $e');

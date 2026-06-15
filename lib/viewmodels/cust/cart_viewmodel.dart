@@ -16,22 +16,36 @@ class CartViewModel extends ChangeNotifier {
   Set<String> selectedItemIds = {};
   String currentLocation = 'Memuat lokasi...';
 
+  bool _isProcessing = false;
+  bool get isProcessing => _isProcessing;
+
   Future<void> loadCartData() async {
+    if (_isProcessing) return;
+
     isLoading = true;
     errorMessage = null;
+    _isProcessing = true;
+
     notifyListeners();
 
     try {
-      final address = await _service.fetchDefaultAddress();
+      final results = await Future.wait([
+        _service.fetchDefaultAddress(),
+        _service.fetchCartItems(),
+      ]);
+
+      final address = results[0];
       currentLocation =
-          address?.addressDetail ?? 'Belum ada alamat pengiriman.';
-      cartItems = await _service.fetchCartItems();
+          (address as dynamic)?.addressDetail ?? 'Belum ada alamat pengiriman.';
+
+      cartItems = results[1] as List<CartItemModel>;
 
       selectedItemIds = cartItems.map((e) => e.id).toSet();
     } catch (e) {
       errorMessage = 'Gagal memuat keranjang: $e';
     } finally {
       isLoading = false;
+      _isProcessing = false;
       notifyListeners();
     }
   }
@@ -46,22 +60,32 @@ class CartViewModel extends ChangeNotifier {
   }
 
   Future<void> incrementQuantity(String cartId, int currentQty) async {
-    await _service.updateQuantity(cartId, currentQty + 1);
-    await loadCartData();
+    _service
+        .updateQuantity(cartId, currentQty + 1)
+        .then((_) {
+          loadCartData();
+        })
+        .catchError((e) {
+          debugPrint("Gagal tambah quantity: $e");
+        });
   }
 
   Future<void> decrementQuantity(String cartId, int currentQty) async {
     if (currentQty <= 1) {
-      await _service.deleteCartItem(cartId);
-      selectedItemIds.remove(cartId);
+      _service.deleteCartItem(cartId).then((_) {
+        selectedItemIds.remove(cartId);
+        loadCartData();
+      });
     } else {
-      await _service.updateQuantity(cartId, currentQty - 1);
+      _service.updateQuantity(cartId, currentQty - 1).then((_) {
+        loadCartData();
+      });
     }
-    await loadCartData();
   }
 
   Future<void> deleteSelected() async {
     if (selectedItemIds.isEmpty) return;
+
     isLoading = true;
     notifyListeners();
 
@@ -85,13 +109,33 @@ class CartViewModel extends ChangeNotifier {
     }
   }
 
-  double get totalPayment {
-    double total = 0;
-    for (var item in cartItems) {
-      if (selectedItemIds.contains(item.id)) {
-        total += (item.menuPrice * item.quantity);
-      }
+  Future<String?> validateStockBeforeCheckout() async {
+    if (_isProcessing) return "Sedang memproses, mohon tunggu sebentar.";
+
+    _isProcessing = true;
+
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    try {
+      final itemsToCheck = cartItems
+          .where((item) => selectedItemIds.contains(item.id))
+          .toList();
+
+      await _service.checkStock(itemsToCheck);
+      return null;
+    } catch (e) {
+      return e.toString().replaceAll(
+        'Exception: ',
+        '',
+      );
+    } finally {
+      _isProcessing = false;
     }
-    return total;
+  }
+
+  double get totalPayment {
+    return cartItems
+        .where((item) => selectedItemIds.contains(item.id))
+        .fold(0, (sum, item) => sum + (item.menuPrice * item.quantity));
   }
 }

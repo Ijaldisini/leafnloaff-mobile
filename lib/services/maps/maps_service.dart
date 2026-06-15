@@ -20,10 +20,22 @@ class MapsService {
     }
 
     if (permission == LocationPermission.deniedForever) {
-      throw Exception('Izin lokasi ditolak secara permanen, kami tidak dapat meminta izin.');
+      throw Exception(
+        'Izin lokasi ditolak secara permanen, kami tidak dapat meminta izin.',
+      );
     }
 
-    return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    try {
+      return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy
+            .medium,
+        timeLimit: const Duration(
+          seconds: 10,
+        ),
+      );
+    } catch (e) {
+      throw Exception('Gagal mendapatkan lokasi (Sinyal lemah atau Timeout).');
+    }
   }
 
   Future<String> getAddressFromLatLng(double lat, double lng) async {
@@ -35,7 +47,7 @@ class MapsService {
       }
       return 'Alamat tidak ditemukan';
     } catch (e) {
-      return 'Gagal mendapatkan alamat: $e';
+      return 'Gagal mengambil alamat: $e';
     }
   }
 }

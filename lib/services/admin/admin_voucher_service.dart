@@ -96,4 +96,15 @@ class VoucherService {
       throw Exception("Gagal memperbarui voucher");
     }
   }
+
+  Future<void> deactivateVoucher(String id) async {
+    try {
+      await _supabase
+          .from('vouchers')
+          .update({'is_active': false})
+          .eq('id', id);
+    } catch (e) {
+      debugPrint("Error Deactivating Voucher: $e");
+    }
+  }
 }
