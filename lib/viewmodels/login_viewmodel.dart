@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
-import '../views/register_view.dart';
-import '../views/admin/admin_main_view.dart';
-import 'package:flutter/scheduler.dart';
-import '../views/cust/main_view.dart';
 
 class LoginViewModel extends ChangeNotifier {
   final TextEditingController emailController = TextEditingController();
@@ -22,31 +18,20 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _clearError() {
+  void clearError() {
     _errorMessage = null;
     notifyListeners();
   }
 
-  void navigateToRegister(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation1, animation2) => const RegisterView(),
-        transitionDuration: Duration.zero,
-        reverseTransitionDuration: Duration.zero,
-      ),
-    );
-  }
-
-  Future<void> login(BuildContext context) async {
+  Future<UserModel?> login() async {
     final email = emailController.text.trim();
     final password = passwordController.text;
 
-    _clearError();
+    clearError();
 
     if (email.isEmpty || password.isEmpty) {
       _setError('Email dan Password tidak boleh kosong');
-      return;
+      return null;
     }
 
     _isLoading = true;
@@ -54,43 +39,10 @@ class LoginViewModel extends ChangeNotifier {
 
     try {
       final UserModel loggedInUser = await _authService.login(email, password);
-
-      debugPrint("Login Berhasil! Role: ${loggedInUser.role}");
-
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Selamat datang, ${loggedInUser.fullName}!')),
-        );
-
-        if (loggedInUser.role == 'admin') {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AdminMainView(user: loggedInUser),
-            ),
-            (route) => false,
-          );
-        } else {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CustomerMainView(user: loggedInUser),
-            ),
-            (route) => false,
-          );
-        }
-      });
+      return loggedInUser;
     } catch (e) {
-      final errorMsg = e.toString().replaceAll('Exception: ', '');
-      _setError(errorMsg);
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
-        );
-      }
+      _setError(e.toString().replaceAll('Exception: ', ''));
+      return null;
     } finally {
       _isLoading = false;
       notifyListeners();

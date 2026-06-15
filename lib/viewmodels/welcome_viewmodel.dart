@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:leafnloaff/views/login_view.dart';
 
 class WelcomeViewModel extends ChangeNotifier {
   int _currentSlideIndex = 0;
@@ -12,15 +11,13 @@ class WelcomeViewModel extends ChangeNotifier {
     }
   }
 
-  void onNextPressed(BuildContext context) {
+  bool onNextPressed() {
     if (_currentSlideIndex < 2) {
       _currentSlideIndex++;
       notifyListeners();
+      return true;
     } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginView()),
-      );
+      return false;
     }
   }
 
