@@ -137,7 +137,6 @@ class _LoginViewState extends State<LoginView>
     );
   }
 
-  // ── Tab Bar ──
   Widget _buildTabBar(BuildContext context) {
     return Container(
       width: 240,
@@ -150,7 +149,6 @@ class _LoginViewState extends State<LoginView>
       ),
       child: Row(
         children: [
-          // Login — aktif
           Expanded(
             child: Container(
               margin: const EdgeInsets.all(3),
@@ -170,7 +168,6 @@ class _LoginViewState extends State<LoginView>
               ),
             ),
           ),
-          // Register — tidak aktif
           Expanded(
             child: GestureDetector(
               onTap: () => _viewModel.navigateToRegister(context),
@@ -218,7 +215,6 @@ class _LoginViewState extends State<LoginView>
             height: 1.05,
           ),
         ),
-        // Teks utama dengan gradient
         ShaderMask(
           shaderCallback: (bounds) => const LinearGradient(
             colors: [Color(0xFFF5F5A0), Color(0xFFEED5DB)],
@@ -236,7 +232,6 @@ class _LoginViewState extends State<LoginView>
             ),
           ),
         ),
-        // 👑 Crown di huruf pertama
         Positioned(
           left: 2,
           top: -8,
@@ -252,7 +247,6 @@ class _LoginViewState extends State<LoginView>
     );
   }
 
-  // ── Label field ──────────────────────────────────
   Widget _fieldLabel(String label) {
     return Text(
       label,
@@ -272,7 +266,6 @@ class _LoginViewState extends State<LoginView>
     );
   }
 
-  // ── Input field ──────────────────────────────────
   Widget _buildInputField({
     required TextEditingController controller,
     required String hint,
@@ -334,7 +327,6 @@ class _LoginViewState extends State<LoginView>
     );
   }
 
-  // ── Error box ────────────────────────────────────
   Widget _buildErrorBox(String message) {
     return Container(
       width: double.infinity,
@@ -365,7 +357,6 @@ class _LoginViewState extends State<LoginView>
     );
   }
 
-  // ── Tombol Login ─────────────────────────────────
   Widget _buildLoginButton() {
     return GestureDetector(
       onTap: _viewModel.isLoading
