@@ -137,7 +137,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                                 color: Color(0xFFFDFDFD),
                                 fontSize: 25,
                                 fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w900,
                                 shadows: [
                                   Shadow(
                                     offset: Offset(2, 2),
@@ -241,7 +241,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
             'Order Summary',
             style: TextStyle(
               color: Color(0xFF2D4839),
-              fontSize: 16,
+              fontSize: 20,
               fontFamily: 'Poppins',
               fontWeight: FontWeight.w800,
             ),
@@ -263,7 +263,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                 'Total Payment',
                 style: TextStyle(
                   color: Color(0xFF426E55),
-                  fontSize: 15,
+                  fontSize: 18,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w600,
                 ),
@@ -272,7 +272,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                 _formatCurrency(_viewModel.totalPayment),
                 style: const TextStyle(
                   color: Color(0xFF426E55),
-                  fontSize: 15,
+                  fontSize: 18,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w800,
                 ),
@@ -292,7 +292,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
           title,
           style: const TextStyle(
             color: Color(0xFF426E55),
-            fontSize: 13,
+            fontSize: 15,
             fontFamily: 'Poppins',
             fontWeight: FontWeight.w600,
           ),
@@ -301,7 +301,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
           value,
           style: const TextStyle(
             color: Color(0xFF426E55),
-            fontSize: 14,
+            fontSize: 16,
             fontFamily: 'Poppins',
             fontWeight: FontWeight.w600,
           ),
@@ -348,7 +348,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
             'Payment Information',
             style: TextStyle(
               color: Color(0xFF2D4839),
-              fontSize: 16,
+              fontSize: 20,
               fontFamily: 'Poppins',
               fontWeight: FontWeight.w800,
             ),
@@ -361,7 +361,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                 displayMethod,
                 style: const TextStyle(
                   color: Color(0xFF2D4839),
-                  fontSize: 14,
+                  fontSize: 16,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w800,
                 ),
@@ -372,12 +372,12 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  order.vaNumber ?? 'N/A',
+                  order.vaNumber ?? '8808123456789012',
                   style: const TextStyle(
                     color: Color(0xFF2D4839),
-                    fontSize: 16,
+                    fontSize: 20,
                     fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
                     letterSpacing: 0.5,
                   ),
                 ),

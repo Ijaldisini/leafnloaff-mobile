@@ -205,9 +205,16 @@ class _AddressViewState extends State<AddressView> {
                       'New Address',
                       style: TextStyle(
                         color: Color(0xFFFBFBFB),
-                        fontSize: 14,
+                        fontSize: 18.22,
                         fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w900,
+                        shadows: [
+                          Shadow(
+                            offset: Offset(2, 2),
+                            blurRadius: 2,
+                            color: const Color(0x40000000), 
+                          )
+                        ],
                       ),
                     ),
                   ),

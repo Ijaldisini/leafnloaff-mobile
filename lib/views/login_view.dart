@@ -137,7 +137,7 @@ class _LoginViewState extends State<LoginView>
     );
   }
 
-  // ── Tab Bar ──────────────────────────────────────
+  // ── Tab Bar ──
   Widget _buildTabBar(BuildContext context) {
     return Container(
       width: 240,
