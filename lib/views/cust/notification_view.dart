@@ -16,9 +16,17 @@ class _NotificationViewState extends State<NotificationView> {
   @override
   void initState() {
     super.initState();
+    _viewModel.initListener();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.loadNotifications();
     });
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
   }
 
   @override

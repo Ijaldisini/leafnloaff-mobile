@@ -1,4 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../models/cart_model.dart';
+import '../../models/address_model.dart';
 
 class CartService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -38,20 +40,17 @@ class CartService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchCartItems() async {
+  Future<List<CartItemModel>> fetchCartItems() async {
     final user = _supabase.auth.currentUser;
     if (user == null) throw Exception('User belum login.');
 
     final response = await _supabase
         .from('cart')
-        .select('''
-          *,
-          menus (*)
-        ''')
+        .select('*, menus (*)')
         .eq('user_id', user.id)
         .order('created_at', ascending: true);
 
-    return List<Map<String, dynamic>>.from(response);
+    return (response as List).map((e) => CartItemModel.fromJson(e)).toList();
   }
 
   Future<void> updateQuantity(String cartId, int newQuantity) async {
@@ -78,20 +77,21 @@ class CartService {
     await _supabase.from('cart').update({'notes': notes}).eq('id', cartId);
   }
 
-  Future<String?> fetchDefaultAddress() async {
+  Future<AddressModel?> fetchDefaultAddress() async {
     final user = _supabase.auth.currentUser;
     if (user == null) return null;
 
-    final addressData = await _supabase
+    final response = await _supabase
         .from('user_addresses')
-        .select('address_detail')
+        .select()
         .eq('user_id', user.id)
         .order('is_default', ascending: false)
         .order('created_at', ascending: false)
-        .limit(1);
+        .limit(1)
+        .maybeSingle();
 
-    if (addressData.isNotEmpty) {
-      return addressData.first['address_detail'] as String;
+    if (response != null) {
+      return AddressModel.fromJson(response);
     }
     return null;
   }

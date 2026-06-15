@@ -4,10 +4,11 @@ import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:video_player/video_player.dart';
 import '../../viewmodels/cust/review_order_viewmodel.dart';
 import '../../models/review_model.dart';
+import '../../models/order_model.dart';
 
 class SeeReviewView extends StatefulWidget {
   final String orderId;
-  final List<dynamic> orderItems;
+  final List<OrderItemModel> orderItems;
 
   const SeeReviewView({
     super.key,
@@ -128,9 +129,9 @@ class _SeeReviewViewState extends State<SeeReviewView> {
                         physics: const BouncingScrollPhysics(),
                         itemCount: widget.orderItems.length,
                         itemBuilder: (context, index) {
-                          final item = widget.orderItems[index];
-                          final menu = item['menus'] ?? {};
-                          final menuId = item['menu_id'].toString();
+                          final item = widget
+                              .orderItems[index];
+                          final menuId = item.menuId;
 
                           final reviewDataList = _viewModel.orderReviews
                               .where((r) => r.menuId == menuId)
@@ -141,7 +142,7 @@ class _SeeReviewViewState extends State<SeeReviewView> {
                               ? reviewDataList.first
                               : null;
 
-                          return _buildReviewedCard(menu, item, reviewData);
+                          return _buildReviewedCard(item, reviewData);
                         },
                       );
                     },
@@ -155,11 +156,7 @@ class _SeeReviewViewState extends State<SeeReviewView> {
     );
   }
 
-  Widget _buildReviewedCard(
-    Map<String, dynamic> menu,
-    dynamic item,
-    ReviewModel? reviewData,
-  ) {
+  Widget _buildReviewedCard(OrderItemModel item, ReviewModel? reviewData) {
     int rating = reviewData?.rating ?? 0;
     String comment = reviewData?.comment ?? 'Belum ada ulasan';
     String? imageUrl = reviewData?.imageUrl;
@@ -185,7 +182,7 @@ class _SeeReviewViewState extends State<SeeReviewView> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.network(
-                    menu['image_url'] ?? 'https://via.placeholder.com/80',
+                    item.menuImageUrl ?? 'https://via.placeholder.com/80',
                     width: 70,
                     height: 70,
                     fit: BoxFit.cover,
@@ -202,7 +199,7 @@ class _SeeReviewViewState extends State<SeeReviewView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        menu['name'] ?? 'Item\'s Name',
+                        item.menuName,
                         style: const TextStyle(
                           color: Color(0xFF2D4839),
                           fontSize: 16,
@@ -211,7 +208,7 @@ class _SeeReviewViewState extends State<SeeReviewView> {
                         ),
                       ),
                       Text(
-                        'Notes: ${item['notes'] ?? '-'} \nQty: ${item['quantity'] ?? 1}',
+                        'Notes: ${item.notes ?? '-'} \nQty: ${item.quantity}',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 10,
@@ -220,7 +217,7 @@ class _SeeReviewViewState extends State<SeeReviewView> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Rp. ${item['price_at_time'] ?? menu['price'] ?? 0}',
+                        'Rp. ${item.priceAtTime}',
                         style: const TextStyle(
                           color: Color(0xFF2D4839),
                           fontSize: 14,

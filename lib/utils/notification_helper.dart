@@ -43,8 +43,7 @@ class NotificationHelper {
                 builder: (_) => AdminOrderDetailView(orderId: orderId),
               ),
             );
-          }
-          else if (payload.startsWith('admin_review_')) {
+          } else if (payload.startsWith('admin_review_')) {
             final orderId = payload.replaceAll('admin_review_', '');
             navigatorKey.currentState?.push(
               MaterialPageRoute(
@@ -71,6 +70,7 @@ class NotificationHelper {
           priority: Priority.high,
           playSound: true,
           enableVibration: true,
+          icon: '@mipmap/ic_launcher',
         );
 
     const NotificationDetails platformDetails = NotificationDetails(

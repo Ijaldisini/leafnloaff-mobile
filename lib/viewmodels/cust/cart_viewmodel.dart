@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../services/cust/cart_service.dart';
+import '../../models/cart_model.dart';
 
 class CartViewModel extends ChangeNotifier {
   static final CartViewModel _instance = CartViewModel._internal();
   factory CartViewModel() => _instance;
   CartViewModel._internal();
-  
+
   final CartService _service = CartService();
 
   bool isLoading = true;
   String? errorMessage;
 
-  List<Map<String, dynamic>> cartItems = [];
+  List<CartItemModel> cartItems = [];
   Set<String> selectedItemIds = {};
   String currentLocation = 'Memuat lokasi...';
 
@@ -22,10 +23,11 @@ class CartViewModel extends ChangeNotifier {
 
     try {
       final address = await _service.fetchDefaultAddress();
-      currentLocation = address ?? 'Belum ada alamat pengiriman.';
+      currentLocation =
+          address?.addressDetail ?? 'Belum ada alamat pengiriman.';
       cartItems = await _service.fetchCartItems();
 
-      selectedItemIds = cartItems.map((e) => e['id'].toString()).toSet();
+      selectedItemIds = cartItems.map((e) => e.id).toSet();
     } catch (e) {
       errorMessage = 'Gagal memuat keranjang: $e';
     } finally {
@@ -86,11 +88,8 @@ class CartViewModel extends ChangeNotifier {
   double get totalPayment {
     double total = 0;
     for (var item in cartItems) {
-      if (selectedItemIds.contains(item['id'].toString())) {
-        final menu = item['menus'] as Map<String, dynamic>;
-        final price = (menu['price'] as num).toDouble();
-        final qty = (item['quantity'] as num).toInt();
-        total += (price * qty);
+      if (selectedItemIds.contains(item.id)) {
+        total += (item.menuPrice * item.quantity);
       }
     }
     return total;

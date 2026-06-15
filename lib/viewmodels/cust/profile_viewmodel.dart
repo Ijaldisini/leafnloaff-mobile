@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import '../../services/cust/profile_service.dart';
 
 class ProfileViewModel extends ChangeNotifier {
-  static final ProfileViewModel _instance = ProfileViewModel._internal();
-  factory ProfileViewModel() => _instance;
-  ProfileViewModel._internal();
+  final ProfileService _service;
 
-  final ProfileService _service = ProfileService();
+  ProfileViewModel({required ProfileService service}) : _service = service;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -17,14 +15,13 @@ class ProfileViewModel extends ChangeNotifier {
 
     try {
       await _service.logout();
-      _isLoading = false;
-      notifyListeners();
       return true;
     } catch (e) {
       debugPrint("Error logout: $e");
+      return false;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      return false;
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/user_model.dart';
 import '../../viewmodels/cust/profile_viewmodel.dart';
+import '../../services/cust/profile_service.dart';
 import '../login_view.dart';
 import 'edit_profile_view.dart';
 import 'history_view.dart';
@@ -16,14 +17,15 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  final ProfileViewModel _viewModel = ProfileViewModel();
-
+  late final ProfileViewModel _viewModel;
   late UserModel _currentUser;
 
   @override
   void initState() {
     super.initState();
     _currentUser = widget.user;
+
+    _viewModel = ProfileViewModel(service: ProfileService());
   }
 
   @override
@@ -74,8 +76,7 @@ class _ProfileViewState extends State<ProfileView> {
                                   image: NetworkImage(
                                     _currentUser.profileImageUrl!,
                                   ),
-                                  fit: BoxFit
-                                      .cover,
+                                  fit: BoxFit.cover,
                                 )
                               : null,
                         ),
@@ -371,11 +372,19 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> _handleLogout() async {
     final success = await _viewModel.logout();
+
     if (success && mounted) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const LoginView()),
         (route) => false,
+      );
+    } else if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal logout. Silakan coba lagi.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }

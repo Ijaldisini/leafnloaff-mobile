@@ -1,13 +1,18 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/user_model.dart';
 import '../../services/cust/edit_profile_service.dart';
 import '../../utils/image_picker_util.dart';
 
 class EditProfileViewModel extends ChangeNotifier {
-  final EditProfileService _service = EditProfileService();
-  final ImagePickerUtil _imagePickerUtil = ImagePickerUtil();
+  final EditProfileService _service;
+  final ImagePickerUtil _imagePickerUtil;
+
+  EditProfileViewModel({
+    required EditProfileService service,
+    ImagePickerUtil? imagePickerUtil,
+  }) : _service = service,
+       _imagePickerUtil = imagePickerUtil ?? ImagePickerUtil();
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
@@ -43,14 +48,14 @@ class EditProfileViewModel extends ChangeNotifier {
     }
   }
 
-  Future<UserModel?> saveChanges(
+  Future<UserModel?> saveProfile(
     BuildContext context,
     UserModel currentUser,
   ) async {
     if (nameController.text.trim().isEmpty ||
         usernameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nama dan Username tidak boleh kosong')),
+        const SnackBar(content: Text('Nama dan Username tidak boleh kosong!')),
       );
       return null;
     }
@@ -62,28 +67,17 @@ class EditProfileViewModel extends ChangeNotifier {
       String? imageUrl = currentUser.profileImageUrl;
 
       if (_selectedImage != null) {
-        final fileExt = _selectedImage!.path.split('.').last;
         final fileName =
-            '${currentUser.id}_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-
-        await Supabase.instance.client.storage
-            .from('profile_images')
-            .upload(fileName, _selectedImage!);
-
-        imageUrl = Supabase.instance.client.storage
-            .from('profile_images')
-            .getPublicUrl(fileName);
+            '${currentUser.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        imageUrl = await _service.uploadProfileImage(_selectedImage!, fileName);
       }
 
-      await Supabase.instance.client
-          .from('profiles')
-          .update({
-            'full_name': nameController.text.trim(),
-            'username': usernameController.text.trim(),
-            'phone_number': phoneController.text.trim(),
-            'profile_image_url': imageUrl,
-          })
-          .eq('id', currentUser.id);
+      await _service.updateProfile(
+        fullName: nameController.text.trim(),
+        username: usernameController.text.trim(),
+        phoneNumber: phoneController.text.trim(),
+        profileImageUrl: imageUrl,
+      );
 
       if (newPasswordController.text.isNotEmpty) {
         await _service.updatePassword(newPasswordController.text);
@@ -101,10 +95,12 @@ class EditProfileViewModel extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       notifyListeners();
-      if (!context.mounted) return null;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
-      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
       return null;
     }
   }

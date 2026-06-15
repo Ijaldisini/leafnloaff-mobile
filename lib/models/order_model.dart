@@ -13,25 +13,34 @@ class OrderProfileModel {
 }
 
 class OrderItemModel {
+  final String menuId;
   final int quantity;
   final String menuName;
   final double menuPrice;
+  final double priceAtTime;
   final String? menuImageUrl;
+  final String? notes;
 
   OrderItemModel({
+    required this.menuId,
     required this.quantity,
     required this.menuName,
     required this.menuPrice,
+    required this.priceAtTime,
     this.menuImageUrl,
+    this.notes,
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     final menu = json['menus'] ?? {};
     return OrderItemModel(
+      menuId: json['menu_id']?.toString() ?? menu['id']?.toString() ?? '',
       quantity: json['quantity'] ?? 1,
       menuName: menu['name'] ?? 'Unknown Menu',
       menuPrice: (menu['price'] ?? 0).toDouble(),
+      priceAtTime: (json['price_at_time'] ?? menu['price'] ?? 0).toDouble(),
       menuImageUrl: menu['image_url'],
+      notes: json['notes'],
     );
   }
 }
@@ -45,6 +54,8 @@ class OrderDetailModel {
   final String paymentMethod;
   final String addressDetail;
   final String? vaNumber;
+  final DateTime? vaExpiryTime;
+  final double discountApplied;
   final double? latitude;
   final double? longitude;
   final String? paymentProofUrl;
@@ -60,6 +71,8 @@ class OrderDetailModel {
     required this.paymentMethod,
     required this.addressDetail,
     this.vaNumber,
+    this.vaExpiryTime,
+    required this.discountApplied,
     this.latitude,
     this.longitude,
     this.paymentProofUrl,
@@ -70,13 +83,17 @@ class OrderDetailModel {
   factory OrderDetailModel.fromJson(Map<String, dynamic> json) {
     return OrderDetailModel(
       id: json['id'].toString(),
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: DateTime.parse(json['created_at']).toLocal(),
       status: json['status'] ?? 'Preparing',
       totalPrice: (json['total_price'] ?? 0).toDouble(),
       notes: json['notes'] ?? '',
       paymentMethod: json['payment_method'] ?? '',
       addressDetail: json['address_detail'] ?? '',
       vaNumber: json['va_number']?.toString(),
+      vaExpiryTime: json['va_expiry_time'] != null
+          ? DateTime.parse(json['va_expiry_time']).toLocal()
+          : null,
+      discountApplied: (json['discount_applied'] ?? 0).toDouble(),
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       paymentProofUrl: json['payment_proof_url']?.toString(),
@@ -174,6 +191,49 @@ class OrderReviewModel {
       rating: json['rating'] ?? 0,
       reviewText: json['comment'] ?? 'Belum ada ulasan',
       reviewImages: images,
+    );
+  }
+}
+
+class OrderHistoryModel {
+  final String id;
+  final DateTime createdAt;
+  final String status;
+  final double totalPrice;
+  final String productNames;
+  final int totalQuantity;
+
+  OrderHistoryModel({
+    required this.id,
+    required this.createdAt,
+    required this.status,
+    required this.totalPrice,
+    required this.productNames,
+    required this.totalQuantity,
+  });
+
+  factory OrderHistoryModel.fromJson(Map<String, dynamic> json) {
+    final orderItems = json['order_items'] as List<dynamic>? ?? [];
+    int qty = 0;
+    List<String> names = [];
+
+    for (var item in orderItems) {
+      qty += (item['quantity'] as num?)?.toInt() ?? 0;
+      final menu = item['menus'] as Map<String, dynamic>?;
+      if (menu != null && menu['name'] != null) {
+        names.add(menu['name'].toString());
+      }
+    }
+
+    return OrderHistoryModel(
+      id: json['id']?.toString() ?? '',
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at']).toLocal()
+          : DateTime.now(),
+      status: json['status']?.toString() ?? 'Menunggu Pembayaran',
+      totalPrice: (json['total_price'] as num?)?.toDouble() ?? 0.0,
+      productNames: names.isEmpty ? '-' : names.join(', '),
+      totalQuantity: qty,
     );
   }
 }

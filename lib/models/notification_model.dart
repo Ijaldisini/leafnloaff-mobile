@@ -18,12 +18,15 @@ class NotificationModel {
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
       id: json['id'].toString(),
-      title: json['title'] ?? 'No Title',
-      message: json['message'] ?? '',
-      isRead: json['is_read'] ?? false,
-      createdAt: DateTime.parse(json['created_at']).toLocal(),
-      orderId: json['order_id']
-          ?.toString(),
+      title: json['title']?.toString() ?? 'No Title',
+      message: json['message']?.toString() ?? '',
+      isRead:
+          json['is_read'] == true ||
+          json['is_read'] == 'true',
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'].toString()).toLocal()
+          : DateTime.now(),
+      orderId: json['order_id']?.toString().trim(),
     );
   }
 }

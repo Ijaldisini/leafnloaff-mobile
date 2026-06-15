@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import '../../viewmodels/cust/review_order_viewmodel.dart';
 import '../../models/review_model.dart';
+import '../../models/order_model.dart';
 import '../../utils/image_picker_util.dart';
 
 class WriteReviewView extends StatefulWidget {
   final String orderId;
-  final List<dynamic> orderItems;
+  final List<OrderItemModel> orderItems;
 
   const WriteReviewView({
     super.key,
@@ -55,7 +56,7 @@ class _WriteReviewViewState extends State<WriteReviewView> {
     List<ReviewSubmitModel> reviewsData = [];
     for (int i = 0; i < widget.orderItems.length; i++) {
       final item = widget.orderItems[i];
-      final menuId = item['menu_id'].toString();
+      final menuId = item.menuId;
 
       reviewsData.add(
         ReviewSubmitModel(
@@ -165,10 +166,9 @@ class _WriteReviewViewState extends State<WriteReviewView> {
                         physics: const BouncingScrollPhysics(),
                         itemCount: widget.orderItems.length,
                         itemBuilder: (context, index) {
-                          final item = widget.orderItems[index];
-                          final menu = item['menus'] ?? {};
-
-                          return _buildReviewCard(index, menu, item);
+                          final item = widget
+                              .orderItems[index];
+                          return _buildReviewCard(index, item);
                         },
                       ),
                     ),
@@ -212,7 +212,7 @@ class _WriteReviewViewState extends State<WriteReviewView> {
     );
   }
 
-  Widget _buildReviewCard(int index, Map<String, dynamic> menu, dynamic item) {
+  Widget _buildReviewCard(int index, OrderItemModel item) {
     final mediaList = selectedMedia[index] ?? [];
 
     return Container(
@@ -236,7 +236,7 @@ class _WriteReviewViewState extends State<WriteReviewView> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.network(
-                    menu['image_url'] ?? 'https://via.placeholder.com/80',
+                    item.menuImageUrl ?? 'https://via.placeholder.com/80',
                     width: 70,
                     height: 70,
                     fit: BoxFit.cover,
@@ -253,7 +253,7 @@ class _WriteReviewViewState extends State<WriteReviewView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        menu['name'] ?? 'Item\'s Name',
+                        item.menuName,
                         style: const TextStyle(
                           color: Color(0xFF2D4839),
                           fontSize: 16,
@@ -262,7 +262,7 @@ class _WriteReviewViewState extends State<WriteReviewView> {
                         ),
                       ),
                       Text(
-                        'Notes: ${item['notes'] ?? '-'} \nQty: ${item['quantity'] ?? 1}',
+                        'Notes: ${item.notes ?? '-'} \nQty: ${item.quantity}',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 10,
@@ -271,7 +271,7 @@ class _WriteReviewViewState extends State<WriteReviewView> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Rp. ${item['price_at_time'] ?? menu['price'] ?? 0}',
+                        'Rp. ${item.priceAtTime}',
                         style: const TextStyle(
                           color: Color(0xFF2D4839),
                           fontSize: 14,
@@ -377,9 +377,7 @@ class _WriteReviewViewState extends State<WriteReviewView> {
                           width: 70,
                           height: 70,
                           child: isVideo
-                              ? VideoThumbnailPreview(
-                                  videoFile: file,
-                                )
+                              ? VideoThumbnailPreview(videoFile: file)
                               : Image.file(file, fit: BoxFit.cover),
                         ),
                       ),
@@ -553,9 +551,7 @@ class _VideoThumbnailPreviewState extends State<VideoThumbnailPreview> {
       fit: StackFit.expand,
       children: [
         Image.memory(_thumbnailData!, fit: BoxFit.cover),
-        Container(
-          color: Colors.black26,
-        ),
+        Container(color: Colors.black26),
         const Center(
           child: Icon(Icons.play_circle_outline, color: Colors.white, size: 30),
         ),

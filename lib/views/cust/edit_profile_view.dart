@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/user_model.dart';
 import '../../viewmodels/cust/edit_profile_viewmodel.dart';
+import '../../services/cust/edit_profile_service.dart';
+import '../../utils/image_picker_util.dart';
 
 class EditProfileView extends StatefulWidget {
   final UserModel user;
@@ -12,12 +14,22 @@ class EditProfileView extends StatefulWidget {
 }
 
 class _EditProfileViewState extends State<EditProfileView> {
-  final EditProfileViewModel _viewModel = EditProfileViewModel();
+  late final EditProfileViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
+    _viewModel = EditProfileViewModel(
+      service: EditProfileService(),
+      imagePickerUtil: ImagePickerUtil(),
+    );
     _viewModel.initData(widget.user);
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
   }
 
   @override
@@ -149,13 +161,9 @@ class _EditProfileViewState extends State<EditProfileView> {
                           children: [
                             CircleAvatar(
                               radius: 50,
-                              backgroundColor: Colors
-                                  .grey
-                                  .shade400,
+                              backgroundColor: Colors.grey.shade400,
                               backgroundImage: _viewModel.selectedImage != null
-                                  ? FileImage(
-                                      _viewModel.selectedImage!,
-                                    )
+                                  ? FileImage(_viewModel.selectedImage!)
                                   : (widget.user.profileImageUrl != null
                                         ? NetworkImage(
                                             widget.user.profileImageUrl!,
@@ -237,12 +245,13 @@ class _EditProfileViewState extends State<EditProfileView> {
                             ? null
                             : () async {
                                 final updatedUser = await _viewModel
-                                    .saveChanges(context, widget.user);
+                                    .saveProfile(context, widget.user);
+
                                 if (updatedUser != null && context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
-                                        'Profil berhasil diperbarui!',
+                                        'Profil berhasil disimpan!',
                                       ),
                                     ),
                                   );

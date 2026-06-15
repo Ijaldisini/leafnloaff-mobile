@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/cust/review_menu_service.dart';
 import '../../models/review_model.dart';
-import 'cart_viewmodel.dart';
 
 class ReviewMenuViewModel extends ChangeNotifier {
   final ReviewMenuService _service = ReviewMenuService();
@@ -58,8 +57,6 @@ class ReviewMenuViewModel extends ChangeNotifier {
         productId: productId,
         quantity: 1,
       );
-
-      CartViewModel().loadCartData();
 
       _isAddingToCart = false;
       safeNotifyListeners();

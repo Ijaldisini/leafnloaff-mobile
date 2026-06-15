@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/cust/checkout_viewmodel.dart';
+import '../../models/cart_model.dart';
 import 'address_view.dart';
 import '../cust/detail_order_view.dart';
 import '../cust/select_voucher_view.dart';
@@ -309,28 +310,16 @@ class _CheckoutViewState extends State<CheckoutView> {
     );
   }
 
-  Widget _buildItemCard(Map<String, dynamic> item) {
-    final menu = item['menus'];
+  Widget _buildItemCard(CartItemModel item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       height: 100,
-      decoration: BoxDecoration(
-        color: const Color(0xFFFDFDFD),
-        borderRadius: BorderRadius.circular(16.69),
-      ),
+      decoration: BoxDecoration(color: const Color(0xFFFDFDFD), borderRadius: BorderRadius.circular(16.69)),
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16.69),
-              bottomLeft: Radius.circular(16.69),
-            ),
-            child: Image.network(
-              menu['image_url'] ?? 'https://placehold.co/113x100',
-              width: 110,
-              height: 100,
-              fit: BoxFit.cover,
-            ),
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(16.69), bottomLeft: Radius.circular(16.69)),
+            child: Image.network(item.menuImageUrl ?? 'https://placehold.co/113x100', width: 110, height: 100, fit: BoxFit.cover),
           ),
           Expanded(
             child: Padding(
@@ -338,45 +327,11 @@ class _CheckoutViewState extends State<CheckoutView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    menu['name'] ?? 'Item',
-                    style: const TextStyle(
-                      color: Color(0xFF2D4839),
-                      fontSize: 16,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  Text(
-                    'Notes: ${item['notes'] ?? '-'}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFF51725F),
-                      fontSize: 10,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    'Qty: ${item['quantity']}',
-                    style: const TextStyle(
-                      color: Color(0xFF51725F),
-                      fontSize: 10,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  Text(item.menuName, style: const TextStyle(color: Color(0xFF2D4839), fontSize: 16, fontFamily: 'Poppins', fontWeight: FontWeight.w800)),
+                  Text('Notes: ${item.notes ?? '-'}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF51725F), fontSize: 10, fontFamily: 'Poppins', fontWeight: FontWeight.w500)),
+                  Text('Qty: ${item.quantity}', style: const TextStyle(color: Color(0xFF51725F), fontSize: 10, fontFamily: 'Poppins', fontWeight: FontWeight.w500)),
                   const Spacer(),
-                  Text(
-                    _formatCurrency((menu['price'] as num).toDouble()),
-                    style: const TextStyle(
-                      color: Color(0xFF2D4839),
-                      fontSize: 16,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
+                  Text(_formatCurrency(item.menuPrice), style: const TextStyle(color: Color(0xFF2D4839), fontSize: 16, fontFamily: 'Poppins', fontWeight: FontWeight.w800)),
                 ],
               ),
             ),
@@ -388,111 +343,45 @@ class _CheckoutViewState extends State<CheckoutView> {
 
   Widget _buildShippingOption() {
     final isDelivery = _viewModel.shippingMethod == 'Delivery';
-
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFDFDFD),
-        borderRadius: BorderRadius.circular(16.69),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 4)),
-        ],
-      ),
+      decoration: BoxDecoration(color: const Color(0xFFFDFDFD), borderRadius: BorderRadius.circular(16.69), boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 4))]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.local_shipping, color: Color(0xFF2D4839)),
-              SizedBox(width: 10),
-              Text(
-                'Shipping Option',
-                style: TextStyle(
-                  color: Color(0xFF2D4839),
-                  fontSize: 16,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
+          const Row(children: [Icon(Icons.local_shipping, color: Color(0xFF2D4839)), SizedBox(width: 10), Text('Shipping Option', style: TextStyle(color: Color(0xFF2D4839), fontSize: 16, fontFamily: 'Poppins', fontWeight: FontWeight.w800))]),
           const SizedBox(height: 15),
           Row(
             children: [
-              _buildTogglePill(
-                'Pickup',
-                !isDelivery,
-                () => _viewModel.setShippingMethod('Pickup'),
-              ),
+              _buildTogglePill('Pickup', !isDelivery, () => _viewModel.setShippingMethod('Pickup')),
               const SizedBox(width: 10),
-              _buildTogglePill(
-                'Delivery',
-                isDelivery,
-                () => _viewModel.setShippingMethod('Delivery'),
-              ),
+              _buildTogglePill('Delivery', isDelivery, () => _viewModel.setShippingMethod('Delivery')),
             ],
           ),
           if (isDelivery) ...[
             const SizedBox(height: 15),
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFF2D4839)),
-                borderRadius: BorderRadius.circular(10),
-              ),
+              decoration: BoxDecoration(border: Border.all(color: const Color(0xFF2D4839)), borderRadius: BorderRadius.circular(10)),
               child: Row(
                 children: [
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          _viewModel.deliveryAddress?['recipient_name'] ??
-                              'Recipient’s Name',
-                          style: const TextStyle(
-                            color: Color(0xFF2D4839),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text(_viewModel.deliveryAddress?.recipientName ?? 'Recipient’s Name', style: const TextStyle(color: Color(0xFF2D4839), fontSize: 12, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 4),
-                        Text(
-                          _viewModel.deliveryAddress?['address_detail'] ??
-                              'Belum ada alamat, silakan tambahkan',
-                          style: const TextStyle(
-                            color: Color(0xFF51725F),
-                            fontSize: 11,
-                          ),
-                        ),
-                        Text(
-                          'Contact: ${_viewModel.deliveryAddress?['phone_number'] ?? '-'}',
-                          style: const TextStyle(
-                            color: Color(0xFF51725F),
-                            fontSize: 11,
-                          ),
-                        ),
+                        Text(_viewModel.deliveryAddress?.addressDetail ?? 'Belum ada alamat, silakan tambahkan', style: const TextStyle(color: Color(0xFF51725F), fontSize: 11)),
+                        Text('Contact: ${_viewModel.deliveryAddress?.phoneNumber ?? '-'}', style: const TextStyle(color: Color(0xFF51725F), fontSize: 11)),
                       ],
                     ),
                   ),
                   GestureDetector(
                     onTap: () async {
-                      final selectedAddress =
-                          await Navigator.push<Map<String, dynamic>>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AddressView(),
-                            ),
-                          );
-
-                      if (selectedAddress != null) {
-                        _viewModel.updateSelectedAddress(selectedAddress);
-                      }
+                      final selectedAddress = await Navigator.push(context, MaterialPageRoute(builder: (context) => const AddressView()));
+                      if (selectedAddress != null) _viewModel.updateSelectedAddress(selectedAddress);
                     },
-                    child: const Icon(
-                      Icons.edit_outlined,
-                      color: Color(0xFF2D4839),
-                      size: 20,
-                    ),
+                    child: const Icon(Icons.edit_outlined, color: Color(0xFF2D4839), size: 20),
                   ),
                 ],
               ),

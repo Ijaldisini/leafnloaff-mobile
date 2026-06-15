@@ -1,18 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/notification_model.dart';
 import '../../services/cust/notification_service.dart';
 
 class NotificationViewModel extends ChangeNotifier {
-  NotificationViewModel() {
-    _service.listenToCustomerNotifications();
-  }
   final NotificationService _service = NotificationService();
+  RealtimeChannel? _realtimeSubscription;
 
   bool isLoading = false;
   String? errorMessage;
 
+  List<NotificationModel> _rawNotifications = [];
   List<Map<String, dynamic>> groupedNotifications = [];
+
+  void initListener() {
+    _realtimeSubscription?.unsubscribe();
+
+    _realtimeSubscription = _service.listenToCustomerNotifications((newNotif) {
+      if (newNotif.orderId != null && newNotif.orderId!.trim().isNotEmpty) {
+        final isDuplicate = _rawNotifications.any((n) => n.id == newNotif.id);
+
+        if (!isDuplicate) {
+          _rawNotifications.insert(0, newNotif);
+          groupedNotifications = _groupNotificationsByDate(_rawNotifications);
+          notifyListeners();
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _realtimeSubscription?.unsubscribe();
+    super.dispose();
+  }
 
   Future<void> loadNotifications() async {
     isLoading = true;
@@ -20,15 +42,26 @@ class NotificationViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final List<NotificationModel> rawNotifications = await _service
-          .fetchNotifications();
-      groupedNotifications = _groupNotificationsByDate(rawNotifications);
+      final allNotifications = await _service.fetchNotifications();
+
+      _rawNotifications = allNotifications.where((notif) {
+        return notif.orderId != null && notif.orderId!.trim().isNotEmpty;
+      }).toList();
+
+      _removeDuplicates();
+
+      groupedNotifications = _groupNotificationsByDate(_rawNotifications);
     } catch (e) {
       errorMessage = "Gagal memuat notifikasi: $e";
     } finally {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  void _removeDuplicates() {
+    final seenIds = <String>{};
+    _rawNotifications.retainWhere((notif) => seenIds.add(notif.id));
   }
 
   List<Map<String, dynamic>> _groupNotificationsByDate(

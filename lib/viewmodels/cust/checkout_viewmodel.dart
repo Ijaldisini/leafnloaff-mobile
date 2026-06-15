@@ -7,6 +7,8 @@ import 'package:geolocator/geolocator.dart';
 import '../../services/payments/midtrans_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/voucher_model.dart';
+import '../../models/cart_model.dart';
+import '../../models/address_model.dart';
 
 class CheckoutViewModel extends ChangeNotifier {
   final CheckoutService _service = CheckoutService();
@@ -22,10 +24,9 @@ class CheckoutViewModel extends ChangeNotifier {
   String? selectedBank;
 
   File? paymentProofFile;
-  String? paymentProofUrl;
 
-  Map<String, dynamic>? deliveryAddress;
-  List<Map<String, dynamic>> selectedCartItems = [];
+  AddressModel? deliveryAddress;
+  List<CartItemModel> selectedCartItems = [];
 
   VoucherModel? selectedVoucher;
   Map<String, double>? adminLocation;
@@ -48,23 +49,19 @@ class CheckoutViewModel extends ChangeNotifier {
 
     try {
       final cartVM = CartViewModel();
-      selectedCartItems = cartVM.cartItems.where((item) {
-        return cartVM.selectedItemIds.contains(item['id'].toString());
-      }).toList();
+      selectedCartItems = cartVM.cartItems
+          .where((item) => cartVM.selectedItemIds.contains(item.id))
+          .toList();
 
       subTotal = 0;
       for (var item in selectedCartItems) {
-        final price = (item['menus']['price'] as num).toDouble();
-        final qty = (item['quantity'] as num).toInt();
-        subTotal += (price * qty);
+        subTotal += (item.menuPrice * item.quantity);
       }
 
       adminLocation = await _service.fetchAdminLocation();
       deliveryAddress = await _service.fetchDefaultAddress();
 
-      if (initialVoucher != null) {
-        selectedVoucher = initialVoucher;
-      }
+      if (initialVoucher != null) selectedVoucher = initialVoucher;
 
       _calculateShippingCost();
       _recalculateDiscount();
@@ -76,8 +73,12 @@ class CheckoutViewModel extends ChangeNotifier {
     }
   }
 
-  void updateSelectedAddress(Map<String, dynamic> newAddress) {
-    deliveryAddress = newAddress;
+  void updateSelectedAddress(dynamic newAddress) {
+    if (newAddress is AddressModel) {
+      deliveryAddress = newAddress;
+    } else if (newAddress is Map<String, dynamic>) {
+      deliveryAddress = AddressModel.fromJson(newAddress);
+    }
     _calculateShippingCost();
     _recalculateDiscount();
     notifyListeners();
@@ -99,34 +100,24 @@ class CheckoutViewModel extends ChangeNotifier {
       final double storeLatitude = adminLocation?['latitude'] ?? -8.1689;
       final double storeLongitude = adminLocation?['longitude'] ?? 113.7020;
 
-      if (deliveryAddress!['latitude'] == null ||
-          deliveryAddress!['longitude'] == null) {
+      if (deliveryAddress!.latitude == 0.0 &&
+          deliveryAddress!.longitude == 0.0) {
         shippingCost = 0;
         return;
       }
 
-      final double custLatitude = (deliveryAddress!['latitude'] as num)
-          .toDouble();
-      final double custLongitude = (deliveryAddress!['longitude'] as num)
-          .toDouble();
-
       double distanceInMeters = Geolocator.distanceBetween(
         storeLatitude,
         storeLongitude,
-        custLatitude,
-        custLongitude,
+        deliveryAddress!.latitude,
+        deliveryAddress!.longitude,
       );
 
       double distanceInKm = distanceInMeters / 1000;
-
-      if (distanceInKm <= 5.0) {
-        shippingCost = 0;
-      } else {
-        double excessDistance = distanceInKm - 5.0;
-        shippingCost = excessDistance.ceil() * 10000.0;
-      }
+      shippingCost = distanceInKm <= 5.0
+          ? 0
+          : (distanceInKm - 5.0).ceil() * 10000.0;
     } catch (e) {
-      debugPrint('Error memproses perhitungan ongkir: $e');
       shippingCost = 0;
     }
   }
@@ -138,12 +129,9 @@ class CheckoutViewModel extends ChangeNotifier {
   }
 
   void _recalculateDiscount() {
-    if (selectedVoucher != null) {
-      final percentage = (selectedVoucher!.discountPercentage).toDouble();
-      discount = (subTotal * percentage / 100);
-    } else {
-      discount = 0;
-    }
+    discount = selectedVoucher != null
+        ? (subTotal * selectedVoucher!.discountPercentage / 100)
+        : 0;
   }
 
   void setPaymentMethod(String method) {
@@ -177,13 +165,11 @@ class CheckoutViewModel extends ChangeNotifier {
       notifyListeners();
       return null;
     }
-
     if (paymentMethod == 'QRIS Statis' && paymentProofFile == null) {
       errorMessage = "Harap unggah bukti pembayaran QRIS!";
       notifyListeners();
       return null;
     }
-
     if (paymentMethod == 'Virtual Account Bank' && selectedBank == null) {
       errorMessage = "Harap pilih bank terlebih dahulu!";
       notifyListeners();
@@ -205,23 +191,20 @@ class CheckoutViewModel extends ChangeNotifier {
         'total_price': totalPayment,
         'delivery_type': shippingMethod,
         'address_detail': shippingMethod == 'Delivery'
-            ? deliveryAddress!['address_detail']
+            ? deliveryAddress!.addressDetail
             : null,
         'latitude': shippingMethod == 'Delivery'
-            ? deliveryAddress!['latitude']
+            ? deliveryAddress!.latitude
             : null,
         'longitude': shippingMethod == 'Delivery'
-            ? deliveryAddress!['longitude']
+            ? deliveryAddress!.longitude
             : null,
-
         'payment_method': paymentMethod,
         'payment_proof_url': proofUrl,
         'status': paymentMethod == 'COD' ? 'Diproses' : 'Menunggu Pembayaran',
-
         'notes': paymentMethod == 'Virtual Account Bank'
-            ? 'Pesanan dari aplikasi mobile ($selectedBank)'
-            : 'Pesanan dari aplikasi mobile',
-
+            ? 'Pesanan ($selectedBank)'
+            : 'Pesanan aplikasi',
         'voucher_id': selectedVoucher?.id,
         'discount_applied': discount,
       };
@@ -235,22 +218,19 @@ class CheckoutViewModel extends ChangeNotifier {
         final transactionResponse = await _midtransService.createTransaction(
           orderId: orderId,
           grossAmount: totalPayment.toInt(),
-          customerName: deliveryAddress?['recipient_name'] ?? 'Customer',
-          customerPhone: deliveryAddress?['phone_number'] ?? '0800000000',
+          customerName: deliveryAddress?.recipientName ?? 'Customer',
+          customerPhone: deliveryAddress?.phoneNumber ?? '0800000000',
           bank: bankCodes[selectedBank!]!,
         );
 
         String vaNumber = 'Gagal membuat VA';
-
         if (bankCodes[selectedBank!] == 'echannel') {
-          final billerCode = transactionResponse['biller_code'] ?? '';
-          final billKey = transactionResponse['bill_key'] ?? '';
-          vaNumber = '$billerCode $billKey';
+          vaNumber =
+              '${transactionResponse['biller_code'] ?? ''} ${transactionResponse['bill_key'] ?? ''}';
         } else {
           final vaNumbers = transactionResponse['va_numbers'] as List<dynamic>?;
-          if (vaNumbers != null && vaNumbers.isNotEmpty) {
+          if (vaNumbers != null && vaNumbers.isNotEmpty)
             vaNumber = vaNumbers[0]['va_number'];
-          }
         }
 
         await Supabase.instance.client

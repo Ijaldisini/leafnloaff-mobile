@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/cust/cart_viewmodel.dart';
+import '../../models/cart_model.dart';
 import 'checkout_view.dart';
 
 class CartView extends StatefulWidget {
@@ -62,13 +63,11 @@ class _CartViewState extends State<CartView> {
               ),
             ),
           ),
-
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 20),
-
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   child: Row(
@@ -127,7 +126,6 @@ class _CartViewState extends State<CartView> {
                           ],
                         ),
                       ),
-
                       ListenableBuilder(
                         listenable: _viewModel,
                         builder: (context, _) {
@@ -147,7 +145,6 @@ class _CartViewState extends State<CartView> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
                 Expanded(
                   child: ListenableBuilder(
                     listenable: _viewModel,
@@ -186,8 +183,7 @@ class _CartViewState extends State<CartView> {
                         physics: const BouncingScrollPhysics(),
                         itemCount: _viewModel.cartItems.length,
                         itemBuilder: (context, index) {
-                          final item = _viewModel.cartItems[index];
-                          return _buildCartItem(item);
+                          return _buildCartItem(_viewModel.cartItems[index]);
                         },
                       );
                     },
@@ -196,7 +192,6 @@ class _CartViewState extends State<CartView> {
               ],
             ),
           ),
-
           Positioned(
             left: 0,
             right: 0,
@@ -314,14 +309,8 @@ class _CartViewState extends State<CartView> {
     );
   }
 
-  Widget _buildCartItem(Map<String, dynamic> item) {
-    final menu = item['menus'] as Map<String, dynamic>;
-    final isSelected = _viewModel.selectedItemIds.contains(
-      item['id'].toString(),
-    );
-    final price = (menu['price'] as num).toDouble();
-    final qty = (item['quantity'] as num).toInt();
-    final notes = item['notes'] as String?;
+  Widget _buildCartItem(CartItemModel item) {
+    final isSelected = _viewModel.selectedItemIds.contains(item.id);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -343,7 +332,7 @@ class _CartViewState extends State<CartView> {
                   bottomLeft: Radius.circular(16.69),
                 ),
                 child: Image.network(
-                  menu['image_url'] ?? 'https://placehold.co/113x100',
+                  item.menuImageUrl ?? 'https://placehold.co/113x100',
                   width: 110,
                   height: 125,
                   fit: BoxFit.cover,
@@ -359,8 +348,7 @@ class _CartViewState extends State<CartView> {
                 top: 10,
                 left: 10,
                 child: GestureDetector(
-                  onTap: () =>
-                      _viewModel.toggleSelection(item['id'].toString()),
+                  onTap: () => _viewModel.toggleSelection(item.id),
                   child: Container(
                     width: 22,
                     height: 22,
@@ -382,20 +370,18 @@ class _CartViewState extends State<CartView> {
               ),
             ],
           ),
-
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: Text(
-                          menu['name'] ?? 'Unknown Item',
+                          item.menuName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -408,10 +394,8 @@ class _CartViewState extends State<CartView> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => _showEditNotesDialog(
-                          item['id'].toString(),
-                          notes ?? '',
-                        ),
+                        onTap: () =>
+                            _showEditNotesDialog(item.id, item.notes ?? ''),
                         child: const Icon(
                           Icons.edit_outlined,
                           size: 18,
@@ -421,7 +405,6 @@ class _CartViewState extends State<CartView> {
                     ],
                   ),
                   const SizedBox(height: 4),
-
                   Expanded(
                     child: Text.rich(
                       TextSpan(
@@ -436,8 +419,8 @@ class _CartViewState extends State<CartView> {
                             ),
                           ),
                           TextSpan(
-                            text: notes != null && notes.isNotEmpty
-                                ? notes
+                            text: item.notes != null && item.notes!.isNotEmpty
+                                ? item.notes
                                 : 'Tidak ada catatan.',
                             style: const TextStyle(
                               color: Color(0xFF51725F),
@@ -452,12 +435,11 @@ class _CartViewState extends State<CartView> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _formatCurrency(price),
+                        _formatCurrency(item.menuPrice),
                         style: const TextStyle(
                           color: Color(0xFF2D4839),
                           fontSize: 16,
@@ -469,8 +451,8 @@ class _CartViewState extends State<CartView> {
                         children: [
                           GestureDetector(
                             onTap: () => _viewModel.decrementQuantity(
-                              item['id'].toString(),
-                              qty,
+                              item.id,
+                              item.quantity,
                             ),
                             child: Container(
                               width: 20,
@@ -488,7 +470,7 @@ class _CartViewState extends State<CartView> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            qty.toString(),
+                            item.quantity.toString(),
                             style: const TextStyle(
                               color: Color(0xFF2D4839),
                               fontSize: 16,
@@ -499,8 +481,8 @@ class _CartViewState extends State<CartView> {
                           const SizedBox(width: 8),
                           GestureDetector(
                             onTap: () => _viewModel.incrementQuantity(
-                              item['id'].toString(),
-                              qty,
+                              item.id,
+                              item.quantity,
                             ),
                             child: Container(
                               width: 20,
@@ -534,43 +516,27 @@ class _CartViewState extends State<CartView> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          title: const Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Color(0xFFC23437)),
-              SizedBox(width: 10),
-              Text(
-                'Hapus Item',
-                style: TextStyle(
-                  color: Color(0xFF2D4839),
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18,
-                ),
-              ),
-            ],
+          title: const Text(
+            'Hapus Item',
+            style: TextStyle(
+              color: Color(0xFF2D4839),
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w800,
+            ),
           ),
           content: Text(
-            'Apakah Anda yakin ingin menghapus ${_viewModel.selectedItemIds.length} item dari keranjang?',
-            style: const TextStyle(
-              color: Color(0xFF51725F),
-              fontFamily: 'Poppins',
-              fontSize: 14,
-            ),
+            'Hapus ${_viewModel.selectedItemIds.length} item dari keranjang?',
+            style: const TextStyle(fontFamily: 'Poppins'),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
               child: const Text(
                 'Batal',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(color: Colors.grey, fontFamily: 'Poppins'),
               ),
             ),
             ElevatedButton(
@@ -580,17 +546,10 @@ class _CartViewState extends State<CartView> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFC23437),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(100),
-                ),
               ),
               child: const Text(
                 'Hapus',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
               ),
             ),
           ],
@@ -603,12 +562,10 @@ class _CartViewState extends State<CartView> {
     final TextEditingController notesController = TextEditingController(
       text: currentNotes,
     );
-
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -618,42 +575,17 @@ class _CartViewState extends State<CartView> {
               color: Color(0xFF2D4839),
               fontFamily: 'Poppins',
               fontWeight: FontWeight.w800,
-              fontSize: 18,
             ),
           ),
-          content: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: TextField(
-              controller: notesController,
-              maxLines: 3,
-              style: const TextStyle(
-                color: Color(0xFF2D4839),
-                fontFamily: 'Poppins',
-                fontSize: 14,
-              ),
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Tuliskan permintaan khusus di sini...',
-                hintStyle: TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-            ),
+          content: TextField(
+            controller: notesController,
+            maxLines: 3,
+            decoration: const InputDecoration(hintText: 'Tuliskan catatan...'),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text(
-                'Batal',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: const Text('Batal'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -662,17 +594,10 @@ class _CartViewState extends State<CartView> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFCA748D),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(100),
-                ),
               ),
               child: const Text(
                 'Simpan',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(color: Colors.white),
               ),
             ),
           ],

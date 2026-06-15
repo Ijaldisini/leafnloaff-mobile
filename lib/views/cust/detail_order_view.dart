@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import '../../models/order_model.dart';
 import '../../viewmodels/cust/detail_order_viewmodel.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'write_review_view.dart';
@@ -18,7 +19,6 @@ class DetailOrderView extends StatefulWidget {
 
 class _DetailOrderViewState extends State<DetailOrderView> {
   final DetailOrderViewModel _viewModel = DetailOrderViewModel();
-
   Timer? _timer;
   Duration _timeLeft = Duration.zero;
 
@@ -28,18 +28,16 @@ class _DetailOrderViewState extends State<DetailOrderView> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _viewModel.fetchOrder(widget.orderId);
 
-      if (mounted && _viewModel.orderData != null) {
-        final expiryStr = _viewModel.orderData!['va_expiry_time'];
-        if (expiryStr != null) {
-          _startTimer(expiryStr);
+      if (mounted && _viewModel.orderDetail != null) {
+        final expiryTime = _viewModel.orderDetail!.vaExpiryTime;
+        if (expiryTime != null) {
+          _startTimer(expiryTime);
         }
       }
     });
   }
 
-  void _startTimer(String expiryTimeStr) {
-    final expiryTime = DateTime.parse(expiryTimeStr);
-
+  void _startTimer(DateTime expiryTime) {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
@@ -71,14 +69,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
   void dispose() {
     _timer?.cancel();
     super.dispose();
-  }
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, "0");
-    String twoDigitHours = twoDigits(duration.inHours);
-    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
-    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    return "$twoDigitHours : $twoDigitMinutes : $twoDigitSeconds";
   }
 
   String _formatCurrency(double amount) {
@@ -185,7 +175,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                         );
                       }
                       if (_viewModel.errorMessage != null ||
-                          _viewModel.orderData == null) {
+                          _viewModel.orderDetail == null) {
                         return const Center(
                           child: Text(
                             "Gagal memuat detail pesanan",
@@ -194,17 +184,15 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                         );
                       }
 
-                      final order = _viewModel.orderData!;
-                      final paymentMethod =
-                          order['payment_method'] ?? 'Unknown';
-                      final status = order['status'] ?? 'Unknown';
+                      final order = _viewModel.orderDetail!;
+                      final paymentMethod = order.paymentMethod;
+                      final status = order.status;
 
-                      bool isPaid = false;
-                      if (status == 'Diproses' ||
-                          status == 'Dikirim' ||
-                          status == 'Selesai') {
-                        isPaid = true;
-                      }
+                      bool isPaid = [
+                        'Diproses',
+                        'Dikirim',
+                        'Selesai',
+                      ].contains(status);
 
                       return ListView(
                         padding: const EdgeInsets.symmetric(
@@ -221,7 +209,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                             order,
                           ),
                           const SizedBox(height: 30),
-                          _buildActionButtons(status),
+                          _buildActionButtons(status, order.items),
                           const SizedBox(height: 40),
                         ],
                       );
@@ -325,11 +313,11 @@ class _DetailOrderViewState extends State<DetailOrderView> {
   Widget _buildPaymentInformation(
     String paymentMethod,
     bool isPaid,
-    Map<String, dynamic> order,
+    OrderDetailModel order,
   ) {
     bool isVA = paymentMethod.toLowerCase().contains('virtual account');
-
     String displayMethod = paymentMethod;
+
     if (isVA) {
       if (paymentMethod.toLowerCase() == 'virtual account bank' ||
           paymentMethod.toLowerCase() == 'virtual account') {
@@ -384,7 +372,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  order['va_number'] ?? 'N/A',
+                  order.vaNumber ?? 'N/A',
                   style: const TextStyle(
                     color: Color(0xFF2D4839),
                     fontSize: 16,
@@ -396,10 +384,8 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                 const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () {
-                    if (order['va_number'] != null) {
-                      Clipboard.setData(
-                        ClipboardData(text: order['va_number']),
-                      );
+                    if (order.vaNumber != null) {
+                      Clipboard.setData(ClipboardData(text: order.vaNumber!));
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Nomor VA disalin!'),
@@ -417,7 +403,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ],
             ),
             const SizedBox(height: 25),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -460,7 +445,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
             ],
           ),
           const SizedBox(height: 12),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -490,13 +474,13 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ] else if (paymentMethod == 'QRIS Statis' &&
-              order['payment_proof_url'] != null) ...[
+              order.paymentProofUrl != null) ...[
             const SizedBox(height: 20),
             Align(
               alignment: Alignment.centerLeft,
               child: GestureDetector(
                 onTap: () async {
-                  final Uri url = Uri.parse(order['payment_proof_url']);
+                  final Uri url = Uri.parse(order.paymentProofUrl!);
                   await launchUrl(url, mode: LaunchMode.inAppBrowserView);
                 },
                 child: _buildPill('See proof of payment', false),
@@ -534,7 +518,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
     );
   }
 
-  Widget _buildActionButtons(String status) {
+  Widget _buildActionButtons(String status, List<OrderItemModel> items) {
     if (status == 'Dibatalkan') {
       return const Center(
         child: Text(
@@ -552,8 +536,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
     if (status == 'Selesai') {
       return GestureDetector(
         onTap: () {
-          final items = _viewModel.orderData!['order_items'] as List<dynamic>;
-
           if (_viewModel.isReviewed) {
             Navigator.push(
               context,

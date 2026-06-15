@@ -20,12 +20,14 @@ class NotificationService {
         .toList();
   }
 
-  void listenToCustomerNotifications() {
+  RealtimeChannel? listenToCustomerNotifications(
+    Function(NotificationModel) onNewNotification,
+  ) {
     final user = _supabase.auth.currentUser;
-    if (user == null) return;
+    if (user == null) return null;
 
-    _supabase
-        .channel('public:notifications_customer')
+    final channel = _supabase
+        .channel('public:notifications_customer_${user.id}')
         .onPostgresChanges(
           event: PostgresChangeEvent.insert,
           schema: 'public',
@@ -37,20 +39,28 @@ class NotificationService {
           ),
           callback: (payload) {
             final newRecord = payload.newRecord;
-            final orderId = newRecord['order_id'];
+            if (newRecord == null)
+              return;
 
-            final String notifPayload = orderId != null
-                ? 'cust_order_$orderId'
-                : 'customer_notif';
+            final orderId = newRecord['order_id']?.toString().trim();
 
-            NotificationHelper.showNotification(
-              id: newRecord['id'].hashCode,
-              title: newRecord['title'] ?? 'Leaf N Loaff',
-              body: newRecord['message'] ?? 'Kamu memiliki pesan baru',
-              payload: notifPayload,
-            );
+            if (orderId != null && orderId.isNotEmpty) {
+              final String notifPayload = 'cust_order_$orderId';
+
+              NotificationHelper.showNotification(
+                id: newRecord['id'].hashCode,
+                title: newRecord['title'] ?? 'Leaf N Loaff',
+                body: newRecord['message'] ?? 'Kamu memiliki pesan baru',
+                payload: notifPayload,
+              );
+            }
+
+            final newNotif = NotificationModel.fromJson(newRecord);
+            onNewNotification(newNotif);
           },
-        )
-        .subscribe();
+        );
+
+    channel.subscribe();
+    return channel;
   }
 }

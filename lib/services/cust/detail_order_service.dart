@@ -1,17 +1,20 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../models/order_model.dart';
 
 class DetailOrderService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  Future<Map<String, dynamic>> fetchOrderDetails(String orderId) async {
+  Future<OrderDetailModel> fetchOrderDetails(String orderId) async {
     try {
       final response = await _supabase
           .from('orders')
-          .select('*, order_items(*, menus(*))')
+          .select(
+            '*, order_items(*, menus(*)), profiles:user_id(full_name, phone_number)',
+          )
           .eq('id', orderId)
           .single();
 
-      return response;
+      return OrderDetailModel.fromJson(response);
     } catch (e) {
       throw Exception('Gagal mengambil detail pesanan: $e');
     }

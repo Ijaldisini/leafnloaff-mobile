@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../models/order_model.dart';
 import '../../services/cust/detail_order_service.dart';
 import '../../services/payments/midtrans_service.dart';
-import 'history_viewmodel.dart';
 
 class DetailOrderViewModel extends ChangeNotifier {
   final DetailOrderService _service = DetailOrderService();
@@ -11,8 +11,10 @@ class DetailOrderViewModel extends ChangeNotifier {
 
   bool isLoading = true;
   String? errorMessage;
-  Map<String, dynamic>? orderData;
+
+  OrderDetailModel? orderDetail;
   bool isReviewed = false;
+  bool _isDisposed = false;
 
   double subTotal = 0;
   double shippingCost = 0;
@@ -26,15 +28,15 @@ class DetailOrderViewModel extends ChangeNotifier {
   Future<void> fetchOrder(String orderId) async {
     isLoading = true;
     errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
-      orderData = await _service.fetchOrderDetails(orderId);
+      orderDetail = await _service.fetchOrderDetails(orderId);
 
-      if (orderData != null) {
+      if (orderDetail != null) {
         _calculateSummary();
 
-        if (orderData!['status'] == 'Selesai') {
+        if (orderDetail!.status == 'Selesai') {
           final reviewCheck = await Supabase.instance.client
               .from('reviews')
               .select('id')
@@ -45,7 +47,7 @@ class DetailOrderViewModel extends ChangeNotifier {
           isReviewed = reviewCheck != null;
         }
 
-        if (orderData!['status'] == 'Menunggu Pembayaran') {
+        if (orderDetail!.status == 'Menunggu Pembayaran') {
           _startCountdown();
           _startPollingPaymentStatus(orderId);
         }
@@ -56,7 +58,7 @@ class DetailOrderViewModel extends ChangeNotifier {
       errorMessage = "Gagal memuat detail: ${e.toString()}";
     } finally {
       isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -64,25 +66,24 @@ class DetailOrderViewModel extends ChangeNotifier {
     _pollingTimer?.cancel();
 
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      if (_isDisposed) {
+        timer.cancel();
+        return;
+      }
       try {
         final response = await _midtransService.checkTransactionStatus(orderId);
         final transactionStatus = response['transaction_status'];
 
         if (transactionStatus == 'settlement' ||
             transactionStatus == 'capture') {
-          timer.cancel();
-          _countdownTimer?.cancel();
-
+          _stopTimers();
           await _service.updateOrderStatus(orderId, 'Diproses');
           await fetchOrder(orderId);
-          HistoryViewModel().fetchHistory();
         } else if (transactionStatus == 'expire' ||
             transactionStatus == 'cancel') {
-          timer.cancel();
-          _countdownTimer?.cancel();
+          _stopTimers();
           await _service.updateOrderStatus(orderId, 'Dibatalkan');
           await fetchOrder(orderId);
-          HistoryViewModel().fetchHistory();
         }
       } catch (e) {
         debugPrint("Polling status error: $e");
@@ -91,31 +92,32 @@ class DetailOrderViewModel extends ChangeNotifier {
   }
 
   void _calculateSummary() {
-    if (orderData == null) return;
+    if (orderDetail == null) return;
     subTotal = 0;
-    final items = orderData!['order_items'] as List<dynamic>? ?? [];
-    for (var item in items) {
-      final price = (item['price_at_time'] as num?)?.toDouble() ?? 0.0;
-      final qty = (item['quantity'] as num?)?.toInt() ?? 0;
-      subTotal += (price * qty);
+    for (var item in orderDetail!.items) {
+      subTotal += (item.priceAtTime * item.quantity);
     }
-    discount = (orderData!['discount_applied'] as num?)?.toDouble() ?? 0;
-    totalPayment = (orderData!['total_price'] as num?)?.toDouble() ?? 0;
+    discount = orderDetail!.discountApplied;
+    totalPayment = orderDetail!.totalPrice;
     shippingCost = totalPayment - subTotal + discount;
   }
 
   void _startCountdown() {
     _countdownTimer?.cancel();
-    final String? createdAtStr = orderData?['created_at'];
-    if (createdAtStr == null) return;
+    if (orderDetail == null) return;
 
-    final DateTime createdAt = DateTime.parse(createdAtStr).toLocal();
-    final DateTime expiryTime = createdAt.add(const Duration(hours: 1));
+    final DateTime expiryTime = orderDetail!.createdAt.add(
+      const Duration(hours: 1),
+    );
 
     _updateRemainingTime(expiryTime);
 
     if (remainingTime.inSeconds > 0) {
       _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (_isDisposed) {
+          timer.cancel();
+          return;
+        }
         _updateRemainingTime(expiryTime);
         if (remainingTime.inSeconds <= 0) {
           timer.cancel();
@@ -132,7 +134,7 @@ class DetailOrderViewModel extends ChangeNotifier {
     } else {
       remainingTime = difference;
     }
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   String get formattedRemainingTime {
@@ -144,41 +146,50 @@ class DetailOrderViewModel extends ChangeNotifier {
   }
 
   Future<bool> cancelOrder() async {
-    if (orderData == null) return false;
+    if (orderDetail == null) return false;
     isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
-      await _service.updateOrderStatus(orderData!['id'], 'Dibatalkan');
-      await fetchOrder(orderData!['id']);
-      HistoryViewModel().fetchHistory();
+      await _service.updateOrderStatus(orderDetail!.id, 'Dibatalkan');
+      await fetchOrder(orderDetail!.id);
       return true;
     } catch (e) {
       isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }
 
   Future<bool> receiveOrder() async {
-    if (orderData == null) return false;
+    if (orderDetail == null) return false;
     isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
-      await _service.updateOrderStatus(orderData!['id'], 'Selesai');
-      await fetchOrder(orderData!['id']);
-      HistoryViewModel().fetchHistory();
+      await _service.updateOrderStatus(orderDetail!.id, 'Selesai');
+      await fetchOrder(orderDetail!.id);
       return true;
     } catch (e) {
       isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
+    }
+  }
+
+  void _stopTimers() {
+    _pollingTimer?.cancel();
+    _countdownTimer?.cancel();
+  }
+
+  void _safeNotifyListeners() {
+    if (!_isDisposed) {
+      notifyListeners();
     }
   }
 
   @override
   void dispose() {
-    _countdownTimer?.cancel();
-    _pollingTimer?.cancel();
+    _isDisposed = true;
+    _stopTimers();
     super.dispose();
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/cust/detail_menu_viewmodel.dart';
 import 'review_menu_view.dart';
+import '../../models/menu_model.dart';
 
 class DetailMenuView extends StatefulWidget {
   final String productId;
@@ -414,12 +415,19 @@ class _DetailMenuViewState extends State<DetailMenuView>
                           context,
                           MaterialPageRoute(
                             builder: (context) => ReviewMenuView(
-                              productId: widget.productId,
-                              productName: widget.productName,
-                              productImage: widget.productImage,
-                              price: widget.price,
-                              rating: _viewModel.rating,
-                              totalReviews: _viewModel.totalReviews,
+                              menu: MenuModel(
+                                id: widget.productId,
+                                name: widget.productName,
+                                description: widget.description,
+                                price: widget.price.toDouble(),
+                                category: 'Makanan',
+                                imageUrl: widget.productImage,
+                                stock: 1,
+                                isActive: true,
+                                createdAt: DateTime.now(),
+                              ),
+                              rating: widget.rating,
+                              totalReviews: widget.totalReviews,
                             ),
                           ),
                         );

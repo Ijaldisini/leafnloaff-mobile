@@ -1,24 +1,17 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
-import 'package:video_player/video_player.dart';
+import '../../models/menu_model.dart';
 import '../../viewmodels/cust/review_menu_viewmodel.dart';
+import '../../widgets/shared_media_widgets.dart';
 
 class ReviewMenuView extends StatefulWidget {
-  final String productId;
-  final String productName;
-  final String productImage;
-  final int price;
+  final MenuModel menu;
   final double rating;
   final int totalReviews;
 
   const ReviewMenuView({
     super.key,
-    required this.productId,
-    required this.productName,
-    required this.productImage,
-    required this.price,
+    required this.menu,
     required this.rating,
     required this.totalReviews,
   });
@@ -38,7 +31,7 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
   @override
   void initState() {
     super.initState();
-    _viewModel.fetchReviews(widget.productId);
+    _viewModel.fetchReviews(widget.menu.id);
 
     _animController = AnimationController(
       vsync: this,
@@ -65,7 +58,7 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
       locale: 'id_ID',
       symbol: 'Rp ',
       decimalDigits: 0,
-    ).format(widget.price);
+    ).format(widget.menu.price);
   }
 
   @override
@@ -89,7 +82,6 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                   decoration: const BoxDecoration(color: Color(0xFFD699AB)),
                 ),
               ),
-
               Positioned(
                 left: -17,
                 top: 147,
@@ -148,7 +140,7 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    widget.productName,
+                                    widget.menu.name,
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
                                       color: Colors.white,
@@ -183,61 +175,18 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                                     height: 265,
                                     width: double.infinity,
                                     color: const Color(0xFF426E55),
-                                    child: widget.productImage.isNotEmpty
+                                    child:
+                                        (widget.menu.imageUrl != null &&
+                                            widget.menu.imageUrl!.isNotEmpty)
                                         ? Image.network(
-                                            widget.productImage,
+                                            widget.menu.imageUrl!,
                                             fit: BoxFit.cover,
                                             errorBuilder:
                                                 (context, error, stackTrace) {
-                                                  return const Center(
-                                                    child: Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        Icon(
-                                                          Icons.restaurant,
-                                                          size: 64,
-                                                          color: Colors.white54,
-                                                        ),
-                                                        SizedBox(height: 8),
-                                                        Text(
-                                                          'Product Image',
-                                                          style: TextStyle(
-                                                            color:
-                                                                Colors.white54,
-                                                            fontSize: 14,
-                                                            fontFamily:
-                                                                'Poppins',
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  );
+                                                  return const _ImagePlaceholder();
                                                 },
                                           )
-                                        : const Center(
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  Icons.restaurant,
-                                                  size: 64,
-                                                  color: Colors.white54,
-                                                ),
-                                                SizedBox(height: 8),
-                                                Text(
-                                                  'Product Image',
-                                                  style: TextStyle(
-                                                    color: Colors.white54,
-                                                    fontSize: 14,
-                                                    fontFamily: 'Poppins',
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
+                                        : const _ImagePlaceholder(),
                                   ),
                                 ),
                                 Positioned(
@@ -304,47 +253,7 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                                   ),
                                 )
                               : _viewModel.reviews.isEmpty
-                              ? Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 26,
-                                  ),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(32),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.2,
-                                        ),
-                                      ),
-                                    ),
-                                    child: const Center(
-                                      child: Column(
-                                        children: [
-                                          Icon(
-                                            Icons.rate_review_outlined,
-                                            size: 48,
-                                            color: Colors.white54,
-                                          ),
-                                          SizedBox(height: 12),
-                                          Text(
-                                            'Belum ada review untuk produk ini',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              color: Colors.white70,
-                                              fontFamily: 'Poppins',
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                )
+                              ? _buildEmptyState()
                               : Padding(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 26,
@@ -358,7 +267,6 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                                         const SizedBox(height: 12),
                                     itemBuilder: (context, index) {
                                       final review = _viewModel.reviews[index];
-
                                       return _buildReviewCard(
                                         userName:
                                             review.userName ?? 'Anonymous',
@@ -456,6 +364,38 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 26),
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        ),
+        child: const Center(
+          child: Column(
+            children: [
+              Icon(Icons.rate_review_outlined, size: 48, color: Colors.white54),
+              SizedBox(height: 12),
+              Text(
+                'Belum ada review untuk produk ini',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -625,7 +565,7 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
 
   void _addToCart() async {
     try {
-      final success = await _viewModel.addToCart(widget.productId);
+      final success = await _viewModel.addToCart(widget.menu.id);
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -647,6 +587,7 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           ),
         );
+
       }
     } catch (e) {
       if (mounted) {
@@ -669,202 +610,27 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
   }
 }
 
-class NetworkVideoThumbnailPreview extends StatefulWidget {
-  final String videoUrl;
-
-  const NetworkVideoThumbnailPreview({super.key, required this.videoUrl});
-
-  @override
-  State<NetworkVideoThumbnailPreview> createState() =>
-      _NetworkVideoThumbnailPreviewState();
-}
-
-class _NetworkVideoThumbnailPreviewState
-    extends State<NetworkVideoThumbnailPreview> {
-  Uint8List? _thumbnailData;
-
-  @override
-  void initState() {
-    super.initState();
-    _generateThumbnail();
-  }
-
-  Future<void> _generateThumbnail() async {
-    try {
-      final uint8list = await VideoThumbnail.thumbnailData(
-        video: widget.videoUrl,
-        imageFormat: ImageFormat.JPEG,
-        maxWidth: 150,
-        quality: 50,
-      );
-
-      if (mounted) {
-        setState(() {
-          _thumbnailData = uint8list;
-        });
-      }
-    } catch (e) {
-      debugPrint("Gagal load thumbnail video jaringan: $e");
-    }
-  }
+class _ImagePlaceholder extends StatelessWidget {
+  const _ImagePlaceholder();
 
   @override
   Widget build(BuildContext context) {
-    if (_thumbnailData == null) {
-      return Container(
-        color: Colors.grey[800],
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              color: Colors.white,
-              strokeWidth: 2,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Image.memory(_thumbnailData!, fit: BoxFit.cover),
-        Container(color: Colors.black26),
-        const Center(
-          child: Icon(Icons.play_circle_outline, color: Colors.white, size: 30),
-        ),
-      ],
-    );
-  }
-}
-
-class FullScreenMediaPage extends StatefulWidget {
-  final String mediaUrl;
-  final bool isVideo;
-
-  const FullScreenMediaPage({
-    super.key,
-    required this.mediaUrl,
-    required this.isVideo,
-  });
-
-  @override
-  State<FullScreenMediaPage> createState() => _FullScreenMediaPageState();
-}
-
-class _FullScreenMediaPageState extends State<FullScreenMediaPage> {
-  VideoPlayerController? _videoController;
-  bool _isVideoInitialized = false;
-  bool _hasError = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.isVideo) {
-      _videoController =
-          VideoPlayerController.networkUrl(Uri.parse(widget.mediaUrl))
-            ..initialize()
-                .then((_) {
-                  if (mounted) {
-                    setState(() {
-                      _isVideoInitialized = true;
-                    });
-                    _videoController!.play();
-                  }
-                })
-                .catchError((error) {
-                  debugPrint("Video Player Error: $error");
-                  if (mounted) {
-                    setState(() {
-                      _hasError = true;
-                    });
-                  }
-                });
-    }
-  }
-
-  @override
-  void dispose() {
-    _videoController?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: Colors.white),
-        elevation: 0,
-      ),
-      body: Center(
-        child: widget.isVideo
-            ? _buildVideoPlayer()
-            : InteractiveViewer(
-                panEnabled: true,
-                minScale: 0.5,
-                maxScale: 4.0,
-                child: Image.network(
-                  widget.mediaUrl,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Text(
-                      "Gagal memuat gambar",
-                      style: TextStyle(color: Colors.white),
-                    );
-                  },
-                ),
-              ),
-      ),
-    );
-  }
-
-  Widget _buildVideoPlayer() {
-    if (_hasError) {
-      return const Column(
+    return const Center(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, color: Colors.red, size: 60),
-          SizedBox(height: 16),
+          Icon(Icons.restaurant, size: 64, color: Colors.white54),
+          SizedBox(height: 8),
           Text(
-            "Perangkat tidak mendukung format video ini.",
-            style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+            'Product Image',
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 14,
+              fontFamily: 'Poppins',
+            ),
           ),
         ],
-      );
-    }
-
-    if (_isVideoInitialized && _videoController != null) {
-      return AspectRatio(
-        aspectRatio: _videoController!.value.aspectRatio,
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            VideoPlayer(_videoController!),
-            VideoProgressIndicator(_videoController!, allowScrubbing: true),
-            Center(
-              child: IconButton(
-                icon: Icon(
-                  _videoController!.value.isPlaying
-                      ? Icons.pause_circle_filled
-                      : Icons.play_circle_filled,
-                  color: Colors.white.withValues(alpha: 0.7),
-                  size: 60,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _videoController!.value.isPlaying
-                        ? _videoController!.pause()
-                        : _videoController!.play();
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return const CircularProgressIndicator(color: Colors.white);
+      ),
+    );
   }
 }
