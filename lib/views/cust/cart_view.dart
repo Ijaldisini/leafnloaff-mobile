@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/cust/cart_viewmodel.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/cart_model.dart';
 import 'checkout_view.dart';
 
@@ -78,15 +79,19 @@ class _CartViewState extends State<CartView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                Icon(
-                                  Icons.location_on,
-                                  color: Colors.white,
-                                  size: 22,
+                                SvgPicture.asset(
+                                  'assets/images/locations.svg',  
+                                  width: 25,
+                                  height: 25,
+                                  colorFilter: const ColorFilter.mode(
+                                    Colors.white,
+                                    BlendMode.srcIn,
+                                  ),
                                 ),
-                                SizedBox(width: 6),
-                                Text(
+                                const SizedBox(width: 6),
+                                const Text(
                                   'Your Location',
                                   style: TextStyle(
                                     color: Color(0xFFFDFDFD),
@@ -132,13 +137,17 @@ class _CartViewState extends State<CartView> {
                           if (_viewModel.selectedItemIds.isEmpty) {
                             return const SizedBox.shrink();
                           }
-                          return IconButton(
-                            icon: const Icon(
-                              Icons.delete_outline,
-                              color: Colors.white,
-                              size: 28,
+                          return GestureDetector(
+                            onTap: () => _showDeleteConfirmation(),
+                            child: SvgPicture.asset(
+                              'assets/images/sampah.svg',  
+                              width: 20,
+                              height: 20,
+                              colorFilter: const ColorFilter.mode(
+                                Colors.white,
+                                BlendMode.srcIn,
+                              ),
                             ),
-                            onPressed: () => _showDeleteConfirmation(),
                           );
                         },
                       ),
@@ -349,7 +358,7 @@ class _CartViewState extends State<CartView> {
                                 'Checkout',
                                 style: TextStyle(
                                   color: Color(0xFFFDFDFD),
-                                  fontSize: 16,
+                                  fontSize: 20,
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w800,
                                 ),
@@ -432,170 +441,157 @@ class _CartViewState extends State<CartView> {
           ),
 
           Expanded(
-            child: Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            child: Padding(
+              padding: const EdgeInsets.only(
+                left: 12,
+                right: 12,
+                top: 12,
+                bottom: 8,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Expanded(
+                        child: Text(
+                          item.menuName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFF2D4839),
+                            fontSize: 18,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w800,
+                            height: 1.1,
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () =>
+                            _showEditNotesDialog(item.id, item.notes ?? ''),
+                        child: SvgPicture.asset(
+                          'assets/images/Pencil.svg',  
+                          width: 18,
+                          height: 18,
+                          colorFilter: const ColorFilter.mode(
+                            Color(0xFF2D4839),
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 2),
+                  
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
                         children: [
-                          Expanded(
-                            child: Text(
-                              item.menuName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Color(0xFF2D4839),
-                                fontSize: 18,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w800,
-                                height: 1.1,
-                              ),
+                          const TextSpan(
+                            text: 'Notes: ',
+                            style: TextStyle(
+                              color: Color(0xFF51725F),
+                              fontSize: 11,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
-                          GestureDetector(
-                            onTap: () =>
-                                _showEditNotesDialog(item.id, item.notes ?? ''),
-                            child: const Icon(
-                              Icons.edit_outlined,
-                              size: 18,
-                              color: Color(0xFF2D4839),
+                          TextSpan(
+                            text: item.notes != null && item.notes!.isNotEmpty
+                                ? item.notes
+                                : 'Tidak ada catatan.',
+                            style: const TextStyle(
+                              color: Color(0xFF51725F),
+                              fontSize: 10,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       Expanded(
-                        child: Text.rich(
-                          TextSpan(
-                            children: [
-                              const TextSpan(
-                                text: 'Notes: ',
-                                style: TextStyle(
-                                  color: Color(0xFF51725F),
-                                  fontSize: 11,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              TextSpan(
-                                text:
-                                    item.notes != null && item.notes!.isNotEmpty
-                                    ? item.notes
-                                    : 'Tidak ada catatan.',
-                                style: const TextStyle(
-                                  color: Color(0xFF51725F),
-                                  fontSize: 10,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          maxLines: 2,
+                        child: Text(
+                          _formatCurrency(item.menuPrice),
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFF2D4839),
+                            fontSize: 18,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Expanded(
-                            child: Text(
-                              _formatCurrency(item.menuPrice),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                          GestureDetector(
+                            onTap: () => _viewModel.decrementQuantity(
+                              item.id,
+                              item.quantity,
+                            ),
+                            child: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: const BoxDecoration(
                                 color: Color(0xFF2D4839),
-                                fontSize: 16,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w800,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.remove,
+                                size: 14,
+                                color: Colors.white,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              GestureDetector(
-                                onTap: () => _viewModel.decrementQuantity(
-                                  item.id,
-                                  item.quantity,
-                                ),
-                                child: Container(
-                                  width: 24,
-                                  height: 24,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF2D4839),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.remove,
-                                    size: 16,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                          const SizedBox(width: 6),
+                          Text(
+                            item.quantity.toString(),
+                            style: const TextStyle(
+                              color: Color(0xFF2D4839),
+                              fontSize: 14,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          GestureDetector(
+                            onTap: () => _viewModel.incrementQuantity(
+                              item.id,
+                              item.quantity,
+                            ),
+                            child: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF2D4839),
+                                shape: BoxShape.circle,
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                item.quantity.toString(),
-                                style: const TextStyle(
-                                  color: Color(0xFF2D4839),
-                                  fontSize: 14,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w700,
-                                ),
+                              child: const Icon(
+                                Icons.add,
+                                size: 14,
+                                color: Colors.white,
                               ),
-                              const SizedBox(width: 8),
-                              GestureDetector(
-                                onTap: () => _viewModel.incrementQuantity(
-                                  item.id,
-                                  item.quantity,
-                                ),
-                                child: Container(
-                                  width: 24,
-                                  height: 24,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF2D4839),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.add,
-                                    size: 16,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ],
                       ),
                     ],
                   ),
-                ),
-
-                Positioned(
-                  right: 250,
-                  top: 0,
-                  bottom: 0,
-                  width: 100,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerRight,
-                        end: Alignment.centerLeft,
-                        colors: [Color(0xFFFDFDFD), Color(0x00FDFDFD)],
-                      ),
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(16.69),
-                        bottomRight: Radius.circular(16.69),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

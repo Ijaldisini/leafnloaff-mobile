@@ -56,12 +56,12 @@ class _AdminMainViewState extends State<AdminMainView> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      height: 60,
+                      height: 110, 
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.bottomCenter,
                           end: Alignment.topCenter,
-                          colors: [Color(0xFF3D5A4A), Color(0x003E5A4A)],
+                          colors: [Color(0xFF3D5A4A), Color(0x003D5A4A)],
                         ),
                       ),
                     ),
@@ -69,36 +69,35 @@ class _AdminMainViewState extends State<AdminMainView> {
                       color: const Color(0xFF3D5A4A),
                       padding: const EdgeInsets.only(
                         bottom: 30,
-                        left: 15,
-                        right: 15,
+                        left: 24,
+                        right: 24,
                       ),
                       child: Container(
-                        height: 50,
-                        decoration: ShapeDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(120),
-                          ),
-                          shadows: const [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
+                        height: 58,  
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
                         ),
+                        borderRadius: BorderRadius.circular(120),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x3F000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _buildNavItem(index: 0, title: 'Home'),
-                            _buildNavItem(index: 1, title: 'Order'),
-                            _buildNavItem(index: 2, title: 'Menu'),
-                            _buildNavItem(index: 3, title: 'Notif'),
-                            _buildNavItem(index: 4, title: 'Voucher'),
+                            _buildNavItem(0, Icons.home_rounded, 'Home'),
+                            _buildNavItem(1, Icons.receipt_long_rounded, 'Order'),
+                            _buildNavItem(2, Icons.restaurant_menu_rounded, 'Menu'),
+                            _buildNavItem(3, Icons.notifications_outlined, 'Notif'),
+                            _buildNavItem(4, Icons.confirmation_number_outlined, 'Voucher'),
                           ],
                         ),
                       ),
@@ -113,27 +112,43 @@ class _AdminMainViewState extends State<AdminMainView> {
     );
   }
 
-  Widget _buildNavItem({required int index, required String title}) {
-    bool isActive = _viewModel.selectedIndex == index;
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    final isActive = _viewModel.selectedIndex == index;
+
     return GestureDetector(
       onTap: () => _viewModel.setSelectedIndex(index),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: ShapeDecoration(
-          color: isActive ? const Color(0xFFEED5DB) : Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(97.66),
-          ),
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        padding: EdgeInsets.symmetric(
+          horizontal: isActive ? 16 : 12,
+          vertical: 10,
         ),
-        child: Text(
-          title,
-          style: TextStyle(
-            color: isActive ? const Color(0xFFCA748D) : const Color(0xFFFDFDFD),
-            fontSize: 12,
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w700,
-          ),
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFFEED5DB) : Colors.transparent,
+          borderRadius: BorderRadius.circular(97.66),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isActive ? const Color(0xFFCA748D) : Colors.white,
+              size: 24,
+            ),
+            if (isActive) ...[
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Color(0xFFCA748D),
+                  fontSize: 16,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

@@ -81,36 +81,40 @@ class _DetailOrderViewState extends State<DetailOrderView> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;  
+    
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
       body: Stack(
         children: [
           Positioned(
-            left: 0,
-            right: 0,
+            left: -17,
             top: -30,
-            height: 186,
             child: Container(
+              width: screenWidth + 34,  
+              height: 289,  
+              decoration: const BoxDecoration(
+                color: Color(0xFFD699AB),
+              ),
+            ),
+          ),
+
+          Positioned(
+            left: -17,
+            top: 147,
+            child: Container(
+              width: screenWidth + 34,
+              height: 114,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0xFFD699AB), Color(0xFFD699AB)],
+                  colors: [Color(0x003D5A4A), Color(0xFF3D5A4A)],
                 ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 4,
-                    offset: Offset(0, 4),
-                  ),
-                ],
               ),
             ),
           ),
+          
           SafeArea(
             child: Column(
               children: [

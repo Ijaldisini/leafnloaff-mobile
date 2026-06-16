@@ -62,7 +62,16 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                 alignment: Alignment.center,
                 children: [
                   Positioned(
-                    top: 82,
+                    top: 40,
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      height: 80, 
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  
+                  Positioned(
+                    top: 140, 
                     child: Container(
                       width: 255,
                       height: 38,
@@ -77,7 +86,7 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                     ),
                   ),
                   Positioned(
-                    top: 180,
+                    top: 200, 
                     child: SizedBox(
                       width: 320,
                       child: Column(
@@ -113,7 +122,7 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                     ),
                   ),
                   Positioned(
-                    top: 400,
+                    top: 440,  
                     child: const Text(
                       'OTP Code',
                       style: TextStyle(
@@ -125,7 +134,7 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                     ),
                   ),
                   Positioned(
-                    top: 430,
+                    top: 470,  
                     child: SizedBox(
                       width: 275.5,
                       height: 38,
@@ -139,7 +148,7 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                     ),
                   ),
                   Positioned(
-                    top: 520,
+                    top: 560, 
                     child: GestureDetector(
                       onTap: _viewModel.isLoading
                           ? null

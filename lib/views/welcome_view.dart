@@ -157,8 +157,8 @@ class _WelcomeViewState extends State<WelcomeView>
                             color: const Color(0xFFFDFDFD),
                             fontSize: screenWidth * 0.1,
                             fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w900,
-                            height: 1.1,
+                            fontWeight: FontWeight.w700,
+                            height: 1.10,
                             shadows: [
                               Shadow(
                                 offset: const Offset(6, 6),

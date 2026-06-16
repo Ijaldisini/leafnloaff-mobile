@@ -45,6 +45,21 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
                 decoration: const BoxDecoration(color: Color(0xFFD699AB)),
               ),
             ),
+            Positioned(
+              left: -17,
+              top: 147,  // ✅ Mulai dari bawah background pink
+              child: Container(
+                width: screenWidth + 34,
+                height: 114,  // ✅ Tinggi gradient
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0x003D5A4A), Color(0xFF3D5A4A)],
+                  ),
+                ),
+              ),
+            ),
             SafeArea(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

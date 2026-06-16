@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/cust/checkout_viewmodel.dart';
+import 'package:flutter_svg/flutter_svg.dart'; 
 import '../../models/cart_model.dart';
 import 'address_view.dart';
 import '../cust/detail_order_view.dart';
@@ -345,11 +346,39 @@ class _CheckoutViewState extends State<CheckoutView> {
     final isDelivery = _viewModel.shippingMethod == 'Delivery';
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: const Color(0xFFFDFDFD), borderRadius: BorderRadius.circular(16.69), boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 4))]),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 4)),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(children: [Icon(Icons.local_shipping, color: Color(0xFF2D4839)), SizedBox(width: 10), Text('Shipping Option', style: TextStyle(color: Color(0xFF2D4839), fontSize: 16, fontFamily: 'Poppins', fontWeight: FontWeight.w800))]),
+          Row(
+            children: [
+              SvgPicture.asset(
+                'assets/images/pickup.svg',
+                width: 25,
+                height: 25,
+                colorFilter: const ColorFilter.mode(
+                  Color(0xFF2D4839),
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Shipping Option',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontSize: 20,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 15),
           Row(
             children: [
@@ -360,31 +389,73 @@ class _CheckoutViewState extends State<CheckoutView> {
           ),
           if (isDelivery) ...[
             const SizedBox(height: 15),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(border: Border.all(color: const Color(0xFF2D4839)), borderRadius: BorderRadius.circular(10)),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_viewModel.deliveryAddress?.recipientName ?? 'Recipient’s Name', style: const TextStyle(color: Color(0xFF2D4839), fontSize: 12, fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 4),
-                        Text(_viewModel.deliveryAddress?.addressDetail ?? 'Belum ada alamat, silakan tambahkan', style: const TextStyle(color: Color(0xFF51725F), fontSize: 11)),
-                        Text('Contact: ${_viewModel.deliveryAddress?.phoneNumber ?? '-'}', style: const TextStyle(color: Color(0xFF51725F), fontSize: 11)),
-                      ],
+            Stack(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFF2D4839)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _viewModel.deliveryAddress?.recipientName ?? "Recipient's Name",
+                        style: const TextStyle(
+                          color: Color(0xFF2D4839),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _viewModel.deliveryAddress?.addressDetail ?? 'Belum ada alamat, silakan tambahkan',
+                        style: const TextStyle(
+                          color: Color(0xFF51725F),
+                          fontSize: 12,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                      Text(
+                        'Contact: ${_viewModel.deliveryAddress?.phoneNumber ?? '-'}',
+                        style: const TextStyle(
+                          color: Color(0xFF51725F),
+                          fontSize: 12,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: GestureDetector(
+                    onTap: () async {
+                      final selectedAddress = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AddressView(),
+                        ),
+                      );
+                      if (selectedAddress != null) {
+                        _viewModel.updateSelectedAddress(selectedAddress);
+                      }
+                    },
+                    child: SvgPicture.asset(
+                      'assets/images/Pencil.svg',
+                      width: 14,
+                      height: 14,
+                      colorFilter: const ColorFilter.mode(
+                        Color(0xFF2D4839),
+                        BlendMode.srcIn,
+                      ),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () async {
-                      final selectedAddress = await Navigator.push(context, MaterialPageRoute(builder: (context) => const AddressView()));
-                      if (selectedAddress != null) _viewModel.updateSelectedAddress(selectedAddress);
-                    },
-                    child: const Icon(Icons.edit_outlined, color: Color(0xFF2D4839), size: 20),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ],
@@ -415,36 +486,55 @@ class _CheckoutViewState extends State<CheckoutView> {
     );
   }
 
-  Widget _buildPaymentMethod() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFDFDFD),
-        borderRadius: BorderRadius.circular(16.69),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Payment Method',
-            style: TextStyle(
-              color: Color(0xFF2D4839),
-              fontWeight: FontWeight.w800,
-            ),
+Widget _buildPaymentMethod() {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: const Color(0xFFFDFDFD),
+      borderRadius: BorderRadius.circular(16.69),
+      boxShadow: const [
+        BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 4)),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+          Row(
+            children: [
+              SvgPicture.asset(
+                'assets/images/uang.svg',
+                width: 22,
+                height: 22,
+                colorFilter: const ColorFilter.mode(
+                  Color(0xFF2D4839),
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Payment Method',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontSize: 20,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 15),
-          _buildPaymentSelectableBox('Cash On Delivery', 'COD'),
-          const SizedBox(height: 10),
-          _buildPaymentSelectableBox('QRIS', 'QRIS Statis'),
-          if (_viewModel.paymentMethod == 'QRIS Statis') _buildQRISSection(),
-          const SizedBox(height: 10),
-          _buildPaymentSelectableBox('Virtual Account', 'Virtual Account Bank'),
-          if (_viewModel.paymentMethod == 'Virtual Account Bank')
-            _buildVASection(),
-        ],
-      ),
-    );
-  }
+        const SizedBox(height: 15),
+        _buildPaymentSelectableBox('Cash On Delivery', 'COD'),
+        const SizedBox(height: 10),
+        _buildPaymentSelectableBox('QRIS', 'QRIS Statis'),
+        if (_viewModel.paymentMethod == 'QRIS Statis') _buildQRISSection(),
+        const SizedBox(height: 10),
+        _buildPaymentSelectableBox('Virtual Account', 'Virtual Account Bank'),
+        if (_viewModel.paymentMethod == 'Virtual Account Bank')
+          _buildVASection(),
+      ],
+    ),
+  );
+}
 
   Widget _buildPaymentSelectableBox(String title, String methodValue) {
     final isActive = _viewModel.paymentMethod == methodValue;
@@ -471,7 +561,7 @@ class _CheckoutViewState extends State<CheckoutView> {
     );
   }
 
-  Widget _buildQRISSection() {
+Widget _buildQRISSection() {
     return Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(16),
@@ -480,31 +570,36 @@ class _CheckoutViewState extends State<CheckoutView> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min, 
         children: [
           const Text(
-            'Scan Here',
+            'Scan code to pay', 
             style: TextStyle(
               color: Color(0xFF2D4839),
               fontSize: 14,
               fontFamily: 'Poppins',
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600, 
             ),
           ),
           const SizedBox(height: 10),
-          Image.asset(
-            'assets/images/qris.jpg',
-            width: 180,
-            height: 180,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => Container(
-              width: 180,
-              height: 180,
-              color: Colors.grey.shade200,
-              alignment: Alignment.center,
-              child: const Text(
-                'assets/images/qris.jpg\nTidak Ditemukan',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey, fontSize: 10),
+          Center( 
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.45,
+                maxWidth: MediaQuery.of(context).size.width * 0.85, 
+              ),
+              child: Image.asset(
+                'assets/images/qris.jpg',
+                fit: BoxFit.contain, 
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey.shade200,
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'assets/images/qris.jpg\nTidak Ditemukan',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey, fontSize: 10),
+                  ),
+                ),
               ),
             ),
           ),
@@ -591,7 +686,6 @@ class _CheckoutViewState extends State<CheckoutView> {
       ),
     );
   }
-
   Widget _buildVoucherOption() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -605,14 +699,28 @@ class _CheckoutViewState extends State<CheckoutView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Voucher',
-            style: TextStyle(
-              color: Color(0xFF2D4839),
-              fontSize: 16,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w800,
-            ),
+          Row( 
+            children: [
+              SvgPicture.asset(
+                'assets/images/voucher.svg',
+                width: 22,
+                height: 22,
+                colorFilter: const ColorFilter.mode( 
+                  Color(0xFF2D4839),
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(width: 10),  
+              const Text(  
+                'Voucher',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontSize: 20,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
           GestureDetector(

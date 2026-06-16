@@ -134,7 +134,7 @@ class _CustomerMainViewState extends State<CustomerMainView> {
                 label,
                 style: const TextStyle(
                   color: Color(0xFFCA748D),
-                  fontSize: 16,
+                  fontSize: 18,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w700,
                 ),
