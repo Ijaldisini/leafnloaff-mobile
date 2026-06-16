@@ -47,10 +47,10 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
             ),
             Positioned(
               left: -17,
-              top: 147,  // ✅ Mulai dari bawah background pink
+              top: 147,
               child: Container(
                 width: screenWidth + 34,
-                height: 114,  // ✅ Tinggi gradient
+                height: 114,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,

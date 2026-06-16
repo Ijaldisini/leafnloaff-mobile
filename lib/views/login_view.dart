@@ -225,54 +225,6 @@ class _LoginViewState extends State<LoginView>
     );
   }
 
-  // Widget _logoLine(String text) {
-  //   return Stack(
-  //     children: [
-  //       Text(
-  //         text,
-  //         style: TextStyle(
-  //           foreground: Paint()
-  //             ..style = PaintingStyle.stroke
-  //             ..strokeWidth = 3
-  //             ..color = const Color(0xFF2D4839).withOpacity(0.4),
-  //           fontSize: 62,
-  //           fontFamily: 'Poppins',
-  //           fontWeight: FontWeight.w900,
-  //           height: 1.05,
-  //         ),
-  //       ),
-  //       ShaderMask(
-  //         shaderCallback: (bounds) => const LinearGradient(
-  //           colors: [Color(0xFFF5F5A0), Color(0xFFEED5DB)],
-  //           begin: Alignment.topLeft,
-  //           end: Alignment.bottomRight,
-  //         ).createShader(bounds),
-  //         child: Text(
-  //           text,
-  //           style: const TextStyle(
-  //             color: Colors.white,
-  //             fontSize: 62,
-  //             fontFamily: 'Poppins',
-  //             fontWeight: FontWeight.w900,
-  //             height: 1.05,
-  //           ),
-  //         ),
-  //       ),
-  //       Positioned(
-  //         left: 2,
-  //         top: -8,
-  //         child: Text(
-  //           '♛',
-  //           style: TextStyle(
-  //             fontSize: 16,
-  //             color: const Color(0xFFD4B44A).withOpacity(0.9),
-  //           ),
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
   Widget _fieldLabel(String label) {
     return Text(
       label,
