@@ -279,85 +279,88 @@ class _FormAddressViewState extends State<FormAddressView> {
 
               Align(
                 alignment: Alignment.bottomCenter,
-                child: Container(
-                  height: 98,
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                    ),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
-                    ),
-                  ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(25, 0, 25, 30),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          width: 130,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFF26F71), Color(0xFFC23437)],
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFF26F71), Color(0xFFC23437)],
+                              ),
+                              borderRadius: BorderRadius.circular(100),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 4,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
                             ),
-                            borderRadius: BorderRadius.circular(85.71),
-                          ),
-                          alignment: Alignment.center,
-                          child: const Text(
-                            'Discard',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
+                            alignment: Alignment.center,
+                            child: const Text(
+                              'Discard',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                      GestureDetector(
-                        onTap: _viewModel.isSaving
-                            ? null
-                            : () async {
-                                final success = await _viewModel
-                                    .saveOrUpdateAddress();
-                                if (success && context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Alamat berhasil disimpan!',
-                                      ),
-                                    ),
-                                  );
-                                  Navigator.pop(context, true);
-                                }
-                              },
-                        child: Container(
-                          width: 130,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                            ),
-                            borderRadius: BorderRadius.circular(85.71),
-                          ),
-                          alignment: Alignment.center,
-                          child: _viewModel.isSaving
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'Save',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                      const SizedBox(width: 16),
+                      
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _viewModel.isSaving
+                              ? null
+                              : () async {
+                                  final success = await _viewModel.saveOrUpdateAddress();
+                                  if (success && context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Alamat berhasil disimpan!')),
+                                    );
+                                    Navigator.pop(context, true);
+                                  }
+                                },
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                              ),
+                              borderRadius: BorderRadius.circular(100),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 4,
+                                  offset: Offset(0, 4),
                                 ),
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            child: _viewModel.isSaving
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  )
+                                : const Text(
+                                    'Save',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                          ),
                         ),
                       ),
                     ],

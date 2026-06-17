@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/user_model.dart';
 import '../../viewmodels/cust/profile_viewmodel.dart';
 import '../../services/cust/profile_service.dart';
+import 'package:flutter_svg/flutter_svg.dart'; 
 import '../login_view.dart';
 import 'edit_profile_view.dart';
 import 'history_view.dart';
@@ -179,35 +180,40 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
 
                 const SizedBox(height: 50),
+                  _buildMenuButton(
+                    'History',
+                    iconPath: 'assets/images/history.svg',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HistoryView(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
 
-                _buildMenuButton(
-                  'History',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HistoryView(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
+                  _buildMenuButton(
+                    'Address',
+                    iconPath: 'assets/images/address.svg',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AddressView(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
 
-                _buildMenuButton(
-                  'Address',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AddressView(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                _buildMenuButton('Delete Account', onTap: () {}),
-                const SizedBox(height: 40),
+                  _buildMenuButton(
+                    'Delete Account',
+                    iconPath: 'assets/images/deleteakun.svg',
+                    onTap: () {},
+                  ),
+                  const SizedBox(height: 40),
 
                 ListenableBuilder(
                   listenable: _viewModel,
@@ -265,12 +271,12 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  Widget _buildMenuButton(String title, {required VoidCallback onTap}) {
+  Widget _buildMenuButton(String title, {required String iconPath, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: MediaQuery.of(context).size.width * 0.85,
-        height: 48,
+        height: 56,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
           color: const Color(0xFFFDFDFD),
@@ -283,15 +289,39 @@ class _ProfileViewState extends State<ProfileView> {
             ),
           ],
         ),
-        alignment: Alignment.centerLeft,
-        child: Text(
-          title,
-          style: const TextStyle(
-            color: Color(0xFF2D4839),
-            fontSize: 16,
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w800,
-          ),
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              iconPath,
+              width: 24,
+              height: 24,
+              colorFilter: const ColorFilter.mode(
+                Color(0xFF2D4839),
+                BlendMode.srcIn,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontSize: 16,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            SvgPicture.asset(
+              'assets/images/panahkanan.svg',
+              width: 20,
+              height: 20,
+              colorFilter: const ColorFilter.mode(
+                Color(0xFF2D4839),
+                BlendMode.srcIn,
+              ),
+            ),
+          ],
         ),
       ),
     );

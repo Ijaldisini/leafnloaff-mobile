@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../viewmodels/cust/address_viewmodel.dart';
 import '../../services/cust/address_service.dart';
 import '../../models/address_model.dart';
+import 'package:flutter_svg/flutter_svg.dart'; 
 import 'form_address_view.dart';
 
 class AddressView extends StatefulWidget {
@@ -266,19 +267,27 @@ class _AddressViewState extends State<AddressView> {
                   children: [
                     GestureDetector(
                       onTap: () => _navigateToForm(addressToEdit: address),
-                      child: const Icon(
-                        Icons.edit_outlined,
-                        color: Color(0xFF2D4839),
-                        size: 20,
+                      child: SvgPicture.asset(
+                        'assets/images/Pencil.svg',
+                        width: 15,
+                        height: 15,
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFF2D4839),
+                          BlendMode.srcIn,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10),
                     GestureDetector(
                       onTap: () => _showDeleteConfirmation(context, address.id),
-                      child: const Icon(
-                        Icons.delete_outline,
-                        color: Color(0xFF2D4839),
-                        size: 20,
+                      child: SvgPicture.asset(
+                        'assets/images/sampah.svg',
+                        width: 15,
+                        height: 15,
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFF2D4839),
+                          BlendMode.srcIn,
+                        ),
                       ),
                     ),
                   ],

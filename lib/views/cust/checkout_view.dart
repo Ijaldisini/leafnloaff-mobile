@@ -79,19 +79,23 @@ class _CheckoutViewState extends State<CheckoutView> {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 15.0),
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.arrow_back_ios_new,
-                              color: Colors.white,
+                        Row(
+                          children: [
+                            const SizedBox(width: 25), 
+                            GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: SvgPicture.asset(
+                                'assets/images/back.svg',
+                                width: 24,
+                                height: 24,
+                                colorFilter: const ColorFilter.mode(
+                                  Colors.white,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
                             ),
-                            onPressed: () => Navigator.pop(context),
-                          ),
+                          ],
                         ),
-                      ),
                       const Text(
                         'Checkout',
                         style: TextStyle(

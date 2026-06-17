@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/menu_model.dart';
 import '../../viewmodels/cust/review_menu_viewmodel.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../widgets/shared_media_widgets.dart';
 
 class ReviewMenuView extends StatefulWidget {
@@ -113,27 +114,18 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Row(
                               children: [
-                                GestureDetector(
-                                  onTap: () => Navigator.pop(context),
-                                  child: Container(
-                                    width: 36,
-                                    height: 36,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.25,
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 16.0), 
+                                  child: GestureDetector(
+                                    onTap: () => Navigator.pop(context),
+                                    child: SvgPicture.asset(
+                                      'assets/images/back.svg',
+                                      width: 24,
+                                      height: 24,
+                                      colorFilter: const ColorFilter.mode(
+                                        Colors.white,  
+                                        BlendMode.srcIn,
                                       ),
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.4,
-                                        ),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.arrow_back,
-                                      color: Colors.white,
-                                      size: 18,
                                     ),
                                   ),
                                 ),
@@ -320,8 +312,8 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                       onTap: _viewModel.isAddingToCart ? null : _addToCart,
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        width: _viewModel.isAddingToCart ? 48 : 137,
-                        height: 32,
+                        width: _viewModel.isAddingToCart ? 48 : 160,
+                        height: 44,
                         decoration: ShapeDecoration(
                           color: const Color(0xFF426E55),
                           shape: RoundedRectangleBorder(
@@ -330,7 +322,7 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                           shadows: const [
                             BoxShadow(
                               color: Color(0x3F000000),
-                              blurRadius: 4,
+                              blurRadius: 8,
                               offset: Offset(0, 4),
                             ),
                           ],
@@ -350,7 +342,7 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 14,
+                                    fontSize: 16,
                                     fontFamily: 'Poppins',
                                     fontWeight: FontWeight.w800,
                                   ),

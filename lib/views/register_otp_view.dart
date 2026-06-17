@@ -53,25 +53,21 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
               height: MediaQuery.of(context).size.height,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment(0.00, 0.00),
-                  end: Alignment(1.00, 1.00),
-                  colors: [Color(0xFFEAEAAA), Color(0xFF2D4839)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFFFEF9C3),  
+                    Color(0xFF84A98C),  
+                    Color(0xFF52796F),  
+                  ],
+                  stops: [0.0, 0.4, 1.0], 
                 ),
               ),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   Positioned(
-                    top: 40,
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      height: 80, 
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                  
-                  Positioned(
-                    top: 140, 
+                    top: 82,
                     child: Container(
                       width: 255,
                       height: 38,
@@ -83,61 +79,86 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                           borderRadius: BorderRadius.circular(108.57),
                         ),
                       ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 200, 
-                    child: SizedBox(
-                      width: 320,
-                      child: Column(
+                      child: Row(
                         children: [
-                          const Icon(
-                            Icons.mark_email_unread_outlined,
-                            size: 80,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(height: 20),
-                          const Text(
-                            'Verifikasi Email',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.bold,
+                          Expanded(
+                            child: Container(
+                              decoration: ShapeDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(88.35),
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'Login',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Color(0xFFEED5DB),
+                                  fontSize: 18,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Kami telah mengirimkan 8-digit kode OTP ke email:\n\n${widget.user.email}\n\nSilakan periksa kotak masuk atau folder spam Anda.',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500,
+                          Expanded(
+                            child: Container(
+                              decoration: ShapeDecoration(
+                                color: const Color(0xFFEED5DB),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(88.35),
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'Register',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Color(0xFFCA748D),
+                                  fontSize: 18,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
+
                   Positioned(
-                    top: 440,  
+                    top: 130,
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      width: 200,   
+                      height: 200,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+
+                  Positioned(
+                    top: 345,
+                    left: 20,
                     child: const Text(
                       'OTP Code',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Color(0xFFFDFDFD),
                         fontSize: 18,
                         fontFamily: 'Poppins',
                         fontWeight: FontWeight.w700,
+                        height: 1.10,
                       ),
                     ),
                   ),
+
                   Positioned(
-                    top: 470,  
+                    top: 376,
                     child: SizedBox(
-                      width: 275.5,
-                      height: 38,
+                      width: 376,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: List.generate(
@@ -147,39 +168,72 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                       ),
                     ),
                   ),
+
                   Positioned(
-                    top: 560, 
+                    top: 430,
+                    child: SizedBox(
+                      width: 226,
+                      child: Opacity(
+                        opacity: 0.60,
+                        child: const Text(
+                          'Open your Google Authenticator and enter the code you received.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFFFDFDFD),
+                            fontSize: 12,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w500,
+                            height: 1.10,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  Positioned(
+                    top: 520,
                     child: GestureDetector(
-                      onTap: _viewModel.isLoading
-                          ? null
-                          : _handleVerify,
-                      child: Container(
-                        width: 189,
-                        height: 38,
-                        decoration: ShapeDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                      onTap: _viewModel.isLoading ? null : _handleVerify,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 200,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: _viewModel.isLoading
+                                ? [
+                                    const Color(0xFFD699AB).withOpacity(0.6),
+                                    const Color(0xFFCA748D).withOpacity(0.6),
+                                  ]
+                                : const [Color(0xFFD699AB), Color(0xFFCA748D)],
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(108.57),
-                          ),
+                          borderRadius: BorderRadius.circular(100),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFCA748D).withOpacity(0.45),
+                              blurRadius: 14,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
                         ),
                         alignment: Alignment.center,
                         child: _viewModel.isLoading
                             ? const SizedBox(
-                                width: 20,
-                                height: 20,
+                                width: 22,
+                                height: 22,
                                 child: CircularProgressIndicator(
                                   color: Colors.white,
-                                  strokeWidth: 2,
+                                  strokeWidth: 2.5,
                                 ),
                               )
                             : const Text(
                                 'Verify',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
                       ),
@@ -196,11 +250,14 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
 
   Widget _buildOtpBox(int index) {
     return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+      width: 40,
+      height: 40,
+      margin: const EdgeInsets.symmetric(horizontal: 2), 
+      decoration: ShapeDecoration(
+        color: const Color(0xFFFDFDFD),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
       ),
       child: TextField(
         controller: _viewModel.otpControllers[index],

@@ -182,126 +182,257 @@ class _HistoryViewState extends State<HistoryView> {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFDFDFD),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFCA748D), width: 1),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 4)),
-        ],
-      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'Order #${order.id.substring(0, 8)}...',
-                  style: const TextStyle(
-                    color: Color(0xFF2D4839),
-                    fontSize: 14,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isFinished
-                      ? const Color(0xFF2D4839)
-                      : const Color(0xFFD699AB),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  order.status,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            order.productNames,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Color(0xFF2D4839),
-              fontSize: 13,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${order.totalQuantity} items',
-            style: const TextStyle(
-              color: Color(0xFF51725F),
-              fontSize: 11,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                priceFormatted,
-                style: const TextStyle(
-                  color: Color(0xFFC23437),
-                  fontSize: 14,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DetailOrderView(orderId: order.id),
+          Container(
+            width: 340,
+            height: 165,
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  child: Container(
+                    width: 340,
+                    height: 165,
+                    decoration: ShapeDecoration(
+                      color: const Color(0xFFFDFDFD),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16.69),
+                      ),
                     ),
-                  ).then((_) {
-                    _viewModel.fetchHistory();
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 6,
                   ),
-                  decoration: BoxDecoration(
-                    color: isFinished
-                        ? const Color(0xFF333333)
-                        : const Color(0xFFEED5DB),
-                    border: isFinished
-                        ? null
-                        : Border.all(color: const Color(0xFFCA748D)),
-                    borderRadius: BorderRadius.circular(55.60),
+                ),
+                
+                Positioned(
+                  left: 14,
+                  top: 135,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailOrderView(orderId: order.id),
+                        ),
+                      ).then((_) {
+                        _viewModel.fetchHistory();
+                      });
+                    },
+                    child: Container(
+                      width: 98,
+                      height: 20,
+                      decoration: ShapeDecoration(
+                        color: isFinished
+                            ? const Color(0xFF333333)
+                            : const Color(0xFFEED5DB),
+                        shape: RoundedRectangleBorder(
+                          side: isFinished
+                              ? BorderSide.none
+                              : BorderSide(
+                                  width: 1,
+                                  color: const Color(0xFFCA748D),
+                                ),
+                          borderRadius: BorderRadius.circular(55.60),
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          isFinished ? 'Write a Review' : 'See Detail',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: isFinished
+                                ? const Color(0xFFFBFBFB)
+                                : const Color(0xFFCA748D),
+                            fontSize: 10.59,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w700,
+                            height: 1.10,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
+                ),
+                
+                Positioned(
+                  left: 18,
+                  top: 102,
+                  child: Container(
+                    width: 308,
+                    height: 6,
+                    decoration: ShapeDecoration(
+                      color: const Color(0xFF848484),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(7500.95),
+                      ),
+                    ),
+                  ),
+                ),
+                
+                Positioned(
+                  left: 18,
+                  top: 102,
+                  child: Container(
+                    width: 308,
+                    height: 6,
+                    decoration: ShapeDecoration(
+                      color: const Color(0xFFCA748D),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(7500.95),
+                      ),
+                    ),
+                  ),
+                ),
+                
+                Positioned(
+                  left: 18,
+                  top: 111,
                   child: Text(
-                    isFinished ? 'Write a Review' : 'See Detail',
+                    'Preparing',
+                    textAlign: TextAlign.right,
                     style: TextStyle(
-                      color: isFinished
-                          ? const Color(0xFFFBFBFB)
-                          : const Color(0xFFCA748D),
-                      fontSize: 10.59,
+                      color: const Color(0xFF2D4839),
+                      fontSize: 12,
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w700,
+                      height: 1.10,
                     ),
                   ),
                 ),
-              ),
-            ],
+                
+                Positioned(
+                  left: 135,
+                  top: 111,
+                  child: Text(
+                    'On The Way',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: const Color(0xFF2D4839),
+                      fontSize: 12,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w700,
+                      height: 1.10,
+                    ),
+                  ),
+                ),
+                
+                Positioned(
+                  left: 267,
+                  top: 111,
+                  child: Text(
+                    'Delivered',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: const Color(0xFF2D4839),
+                      fontSize: 12,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w700,
+                      height: 1.10,
+                    ),
+                  ),
+                ),
+                
+                Positioned(
+                  left: 14,
+                  top: 13,
+                  child: Text(
+                    'Order #${order.id.substring(0, 8)}',
+                    style: TextStyle(
+                      color: const Color(0xFF2D4839),
+                      fontSize: 16,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w700,
+                      height: 1.10,
+                    ),
+                  ),
+                ),
+                
+                Positioned(
+                  left: 253,
+                  top: 13,
+                  child: Text(
+                    priceFormatted,
+                    style: TextStyle(
+                      color: const Color(0xFF2D4839),
+                      fontSize: 16,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w700,
+                      height: 1.10,
+                    ),
+                  ),
+                ),
+                
+                Positioned(
+                  left: 14,
+                  top: 34,
+                  child: SizedBox(
+                    width: 222,
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Product: ',
+                            style: TextStyle(
+                              color: const Color(0xFF51725F),
+                              fontSize: 13,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w700,
+                              height: 1.10,
+                            ),
+                          ),
+                          TextSpan(
+                            text: order.productNames,
+                            style: TextStyle(
+                              color: const Color(0xFF51725F),
+                              fontSize: 13,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500,
+                              height: 1.10,
+                            ),
+                          ),
+                        ],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+                
+                Positioned(
+                  left: 14,
+                  top: 67,
+                  child: SizedBox(
+                    width: 222,
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Qty:',
+                            style: TextStyle(
+                              color: const Color(0xFF51725F),
+                              fontSize: 13,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w700,
+                              height: 1.10,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' ${order.totalQuantity}',
+                            style: TextStyle(
+                              color: const Color(0xFF51725F),
+                              fontSize: 13,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500,
+                              height: 1.10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

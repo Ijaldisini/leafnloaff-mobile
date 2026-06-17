@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/cust/detail_menu_viewmodel.dart';
+import 'package:flutter_svg/flutter_svg.dart'; 
 import 'review_menu_view.dart';
 import '../../models/menu_model.dart';
 
@@ -335,20 +336,19 @@ class _DetailMenuViewState extends State<DetailMenuView>
   }
 
   Widget _backButton() {
-    return GestureDetector(
-      onTap: () => Navigator.pop(context),
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.25),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.4),
-            width: 1,
+    return Padding(
+      padding: const EdgeInsets.only(left: 16.0), 
+      child: GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: SvgPicture.asset(
+          'assets/images/back.svg',
+          width: 24,
+          height: 24,
+          colorFilter: const ColorFilter.mode(
+            Colors.white,
+            BlendMode.srcIn,
           ),
         ),
-        child: const Icon(Icons.arrow_back, color: Colors.white, size: 18),
       ),
     );
   }
@@ -639,11 +639,6 @@ class _DetailMenuViewState extends State<DetailMenuView>
                       : const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.shopping_cart_outlined,
-                              color: Colors.white,
-                              size: 18,
-                            ),
                             SizedBox(width: 8),
                             Text(
                               'Add to Cart',

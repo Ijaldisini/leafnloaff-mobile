@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/user_model.dart';
 import '../../viewmodels/cust/edit_profile_viewmodel.dart';
 import '../../services/cust/edit_profile_service.dart';
@@ -71,15 +72,16 @@ class _EditProfileViewState extends State<EditProfileView> {
                     children: [
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: Container(
+                        child: Padding(
                           padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
+                          child: SvgPicture.asset(
+                            'assets/images/back.svg',
+                            width: 24,
+                            height: 24,
+                            colorFilter: const ColorFilter.mode(
+                              Colors.white,
+                              BlendMode.srcIn,
+                            ),
                           ),
                         ),
                       ),
@@ -182,13 +184,17 @@ class _EditProfileViewState extends State<EditProfileView> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: const BoxDecoration(
-                                color: Color(0xFFCA748D),
+                                color: Color.fromARGB(255, 255, 255, 255),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
-                                Icons.edit,
-                                color: Colors.white,
-                                size: 20,
+                              child: SvgPicture.asset(
+                                'assets/images/Pencil.svg',
+                                width: 18,
+                                height: 18,
+                                colorFilter: const ColorFilter.mode(
+                                  Color.fromARGB(255, 64, 95, 69),
+                                  BlendMode.srcIn,
+                                ),
                               ),
                             ),
                           ],

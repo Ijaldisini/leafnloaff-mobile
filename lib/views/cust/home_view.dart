@@ -4,6 +4,7 @@ import '../../models/user_model.dart';
 import '../../models/voucher_model.dart';
 import '../../services/cust/home_service.dart';
 import '../../services/cust/cart_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';  
 import '../../viewmodels/cust/home_viewmodel.dart';
 import '../../viewmodels/cust/cart_viewmodel.dart';
 import 'detail_menu_view.dart';
@@ -75,10 +76,25 @@ class _HomeViewState extends State<HomeView> {
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: Row(
                             children: [
-                              const Icon(
-                                Icons.location_on,
-                                color: Color(0xFF2D4839),
-                                size: 28,
+                              Container(
+                                decoration: BoxDecoration(
+                                  // boxShadow: [
+                                  //   BoxShadow(
+                                  //     color: Colors.black.withValues(alpha: 0.25),
+                                  //     blurRadius: 4,
+                                  //     offset: const Offset(2, 2),
+                                  //   ),
+                                  // ],
+                                ),
+                                child: SvgPicture.asset(
+                                  'assets/images/locations.svg',
+                                  width: 28,
+                                  height: 28,
+                                  colorFilter: const ColorFilter.mode(
+                                    Colors.white, 
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
@@ -97,9 +113,7 @@ class _HomeViewState extends State<HomeView> {
                                           Shadow(
                                             offset: const Offset(2, 2),
                                             blurRadius: 4,
-                                            color: Colors.black.withValues(
-                                              alpha: 0.25,
-                                            ),
+                                            color: Colors.black.withValues(alpha: 0.25),
                                           ),
                                         ],
                                       ),
@@ -110,9 +124,7 @@ class _HomeViewState extends State<HomeView> {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.8,
-                                        ),
+                                        color: Colors.white.withValues(alpha: 0.8),
                                         fontSize: 13,
                                         fontFamily: 'Poppins',
                                         fontWeight: FontWeight.w500,
@@ -156,9 +168,32 @@ class _HomeViewState extends State<HomeView> {
                                   fontFamily: 'Poppins',
                                   fontSize: 14,
                                 ),
-                                prefixIcon: const Icon(
-                                  Icons.search,
-                                  color: Color(0xFF426E55),
+                                prefixIcon: Padding(
+                                  padding: const EdgeInsets.only(left: 12, right: 8),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 30,
+                                        height: 30,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFF426E55),  
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Center(
+                                          child: SvgPicture.asset(
+                                            'assets/images/Search.svg',
+                                            width: 16,
+                                            height: 16,
+                                            colorFilter: const ColorFilter.mode(
+                                              Colors.white, 
+                                              BlendMode.srcIn,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                                 suffixIcon: _viewModel.searchQuery.isNotEmpty
                                     ? IconButton(

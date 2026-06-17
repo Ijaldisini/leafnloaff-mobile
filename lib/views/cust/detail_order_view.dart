@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../models/order_model.dart';
 import '../../viewmodels/cust/detail_order_viewmodel.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'write_review_view.dart';
 import 'see_review_view.dart';
 
@@ -82,8 +83,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;  
-    
-    return Scaffold(
+        return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
       body: Stack(
         children: [
@@ -125,9 +125,14 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                       Padding(
                         padding: const EdgeInsets.only(left: 15.0),
                         child: IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
+                          icon: SvgPicture.asset(
+                            'assets/images/back.svg',
+                            width: 24,
+                            height: 24,
+                            colorFilter: const ColorFilter.mode(
+                              Colors.white,
+                              BlendMode.srcIn,
+                            ),
                           ),
                           onPressed: () => Navigator.pop(context),
                         ),
@@ -205,6 +210,12 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                         ),
                         physics: const BouncingScrollPhysics(),
                         children: [
+                          _buildOrderStatus(status),
+                          const SizedBox(height: 16),
+                          _buildCustomerInformation(order),
+                          const SizedBox(height: 16),
+                          _buildOrderDetail(order.items),
+                          const SizedBox(height: 20),
                           _buildOrderSummary(),
                           const SizedBox(height: 20),
                           _buildPaymentInformation(
@@ -221,6 +232,571 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderStatus(String status) {
+    int getCurrentStep() {
+      switch (status) {
+        case 'Menunggu':
+        case 'Waiting':
+          return 0;
+        case 'Diproses':
+        case 'Preparing':
+          return 1;
+        case 'Dikirim':
+        case 'On The Way':
+          return 2;
+        case 'Selesai':
+        case 'Delivered':
+          return 3;
+        default:
+          return 0;
+      }
+    }
+
+    final currentStep = getCurrentStep();
+
+    return Container(
+      width: 338,
+      height: 123,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x3F000000),
+            blurRadius: 4,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 110,
+            top: 11,
+            child: SizedBox(
+              width: 134,
+              height: 23.76,
+              child: Text(
+                'Order Status',
+                style: TextStyle(
+                  color: const Color(0xFF2D4839),
+                  fontSize: 16,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  height: 1.10,
+                ),
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 25,
+            top: 50,
+            child: SvgPicture.asset(
+              'assets/images/Waiting.svg',
+              width: 32,
+              height: 32,
+              colorFilter: ColorFilter.mode(
+                currentStep >= 0 ? const Color(0xFF2D4839) : Colors.grey,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 105,
+            top: 50,
+            child: SvgPicture.asset(
+              'assets/images/bell.svg',
+              width: 32,
+              height: 32,
+              colorFilter: ColorFilter.mode(
+                currentStep >= 1 ? const Color(0xFF2D4839) : Colors.grey,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 195,
+            top: 50,
+            child: SvgPicture.asset(
+              'assets/images/pickup.svg',
+              width: 32,
+              height: 32,
+              colorFilter: ColorFilter.mode(
+                currentStep >= 2 ? const Color(0xFF2D4839) : Colors.grey,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 280,
+            top: 50,
+            child: SvgPicture.asset(
+              'assets/images/deliverid.svg',
+              width: 32,
+              height: 32,
+              colorFilter: ColorFilter.mode(
+                currentStep >= 3 ? const Color(0xFF2D4839) : Colors.grey,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 16,
+            top: 88.50,
+            child: Container(
+              width: 310,
+              height: 6,
+              decoration: ShapeDecoration(
+                color: const Color(0xFFEED5DB),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(7500.95),
+                ),
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 16,
+            top: 88.50,
+            child: Container(
+              width: currentStep >= 0 ? 62 : 0,
+              height: 6,
+              decoration: ShapeDecoration(
+                color: const Color(0xFFCA748D),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(7500.95),
+                ),
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 16,
+            top: 97.50,
+            child: Text(
+              'Waiting',
+              style: TextStyle(
+                color: currentStep >= 0 ? const Color(0xFF2D4839) : Colors.grey,
+                fontSize: 12,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w700,
+                height: 1.10,
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 87,
+            top: 97.50,
+            child: Text(
+              'Preparing',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: currentStep >= 1 ? const Color(0xFF2D4839) : Colors.grey,
+                fontSize: 12,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w700,
+                height: 1.10,
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 171,
+            top: 97.50,
+            child: Text(
+              'On The Way',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: currentStep >= 2 ? const Color(0xFF2D4839) : Colors.grey,
+                fontSize: 12,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w700,
+                height: 1.10,
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 267,
+            top: 97.50,
+            child: Text(
+              'Delivered',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: currentStep >= 3 ? const Color(0xFF2D4839) : Colors.grey,
+                fontSize: 12,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w700,
+                height: 1.10,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomerInformation(OrderDetailModel order) {
+    return Container(
+      width: 338,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x3F000000),
+            blurRadius: 4,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Customer Information',
+              style: TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 20, 
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 12),
+            
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/images/person.svg',
+                  width: 20,
+                  height: 20,
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF426E55),
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    order.profile.fullName,
+                    style: const TextStyle(
+                      color: Color(0xFF426E55),
+                      fontSize: 14,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/images/telepon.svg',
+                  width: 20,
+                  height: 20,
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF426E55),
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    order.profile.phoneNumber,
+                    style: const TextStyle(
+                      color: Color(0xFF426E55),
+                      fontSize: 14, 
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start, 
+              children: [
+                SvgPicture.asset(
+                  'assets/images/locations.svg',
+                  width: 20,
+                  height: 20,
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF426E55),
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    order.addressDetail,
+                    style: const TextStyle(
+                      color: Color(0xFF426E55),
+                      fontSize: 14, 
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w600,
+                      height: 1.4, 
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () async {
+                if (order.latitude != null && order.longitude != null) {
+                  final Uri url = Uri.parse(
+                    'https://www.google.com/maps/search/?api=1&query=${order.latitude},${order.longitude}',
+                  );
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  }
+                }
+              },
+              child: Container(
+                height: 32, 
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: ShapeDecoration(
+                  color: const Color(0xFFEED5DB),
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(
+                      width: 1,
+                      color: const Color(0xFFCA748D),
+                    ),
+                    borderRadius: BorderRadius.circular(62.50),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(
+                      Icons.map, 
+                      size: 16,
+                      color: Color(0xFFCA748D),
+                    ),
+                    SizedBox(width: 6),
+                    Text(
+                      'View Maps',
+                      style: TextStyle(
+                        color: Color(0xFFCA748D),
+                        fontSize: 12, 
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderDetail(List<OrderItemModel> items) {
+    return Container(
+      width: 338,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x3F000000),
+            blurRadius: 4,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 188,
+              height: 24,
+              child: Text(
+                'Order Detail',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontSize: 20,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  height: 1.10,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            
+            ...items.map((item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _buildOrderItem(item),
+            )).toList(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderItem(OrderItemModel item) {
+    return Container(
+      width: 314,
+      height: 81,
+      decoration: ShapeDecoration(
+        color: const Color(0xFFFDFDFD),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+            width: 1,
+            color: const Color(0xFFCA748D),
+          ),
+          borderRadius: BorderRadius.circular(11.68),
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            top: 0,
+            child: Container(
+              width: 91.53,
+              height: 81,
+              decoration: ShapeDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(
+                    item.menuImageUrl ?? 'https://placehold.co/92x81',
+                  ),
+                  fit: BoxFit.cover,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(11.68),
+                    bottomLeft: Radius.circular(11.68),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 95,
+            top: 5,
+            child: Text(
+              item.menuName,
+              style: const TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 12,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w800,
+                height: 1.10,
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 95,
+            top: 21,
+            child: SizedBox(
+              width: 213,
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    const TextSpan(
+                      text: 'Notes: ',
+                      style: TextStyle(
+                        color: Color(0xFF426E55),
+                        fontSize: 8,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w700,
+                        height: 1.10,
+                      ),
+                    ),
+                    TextSpan(
+                      text: item.notes ?? '-',
+                      style: const TextStyle(
+                        color: Color(0xFF426E55),
+                        fontSize: 8,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w500,
+                        height: 1.10,
+                      ),
+                    ),
+                  ],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 95,
+            top: 42,
+            child: SizedBox(
+              width: 120.40,
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    const TextSpan(
+                      text: 'Qty:',
+                      style: TextStyle(
+                        color: Color(0xFF426E55),
+                        fontSize: 8,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w700,
+                        height: 1.10,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' ${item.quantity}',
+                      style: const TextStyle(
+                        color: Color(0xFF426E55),
+                        fontSize: 8,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w500,
+                        height: 1.10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          
+          Positioned(
+            left: 95,
+            top: 59,
+            child: Text(
+              'Rp. ${item.priceAtTime}',
+              style: const TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 13,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w800,
+                height: 1.10,
+              ),
             ),
           ),
         ],
@@ -440,7 +1016,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                 'Payment Method',
                 style: TextStyle(
                   color: Color(0xFF426E55),
-                  fontSize: 12,
+                  fontSize: 16,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w600,
                 ),
@@ -456,7 +1032,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                 'Payment Status',
                 style: TextStyle(
                   color: Color(0xFF426E55),
-                  fontSize: 12,
+                  fontSize: 16,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w600,
                 ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:video_player/video_player.dart';
 import '../../viewmodels/cust/review_order_viewmodel.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/review_model.dart';
 import '../../models/order_model.dart';
 
@@ -33,22 +34,20 @@ class _SeeReviewViewState extends State<SeeReviewView> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
       body: Stack(
         children: [
           Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            height: 220,
+            left: -17,
+            top: -30,
             child: Container(
+              width: screenWidth + 34,  
+              height: 289,  
               decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFD699AB), Color(0xFFD699AB)],
-                ),
+                color: Color(0xFFD699AB),
               ),
             ),
           ),
@@ -63,9 +62,17 @@ class _SeeReviewViewState extends State<SeeReviewView> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: SvgPicture.asset(
+                          'assets/images/back.svg',
+                          width: 24,
+                          height: 24,
+                          colorFilter: const ColorFilter.mode(
+                            Colors.white,  
+                            BlendMode.srcIn,
+                          ),
+                        ),
                       ),
                       Expanded(
                         child: Column(

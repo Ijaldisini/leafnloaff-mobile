@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import '../../viewmodels/cust/review_order_viewmodel.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/review_model.dart';
 import '../../models/order_model.dart';
 import '../../utils/image_picker_util.dart';
@@ -95,6 +96,8 @@ class _WriteReviewViewState extends State<WriteReviewView> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
       body: ListenableBuilder(
@@ -103,20 +106,33 @@ class _WriteReviewViewState extends State<WriteReviewView> {
           return Stack(
             children: [
               Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                height: 220,
+                left: -17,
+                top: -30,
                 child: Container(
+                  width: screenWidth + 34,  
+                  height: 289,  
+                  decoration: const BoxDecoration(
+                    color: Color.fromARGB(255, 214, 153, 171), 
+                  ),
+                ),
+              ),
+
+              Positioned(
+                left: -17,
+                top: 147,
+                child: Container(
+                  width: screenWidth + 34,
+                  height: 114,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Color(0xFFD699AB), Color(0xFFD699AB)],
+                      colors: [Color(0x003D5A4A), Color(0xFF3D5A4A)],
                     ),
                   ),
                 ),
               ),
+
               SafeArea(
                 child: Column(
                   children: [
@@ -127,13 +143,21 @@ class _WriteReviewViewState extends State<WriteReviewView> {
                       ),
                       child: Row(
                         children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.arrow_back,
-                              color: Colors.white,
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SvgPicture.asset(
+                              'assets/images/back.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Colors.white,
+                                BlendMode.srcIn,
+                              ),
                             ),
-                            onPressed: () => Navigator.pop(context),
                           ),
+                        ),
                           const Expanded(
                             child: Text(
                               'Write Review',
@@ -166,8 +190,7 @@ class _WriteReviewViewState extends State<WriteReviewView> {
                         physics: const BouncingScrollPhysics(),
                         itemCount: widget.orderItems.length,
                         itemBuilder: (context, index) {
-                          final item = widget
-                              .orderItems[index];
+                          final item = widget.orderItems[index];
                           return _buildReviewCard(index, item);
                         },
                       ),
@@ -291,7 +314,7 @@ class _WriteReviewViewState extends State<WriteReviewView> {
               'How was your meal?',
               style: TextStyle(
                 color: Color(0xFF2D4839),
-                fontSize: 16,
+                fontSize: 18,
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.bold,
               ),
@@ -322,7 +345,7 @@ class _WriteReviewViewState extends State<WriteReviewView> {
             'Write your review',
             style: TextStyle(
               color: Color(0xFF2D4839),
-              fontSize: 14,
+              fontSize: 16,
               fontFamily: 'Poppins',
               fontWeight: FontWeight.bold,
             ),
@@ -350,7 +373,7 @@ class _WriteReviewViewState extends State<WriteReviewView> {
             'Add Photos / Videos (Max 3)',
             style: TextStyle(
               color: Color(0xFF2D4839),
-              fontSize: 14,
+              fontSize: 16,
               fontFamily: 'Poppins',
               fontWeight: FontWeight.bold,
             ),
@@ -413,11 +436,11 @@ class _WriteReviewViewState extends State<WriteReviewView> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildPhotoBtn(Icons.camera_alt_outlined, () {
+                    _buildPhotoBtn('assets/images/Camera.svg', () {
                       _showCameraOptions(index);
                     }),
                     const SizedBox(width: 10),
-                    _buildPhotoBtn(Icons.image_outlined, () async {
+                    _buildPhotoBtn('assets/images/Galeri.svg', () async {
                       final files = await _imagePicker.pickMultipleMedia();
                       if (files.isNotEmpty) {
                         setState(() {
@@ -437,7 +460,7 @@ class _WriteReviewViewState extends State<WriteReviewView> {
     );
   }
 
-  Widget _buildPhotoBtn(IconData icon, VoidCallback onTap) {
+  Widget _buildPhotoBtn(String iconPath, VoidCallback onTap) {
     return Container(
       width: 70,
       height: 70,
@@ -446,7 +469,15 @@ class _WriteReviewViewState extends State<WriteReviewView> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: IconButton(
-        icon: Icon(icon, color: const Color(0xFFCA748D), size: 30),
+        icon: SvgPicture.asset(
+          iconPath,
+          width: 30,
+          height: 30,
+          colorFilter: const ColorFilter.mode(
+            Color(0xFFCA748D),
+            BlendMode.srcIn,
+          ),
+        ),
         onPressed: onTap,
       ),
     );

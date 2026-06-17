@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart'; 
 import 'package:intl/intl.dart';
 import '../../models/voucher_model.dart';
 import '../../viewmodels/cust/select_voucher_viewmodel.dart';
@@ -68,15 +69,20 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 15.0),
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.arrow_back_ios_new,
-                              color: Colors.white,
-                            ),
-                            onPressed: () => Navigator.pop(
+                          padding: const EdgeInsets.only(left: 25.0), 
+                          child: GestureDetector(
+                            onTap: () => Navigator.pop(
                               context,
                               _viewModel.selectedVoucher ?? 'clear',
+                            ),
+                            child: SvgPicture.asset(
+                              'assets/images/back.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Colors.white,
+                                BlendMode.srcIn,
+                              ),
                             ),
                           ),
                         ),
@@ -316,23 +322,52 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.end,
                                               children: [
-                                                Text(
-                                                  expiryText,
-                                                  style: const TextStyle(
-                                                    color: Color(0xFFCA748D),
-                                                    fontSize: 10,
-                                                    fontFamily: 'Poppins',
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
+                                                Row(
+                                                  children: [
+                                                    SvgPicture.asset(
+                                                      'assets/images/jam.svg',
+                                                      width: 12,
+                                                      height: 12,
+                                                      colorFilter: const ColorFilter.mode(
+                                                        Color(0xFFCA748D),
+                                                        BlendMode.srcIn,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      expiryText,
+                                                      style: const TextStyle(
+                                                        color: Color(0xFFCA748D),
+                                                        fontSize: 10,
+                                                        fontFamily: 'Poppins',
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                                const Text(
-                                                  'Terms and conditions apply',
-                                                  style: TextStyle(
-                                                    color: Color(0xFFCA748D),
-                                                    fontSize: 10,
-                                                    fontFamily: 'Poppins',
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
+                                                const SizedBox(height: 2),
+                                                Row(
+                                                  children: [
+                                                    SvgPicture.asset(
+                                                      'assets/images/catatan.svg',
+                                                      width: 12,
+                                                      height: 12,
+                                                      colorFilter: const ColorFilter.mode(
+                                                        Color(0xFFCA748D),
+                                                        BlendMode.srcIn,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    const Text(
+                                                      'Terms and conditions apply',
+                                                      style: TextStyle(
+                                                        color: Color(0xFFCA748D),
+                                                        fontSize: 10,
+                                                        fontFamily: 'Poppins',
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ],
                                             ),
