@@ -180,6 +180,39 @@ class _HistoryViewState extends State<HistoryView> {
       decimalDigits: 0,
     ).format(order.totalPrice);
 
+    int getCurrentStep() {
+      final s = order.status.toLowerCase();
+      if (s.contains('tunggu') ||
+          s.contains('bayar') ||
+          s.contains('masuk') ||
+          s.contains('konfirmasi')) {
+        return 0;
+      }
+      if (s.contains('proses') || s.contains('siap')) return 1;
+      if (s.contains('kirim') || s.contains('jalan') || s.contains('otw')) {
+        return 2;
+      }
+      if (s.contains('selesai') || s.contains('delivered')) return 3;
+      return 0;
+    }
+
+    final currentStep = getCurrentStep();
+
+    double getBarWidth() {
+      switch (currentStep) {
+        case 0:
+          return 0.0;
+        case 1:
+          return 102.0;
+        case 2:
+          return 205.0;
+        case 3:
+          return 308.0;
+        default:
+          return 0.0;
+      }
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
       child: Column(
@@ -203,7 +236,6 @@ class _HistoryViewState extends State<HistoryView> {
                     ),
                   ),
                 ),
-                
                 Positioned(
                   left: 14,
                   top: 135,
@@ -212,7 +244,8 @@ class _HistoryViewState extends State<HistoryView> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => DetailOrderView(orderId: order.id),
+                          builder: (context) =>
+                              DetailOrderView(orderId: order.id),
                         ),
                       ).then((_) {
                         _viewModel.fetchHistory();
@@ -253,7 +286,7 @@ class _HistoryViewState extends State<HistoryView> {
                     ),
                   ),
                 ),
-                
+
                 Positioned(
                   left: 18,
                   top: 102,
@@ -268,12 +301,14 @@ class _HistoryViewState extends State<HistoryView> {
                     ),
                   ),
                 ),
-                
+
                 Positioned(
                   left: 18,
                   top: 102,
-                  child: Container(
-                    width: 308,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                    width: getBarWidth(),
                     height: 6,
                     decoration: ShapeDecoration(
                       color: const Color(0xFFCA748D),
@@ -283,7 +318,7 @@ class _HistoryViewState extends State<HistoryView> {
                     ),
                   ),
                 ),
-                
+
                 Positioned(
                   left: 18,
                   top: 111,
@@ -291,7 +326,9 @@ class _HistoryViewState extends State<HistoryView> {
                     'Preparing',
                     textAlign: TextAlign.right,
                     style: TextStyle(
-                      color: const Color(0xFF2D4839),
+                      color: currentStep >= 1
+                          ? const Color(0xFF2D4839)
+                          : Colors.grey,
                       fontSize: 12,
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w700,
@@ -299,7 +336,6 @@ class _HistoryViewState extends State<HistoryView> {
                     ),
                   ),
                 ),
-                
                 Positioned(
                   left: 135,
                   top: 111,
@@ -307,7 +343,9 @@ class _HistoryViewState extends State<HistoryView> {
                     'On The Way',
                     textAlign: TextAlign.right,
                     style: TextStyle(
-                      color: const Color(0xFF2D4839),
+                      color: currentStep >= 2
+                          ? const Color(0xFF2D4839)
+                          : Colors.grey,
                       fontSize: 12,
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w700,
@@ -315,7 +353,6 @@ class _HistoryViewState extends State<HistoryView> {
                     ),
                   ),
                 ),
-                
                 Positioned(
                   left: 267,
                   top: 111,
@@ -323,7 +360,9 @@ class _HistoryViewState extends State<HistoryView> {
                     'Delivered',
                     textAlign: TextAlign.right,
                     style: TextStyle(
-                      color: const Color(0xFF2D4839),
+                      color: currentStep >= 3
+                          ? const Color(0xFF2D4839)
+                          : Colors.grey,
                       fontSize: 12,
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w700,
@@ -331,12 +370,11 @@ class _HistoryViewState extends State<HistoryView> {
                     ),
                   ),
                 ),
-                
                 Positioned(
                   left: 14,
                   top: 13,
                   child: Text(
-                    'Order #${order.id.substring(0, 8)}',
+                    'Order #${order.id.substring(0, 8).toUpperCase()}',
                     style: TextStyle(
                       color: const Color(0xFF2D4839),
                       fontSize: 16,
@@ -346,7 +384,6 @@ class _HistoryViewState extends State<HistoryView> {
                     ),
                   ),
                 ),
-                
                 Positioned(
                   left: 253,
                   top: 13,
@@ -361,7 +398,6 @@ class _HistoryViewState extends State<HistoryView> {
                     ),
                   ),
                 ),
-                
                 Positioned(
                   left: 14,
                   top: 34,
@@ -397,7 +433,6 @@ class _HistoryViewState extends State<HistoryView> {
                     ),
                   ),
                 ),
-                
                 Positioned(
                   left: 14,
                   top: 67,

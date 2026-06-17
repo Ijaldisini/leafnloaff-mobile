@@ -17,9 +17,17 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
   @override
   void initState() {
     super.initState();
+    _viewModel.initListener();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.fetchNotifications();
     });
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
   }
 
   @override
@@ -54,120 +62,104 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
               ),
             ),
           ),
-
           SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.only(left: 25.0, top: 20.0, bottom: 20.0),
-                  child: Text(
-                    'Messages',
-                    style: TextStyle(
-                      color: Color(0xFFFDFDFD),
-                      fontSize: 25,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w800,
-                      shadows: [
-                        Shadow(
-                          offset: Offset(2, 2),
-                          blurRadius: 4,
-                          color: Colors.black26,
-                        ),
-                      ],
+            child: RefreshIndicator(
+              onRefresh: () => _viewModel.fetchNotifications(),
+              color: const Color(0xFFCA748D),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(
+                      left: 25.0,
+                      top: 20.0,
+                      bottom: 20.0,
+                    ),
+                    child: Text(
+                      'Notifications',
+                      style: TextStyle(
+                        color: Color(0xFFFDFDFD),
+                        fontSize: 25,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w800,
+                        shadows: [
+                          Shadow(
+                            offset: Offset(2, 2),
+                            blurRadius: 4,
+                            color: Colors.black26,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-
-                Expanded(
-                  child: ListenableBuilder(
-                    listenable: _viewModel,
-                    builder: (context, child) {
-                      if (_viewModel.isLoading) {
-                        return const Center(
-                          child: CircularProgressIndicator(color: Colors.white),
-                        );
-                      }
-
-                      if (_viewModel.errorMessage != null &&
-                          _viewModel.groupedNotifications.isEmpty) {
-                        return Center(
-                          child: Text(
-                            _viewModel.errorMessage!,
-                            style: const TextStyle(
+                  Expanded(
+                    child: ListenableBuilder(
+                      listenable: _viewModel,
+                      builder: (context, _) {
+                        if (_viewModel.isLoading) {
+                          return const Center(
+                            child: CircularProgressIndicator(
                               color: Colors.white,
-                              fontFamily: 'Poppins',
                             ),
-                            textAlign: TextAlign.center,
+                          );
+                        }
+
+                        if (_viewModel.errorMessage != null &&
+                            _viewModel.groupedNotifications.isEmpty) {
+                          return Center(
+                            child: Text(
+                              _viewModel.errorMessage!,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          );
+                        }
+
+                        return ListView.builder(
+                          padding: const EdgeInsets.only(
+                            left: 25,
+                            right: 25,
+                            bottom: 100,
                           ),
-                        );
-                      }
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          itemCount: _viewModel.groupedNotifications.length,
+                          itemBuilder: (context, index) {
+                            final group =
+                                _viewModel.groupedNotifications[index];
+                            final date = group['date'];
+                            final items =
+                                group['items'] as List<NotificationModel>;
 
-                      return ListView.builder(
-                        padding: const EdgeInsets.only(
-                          left: 25,
-                          right: 25,
-                          bottom: 100,
-                        ),
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: _viewModel.groupedNotifications.length,
-                        itemBuilder: (context, index) {
-                          final group = _viewModel.groupedNotifications[index];
-                          final items =
-                              group['items'] as List<NotificationModel>;
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 15.0,
-                                ),
-                                child: Text(
-                                  group['date'],
-                                  style: const TextStyle(
-                                    color: Color(0xFFFDFDFD),
-                                    fontSize: 17,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w800,
-                                    shadows: [
-                                      Shadow(
-                                        offset: Offset(2, 2),
-                                        blurRadius: 4,
-                                        color: Colors.black26,
-                                      ),
-                                    ],
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 10,
+                                    bottom: 10,
+                                  ),
+                                  child: Text(
+                                    date,
+                                    style: const TextStyle(
+                                      color: Color(0xFFFDFDFD),
+                                      fontSize: 16,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              ...items.map(
-                                (item) => _buildNotificationCard(item),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
+                                ...items.map(
+                                  (item) => _buildNotificationCard(item),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-
-          Positioned(
-            left: -12,
-            bottom: -2,
-            child: IgnorePointer(
-              child: Container(
-                width: screenWidth + 24,
-                height: 130,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [Color(0xFF3D5A4A), Color(0x003E5A4A)],
-                  ),
-                ),
+                ],
               ),
             ),
           ),
@@ -177,14 +169,13 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
   }
 
   Widget _buildNotificationCard(NotificationModel item) {
-    final isUnread = !item.isRead;
+    final bool isUnread = !item.isRead;
 
     return GestureDetector(
       onTap: () {
-        if (!mounted) return;
-
         if (item.orderId != null && item.orderId!.isNotEmpty) {
           final titleLower = item.title.toLowerCase();
+
           if (titleLower.contains('ulasan') || titleLower.contains('review')) {
             Navigator.push(
               context,
@@ -193,7 +184,7 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
                     AdminOrderReviewView(orderId: item.orderId!),
               ),
             );
-          } else {
+          } else if (titleLower.contains('pesanan')) {
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -202,19 +193,12 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
               ),
             );
           }
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Notifikasi ini tidak memiliki tautan pesanan.'),
-              backgroundColor: Color(0xFFC23437),
-            ),
-          );
         }
       },
       child: Container(
         width: double.infinity,
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: const Color(0xFFFDFDFD),
           borderRadius: BorderRadius.circular(16.69),

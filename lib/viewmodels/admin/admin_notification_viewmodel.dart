@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/notification_model.dart';
 import '../../services/admin/admin_notification_service.dart';
 
 class AdminNotificationViewModel extends ChangeNotifier {
-  AdminNotificationViewModel() {
-    _service.listenToAdminNotifications();
-  }
   final AdminNotificationService _service = AdminNotificationService();
+  RealtimeChannel? _realtimeSubscription;
 
   bool _isLoading = true;
   bool get isLoading => _isLoading;
@@ -15,8 +14,31 @@ class AdminNotificationViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  List<NotificationModel> _rawNotifications = [];
+
   List<Map<String, dynamic>> _groupedNotifications = [];
   List<Map<String, dynamic>> get groupedNotifications => _groupedNotifications;
+
+  void initListener() {
+    _realtimeSubscription?.unsubscribe();
+
+    _realtimeSubscription = _service.listenToAdminNotifications((newNotif) {
+      final isDuplicate = _rawNotifications.any((n) => n.id == newNotif.id);
+
+      if (!isDuplicate) {
+        _rawNotifications.insert(0, newNotif);
+        _errorMessage = null;
+        _groupDataByDate(_rawNotifications);
+        notifyListeners();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _realtimeSubscription?.unsubscribe();
+    super.dispose();
+  }
 
   Future<void> fetchNotifications() async {
     _isLoading = true;
@@ -27,7 +49,7 @@ class AdminNotificationViewModel extends ChangeNotifier {
       final List<NotificationModel> rawNotifications = await _service
           .fetchAdminNotifications();
 
-      final filteredNotifications = rawNotifications.where((notif) {
+      _rawNotifications = rawNotifications.where((notif) {
         final titleLower = notif.title.toLowerCase();
         if (titleLower.contains('ulasan') ||
             titleLower.contains('pesanan') ||
@@ -37,14 +59,14 @@ class AdminNotificationViewModel extends ChangeNotifier {
         return true;
       }).toList();
 
-      if (filteredNotifications.isEmpty) {
+      if (_rawNotifications.isEmpty) {
         _errorMessage = "Tidak ada notifikasi untuk ditampilkan.";
         _groupedNotifications = [];
       } else {
-        _groupDataByDate(filteredNotifications);
+        _groupDataByDate(_rawNotifications);
       }
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -79,8 +101,8 @@ class AdminNotificationViewModel extends ChangeNotifier {
       grouped[groupKey]!.add(item);
     }
 
-    _groupedNotifications = grouped.entries.map((entry) {
-      return {'date': entry.key, 'items': entry.value};
+    _groupedNotifications = grouped.entries.map((e) {
+      return {'date': e.key, 'items': e.value};
     }).toList();
   }
 }

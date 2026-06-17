@@ -58,6 +58,7 @@ class CheckoutService {
           .select('id')
           .single();
       final orderId = orderResponse['id'];
+      final shortId = orderId.toString().substring(0, 8).toUpperCase();
 
       final orderItemsData = cartItems.map((item) {
         return {
@@ -77,18 +78,17 @@ class CheckoutService {
       await _supabase.from('notifications').insert({
         'user_id': null,
         'order_id': orderId,
-        'title': 'Pesanan Baru Masuk!',
-        'message':
-            'Seseorang baru saja membuat pesanan. Harap periksa detailnya.',
+        'title': 'Pesanan Masuk',
+        'message': 'Pesanan baru dengan ID $shortId telah masuk.',
       });
 
       if (userId != null) {
         await _supabase.from('notifications').insert({
           'user_id': userId,
           'order_id': orderId,
-          'title': 'Pesanan Berhasil Dibuat',
+          'title': 'Pesanan Dibuat',
           'message':
-              'Pesanan Anda sedang menunggu konfirmasi/pembayaran dari toko.',
+              'Pesanan $shortId Anda berhasil dibuat dan menunggu konfirmasi.',
         });
       }
 

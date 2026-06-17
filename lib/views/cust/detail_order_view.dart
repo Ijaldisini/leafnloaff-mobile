@@ -82,8 +82,8 @@ class _DetailOrderViewState extends State<DetailOrderView> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;  
-        return Scaffold(
+    final screenWidth = MediaQuery.of(context).size.width;
+    return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
       body: Stack(
         children: [
@@ -91,11 +91,9 @@ class _DetailOrderViewState extends State<DetailOrderView> {
             left: -17,
             top: -30,
             child: Container(
-              width: screenWidth + 34,  
-              height: 289,  
-              decoration: const BoxDecoration(
-                color: Color(0xFFD699AB),
-              ),
+              width: screenWidth + 34,
+              height: 289,
+              decoration: const BoxDecoration(color: Color(0xFFD699AB)),
             ),
           ),
 
@@ -114,7 +112,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
+
           SafeArea(
             child: Column(
               children: [
@@ -241,25 +239,32 @@ class _DetailOrderViewState extends State<DetailOrderView> {
 
   Widget _buildOrderStatus(String status) {
     int getCurrentStep() {
-      switch (status) {
-        case 'Menunggu':
-        case 'Waiting':
-          return 0;
-        case 'Diproses':
-        case 'Preparing':
-          return 1;
-        case 'Dikirim':
-        case 'On The Way':
-          return 2;
-        case 'Selesai':
-        case 'Delivered':
-          return 3;
-        default:
-          return 0;
-      }
+      final s = status.toLowerCase();
+      if (s.contains('tunggu') || s.contains('bayar') || s.contains('masuk'))
+        return 0;
+      if (s.contains('proses') || s.contains('siap')) return 1;
+      if (s.contains('kirim') || s.contains('jalan') || s.contains('otw'))
+        return 2;
+      if (s.contains('selesai') || s.contains('delivered')) return 3;
+      return 0;
     }
 
     final currentStep = getCurrentStep();
+
+    double getBarWidth() {
+      switch (currentStep) {
+        case 0:
+          return 62.0;
+        case 1:
+          return 145.0;
+        case 2:
+          return 235.0;
+        case 3:
+          return 310.0;
+        default:
+          return 0.0;
+      }
+    }
 
     return Container(
       width: 338,
@@ -267,17 +272,17 @@ class _DetailOrderViewState extends State<DetailOrderView> {
       decoration: BoxDecoration(
         color: const Color(0xFFFDFDFD),
         borderRadius: BorderRadius.circular(16.69),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0x3F000000),
+            color: Color(0x3F000000),
             blurRadius: 4,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
       child: Stack(
         children: [
-          Positioned(
+          const Positioned(
             left: 110,
             top: 11,
             child: SizedBox(
@@ -286,7 +291,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               child: Text(
                 'Order Status',
                 style: TextStyle(
-                  color: const Color(0xFF2D4839),
+                  color: Color(0xFF2D4839),
                   fontSize: 16,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w800,
@@ -295,7 +300,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
           Positioned(
             left: 25,
             top: 50,
@@ -309,7 +313,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
           Positioned(
             left: 105,
             top: 50,
@@ -323,7 +326,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
           Positioned(
             left: 195,
             top: 50,
@@ -337,7 +339,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
           Positioned(
             left: 280,
             top: 50,
@@ -351,7 +352,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
           Positioned(
             left: 16,
             top: 88.50,
@@ -366,12 +366,13 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
           Positioned(
             left: 16,
             top: 88.50,
-            child: Container(
-              width: currentStep >= 0 ? 62 : 0,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              width: getBarWidth(),
               height: 6,
               decoration: ShapeDecoration(
                 color: const Color(0xFFCA748D),
@@ -381,7 +382,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
           Positioned(
             left: 16,
             top: 97.50,
@@ -396,7 +396,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
           Positioned(
             left: 87,
             top: 97.50,
@@ -412,7 +411,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
           Positioned(
             left: 171,
             top: 97.50,
@@ -428,7 +426,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
           Positioned(
             left: 267,
             top: 97.50,
@@ -447,6 +444,156 @@ class _DetailOrderViewState extends State<DetailOrderView> {
         ],
       ),
     );
+  }
+
+  Widget _buildActionButtons(String status, List<OrderItemModel> items) {
+    final s = status.toLowerCase();
+
+    if (s == 'dibatalkan' || s == 'cancelled') {
+      return const Center(
+        child: Text(
+          "Pesanan Dibatalkan",
+          style: TextStyle(
+            color: Color(0xFFF26F71),
+            fontSize: 18,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      );
+    }
+
+    if (s == 'selesai' || s == 'delivered') {
+      return GestureDetector(
+        onTap: () {
+          if (_viewModel.isReviewed) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    SeeReviewView(orderId: widget.orderId, orderItems: items),
+              ),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    WriteReviewView(orderId: widget.orderId, orderItems: items),
+              ),
+            ).then((_) {
+              _viewModel.fetchOrder(widget.orderId);
+            });
+          }
+        },
+        child: Container(
+          width: double.infinity,
+          height: 40,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+            ),
+            borderRadius: BorderRadius.circular(87.79),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 4,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            _viewModel.isReviewed ? 'See Review' : 'Write Review',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      );
+    }
+
+    bool isBeforeDikirim =
+        s.contains('tunggu') ||
+        s.contains('bayar') ||
+        s.contains('proses') ||
+        s.contains('siap') ||
+        s.contains('masuk');
+    bool isDikirim =
+        s.contains('kirim') || s.contains('jalan') || s.contains('otw');
+
+    if (isBeforeDikirim) {
+      return Center(
+        child: GestureDetector(
+          onTap: () async => await _viewModel.cancelOrder(),
+          child: Container(
+            width: double.infinity,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFF26F71), Color(0xFFC23437)],
+              ),
+              borderRadius: BorderRadius.circular(87.79),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 4,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            alignment: Alignment.center,
+            child: const Text(
+              'Cancel Order',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ),
+      );
+    } else if (isDikirim) {
+      return Center(
+        child: GestureDetector(
+          onTap: () async => await _viewModel.receiveOrder(),
+          child: Container(
+            width: double.infinity,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+              ),
+              borderRadius: BorderRadius.circular(87.79),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 4,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            alignment: Alignment.center,
+            child: const Text(
+              'Order Received',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 
   Widget _buildCustomerInformation(OrderDetailModel order) {
@@ -473,13 +620,13 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               'Customer Information',
               style: TextStyle(
                 color: Color(0xFF2D4839),
-                fontSize: 20, 
+                fontSize: 20,
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 12),
-            
+
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -507,7 +654,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ],
             ),
             const SizedBox(height: 10),
-            
+
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -526,7 +673,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                     order.profile.phoneNumber,
                     style: const TextStyle(
                       color: Color(0xFF426E55),
-                      fontSize: 14, 
+                      fontSize: 14,
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w600,
                     ),
@@ -536,7 +683,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
             ),
             const SizedBox(height: 10),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start, 
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SvgPicture.asset(
                   'assets/images/locations.svg',
@@ -553,10 +700,10 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                     order.addressDetail,
                     style: const TextStyle(
                       color: Color(0xFF426E55),
-                      fontSize: 14, 
+                      fontSize: 14,
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w600,
-                      height: 1.4, 
+                      height: 1.4,
                     ),
                   ),
                 ),
@@ -575,32 +722,25 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                 }
               },
               child: Container(
-                height: 32, 
+                height: 32,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: ShapeDecoration(
                   color: const Color(0xFFEED5DB),
                   shape: RoundedRectangleBorder(
-                    side: BorderSide(
-                      width: 1,
-                      color: const Color(0xFFCA748D),
-                    ),
+                    side: BorderSide(width: 1, color: const Color(0xFFCA748D)),
                     borderRadius: BorderRadius.circular(62.50),
                   ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: const [
-                    Icon(
-                      Icons.map, 
-                      size: 16,
-                      color: Color(0xFFCA748D),
-                    ),
+                    Icon(Icons.map, size: 16, color: Color(0xFFCA748D)),
                     SizedBox(width: 6),
                     Text(
                       'View Maps',
                       style: TextStyle(
                         color: Color(0xFFCA748D),
-                        fontSize: 12, 
+                        fontSize: 12,
                         fontFamily: 'Poppins',
                         fontWeight: FontWeight.w600,
                       ),
@@ -650,11 +790,15 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
             const SizedBox(height: 12),
-            
-            ...items.map((item) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _buildOrderItem(item),
-            )).toList(),
+
+            ...items
+                .map(
+                  (item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _buildOrderItem(item),
+                  ),
+                )
+                .toList(),
           ],
         ),
       ),
@@ -668,10 +812,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
       decoration: ShapeDecoration(
         color: const Color(0xFFFDFDFD),
         shape: RoundedRectangleBorder(
-          side: BorderSide(
-            width: 1,
-            color: const Color(0xFFCA748D),
-          ),
+          side: BorderSide(width: 1, color: const Color(0xFFCA748D)),
           borderRadius: BorderRadius.circular(11.68),
         ),
       ),
@@ -699,7 +840,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
+
           Positioned(
             left: 95,
             top: 5,
@@ -714,7 +855,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
+
           Positioned(
             left: 95,
             top: 21,
@@ -750,7 +891,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
+
           Positioned(
             left: 95,
             top: 42,
@@ -784,7 +925,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
               ),
             ),
           ),
-          
+
           Positioned(
             left: 95,
             top: 59,
@@ -1095,145 +1236,6 @@ class _DetailOrderViewState extends State<DetailOrderView> {
           fontWeight: FontWeight.w600,
         ),
       ),
-    );
-  }
-
-  Widget _buildActionButtons(String status, List<OrderItemModel> items) {
-    if (status == 'Dibatalkan') {
-      return const Center(
-        child: Text(
-          "Pesanan Dibatalkan",
-          style: TextStyle(
-            color: Color(0xFFF26F71),
-            fontSize: 18,
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      );
-    }
-
-    if (status == 'Selesai') {
-      return GestureDetector(
-        onTap: () {
-          if (_viewModel.isReviewed) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    SeeReviewView(orderId: widget.orderId, orderItems: items),
-              ),
-            );
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    WriteReviewView(orderId: widget.orderId, orderItems: items),
-              ),
-            ).then((_) {
-              _viewModel.fetchOrder(widget.orderId);
-            });
-          }
-        },
-        child: Container(
-          width: double.infinity,
-          height: 40,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-            ),
-            borderRadius: BorderRadius.circular(87.79),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 4,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            _viewModel.isReviewed ? 'See Review' : 'Write Review',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        GestureDetector(
-          onTap: () async => await _viewModel.cancelOrder(),
-          child: Container(
-            width: 140,
-            height: 35,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFF26F71), Color(0xFFC23437)],
-              ),
-              borderRadius: BorderRadius.circular(87.79),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 4,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: const Text(
-              'Cancel Order',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ),
-        GestureDetector(
-          onTap: status == 'Dikirim'
-              ? () async => await _viewModel.receiveOrder()
-              : null,
-          child: Container(
-            width: 140,
-            height: 35,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: status == 'Dikirim'
-                    ? [const Color(0xFFD699AB), const Color(0xFFCA748D)]
-                    : [Colors.grey, Colors.grey.shade600],
-              ),
-              borderRadius: BorderRadius.circular(87.79),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 4,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: const Text(
-              'Order Received',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

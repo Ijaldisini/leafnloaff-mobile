@@ -29,19 +29,58 @@ class AdminOrderService {
 
   Future<Map<String, dynamic>> getOrderDetail(String orderId) async {
     try {
-      return await _supabase
+      final orderData = await _supabase
           .from('orders')
           .select('''
             id, created_at, status, total_price, notes, payment_method, address_detail,
-            va_number, latitude, longitude, payment_proof_url,
-            profiles:user_id ( full_name, phone_number ),
-            order_items (
-              quantity,
-              menus ( name, price, image_url )
-            )
+            va_number, latitude, longitude, payment_proof_url, user_id,
+            profiles:user_id ( full_name, phone_number )
           ''')
           .eq('id', orderId)
           .single();
+
+      String phoneNumber = orderData['profiles']?['phone_number'] ?? '-';
+      String fullName = orderData['profiles']?['full_name'] ?? 'Unknown';
+
+      if (orderData['user_id'] != null &&
+          orderData['address_detail'] != null &&
+          orderData['address_detail'] != 'Diambil di Toko') {
+        final addressData = await _supabase
+            .from('user_addresses')
+            .select('recipient_name, phone_number')
+            .eq('user_id', orderData['user_id'])
+            .eq('address_detail', orderData['address_detail'])
+            .limit(1)
+            .maybeSingle();
+
+        if (addressData != null) {
+          if (addressData['phone_number'] != null &&
+              addressData['phone_number'].toString().isNotEmpty) {
+            phoneNumber = addressData['phone_number'];
+          }
+          if (addressData['recipient_name'] != null &&
+              addressData['recipient_name'].toString().isNotEmpty) {
+            fullName = addressData['recipient_name'];
+          }
+        }
+      }
+
+      orderData['profiles'] ??= {};
+      orderData['profiles']['phone_number'] = phoneNumber;
+      orderData['profiles']['full_name'] =
+          fullName;
+
+      final itemsData = await _supabase
+          .from('order_items')
+          .select('''
+            menu_id, quantity, price_at_time,
+            menus ( name, image_url )
+          ''')
+          .eq('order_id', orderId);
+
+      orderData['order_items'] = itemsData;
+
+      return orderData;
     } catch (e) {
       debugPrint("Error fetching order detail: $e");
       throw Exception("Detail pesanan tidak ditemukan.");
@@ -61,12 +100,45 @@ class AdminOrderService {
           .eq('id', orderId)
           .single();
 
-      if (orderData['user_id'] != null) {
+      final shortId = orderId.substring(0, 8).toUpperCase();
+      String titleAdmin = '';
+      String msgAdmin = '';
+      String titleCust = '';
+      String msgCust = '';
+
+      if (newStatus.toLowerCase() == 'diproses') {
+        titleAdmin = 'Pesanan Diproses';
+        msgAdmin = 'Pesanan $shortId sedang diproses.';
+        titleCust = 'Pesanan Diproses';
+        msgCust = 'Pesanan $shortId Anda sedang diproses oleh toko.';
+      } else if (newStatus.toLowerCase() == 'dikirim') {
+        titleAdmin = 'Pesanan Dikirim';
+        msgAdmin = 'Pesanan $shortId sedang dikirim ke customer.';
+        titleCust = 'Pesanan Dikirim';
+        msgCust = 'Pesanan $shortId Anda sedang dalam perjalanan.';
+      } else if (newStatus.toLowerCase() == 'dibatalkan' ||
+          newStatus.toLowerCase() == 'cancelled') {
+        titleAdmin = 'Pesanan Dibatalkan';
+        msgAdmin = 'Anda telah membatalkan pesanan $shortId.';
+        titleCust = 'Pesanan Dibatalkan';
+        msgCust = 'Maaf, pesanan $shortId Anda telah dibatalkan oleh Admin.';
+      }
+
+      if (titleAdmin.isNotEmpty) {
+        await _supabase.from('notifications').insert({
+          'user_id': null,
+          'order_id': orderId,
+          'title': titleAdmin,
+          'message': msgAdmin,
+        });
+      }
+
+      if (titleCust.isNotEmpty && orderData['user_id'] != null) {
         await _supabase.from('notifications').insert({
           'user_id': orderData['user_id'],
           'order_id': orderId,
-          'title': 'Status Pesanan Diperbarui',
-          'message': 'Pesanan Anda sekarang berstatus: $newStatus.',
+          'title': titleCust,
+          'message': msgCust,
         });
       }
     } catch (e) {
@@ -83,11 +155,10 @@ class AdminOrderService {
             id, order_id, menu_id, user_id, rating, comment, image_url, created_at,
             menus ( name, price, image_url )
           ''')
-          .eq('order_id', orderId)
-          .order('created_at', ascending: false);
+          .eq('order_id', orderId);
     } catch (e) {
-      debugPrint("Error Fetching Reviews: $e");
-      throw Exception("Database belum siap atau error: $e");
+      debugPrint("Error fetching reviews: $e");
+      throw Exception("Gagal memuat ulasan.");
     }
   }
 }

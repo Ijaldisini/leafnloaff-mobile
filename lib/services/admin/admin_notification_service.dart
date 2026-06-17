@@ -21,8 +21,10 @@ class AdminNotificationService {
     }
   }
 
-  void listenToAdminNotifications() {
-    _supabase
+  RealtimeChannel? listenToAdminNotifications(
+    Function(NotificationModel) onNewNotification,
+  ) {
+    return _supabase
         .channel('public:notifications_admin')
         .onPostgresChanges(
           event: PostgresChangeEvent.insert,
@@ -57,6 +59,9 @@ class AdminNotificationService {
                 body: newRecord['message'] ?? 'Ada pesan baru masuk.',
                 payload: notifPayload,
               );
+
+              final newNotif = NotificationModel.fromJson(newRecord);
+              onNewNotification(newNotif);
             }
           },
         )

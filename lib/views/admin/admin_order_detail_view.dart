@@ -180,23 +180,35 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
 
   Widget _buildOrderStatus(String status) {
     int getCurrentStep() {
-      final statusStr = status.toLowerCase();
-      if (statusStr.contains('tunggu') || statusStr.contains('waiting')) {
+      final s = status.toLowerCase();
+      if (s.contains('konfirmasi') ||
+          s.contains('tunggu') ||
+          s.contains('bayar') ||
+          s.contains('masuk'))
         return 0;
-      } else if (statusStr.contains('proses') ||
-          statusStr.contains('preparing')) {
-        return 1;
-      } else if (statusStr.contains('kirim') ||
-          statusStr.contains('on the way')) {
+      if (s.contains('proses') || s.contains('siap')) return 1;
+      if (s.contains('kirim') || s.contains('jalan') || s.contains('otw'))
         return 2;
-      } else if (statusStr.contains('selesai') ||
-          statusStr.contains('delivered')) {
-        return 3;
-      }
+      if (s.contains('selesai') || s.contains('delivered')) return 3;
       return 0;
     }
 
     final currentStep = getCurrentStep();
+
+    double getBarWidth() {
+      switch (currentStep) {
+        case 0:
+          return 62.0;
+        case 1:
+          return 145.0;
+        case 2:
+          return 235.0;
+        case 3:
+          return 310.0;
+        default:
+          return 0.0;
+      }
+    }
 
     return Container(
       width: 338,
@@ -204,11 +216,11 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
       decoration: BoxDecoration(
         color: const Color(0xFFFDFDFD),
         borderRadius: BorderRadius.circular(16.69),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0x3F000000),
+            color: Color(0x3F000000),
             blurRadius: 4,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -284,16 +296,16 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
               ),
             ),
           ),
-          const Positioned(
+          Positioned(
             left: 16,
             top: 88.50,
-            child: SizedBox(
+            child: Container(
               width: 310,
               height: 6,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Color(0xFFEED5DB),
-                  borderRadius: BorderRadius.all(Radius.circular(7500.95)),
+              decoration: ShapeDecoration(
+                color: const Color(0xFFEED5DB),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(7500.95),
                 ),
               ),
             ),
@@ -303,21 +315,24 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
             top: 88.50,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 500),
-              width: currentStep >= 0 ? 62 : 0,
+              curve: Curves.easeInOut,
+              width: getBarWidth(),
               height: 6,
-              decoration: const BoxDecoration(
-                color: Color(0xFFCA748D),
-                borderRadius: BorderRadius.all(Radius.circular(7500.95)),
+              decoration: ShapeDecoration(
+                color: const Color(0xFFCA748D),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(7500.95),
+                ),
               ),
             ),
           ),
-          const Positioned(
+          Positioned(
             left: 16,
             top: 97.50,
             child: Text(
               'Waiting',
               style: TextStyle(
-                color: Color(0xFF2D4839),
+                color: currentStep >= 0 ? const Color(0xFF2D4839) : Colors.grey,
                 fontSize: 12,
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w700,
@@ -325,14 +340,14 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
               ),
             ),
           ),
-          const Positioned(
+          Positioned(
             left: 87,
             top: 97.50,
             child: Text(
               'Preparing',
               textAlign: TextAlign.right,
               style: TextStyle(
-                color: Color(0xFF2D4839),
+                color: currentStep >= 1 ? const Color(0xFF2D4839) : Colors.grey,
                 fontSize: 12,
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w700,
@@ -340,14 +355,14 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
               ),
             ),
           ),
-          const Positioned(
+          Positioned(
             left: 171,
             top: 97.50,
             child: Text(
               'On The Way',
               textAlign: TextAlign.right,
               style: TextStyle(
-                color: Color(0xFF2D4839),
+                color: currentStep >= 2 ? const Color(0xFF2D4839) : Colors.grey,
                 fontSize: 12,
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w700,
@@ -355,14 +370,14 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
               ),
             ),
           ),
-          const Positioned(
+          Positioned(
             left: 267,
             top: 97.50,
             child: Text(
               'Delivered',
               textAlign: TextAlign.right,
               style: TextStyle(
-                color: Color(0xFF2D4839),
+                color: currentStep >= 3 ? const Color(0xFF2D4839) : Colors.grey,
                 fontSize: 12,
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w700,
@@ -831,7 +846,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
         displayMethod = "Bank ${bankName.toUpperCase()}";
       }
     }
-    
+
     Widget _buildPill(String text, bool isHighlight) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1051,29 +1066,21 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
         Expanded(
           flex: 6,
           child: GestureDetector(
-            onTap: () async {
-              String nextStatus =
-                  _viewModel.getNextStatusValue(order.status) ?? 'Diproses';
-              final success = await _viewModel.changeOrderStatus(
-                order.id,
-                nextStatus,
-              );
-              if (context.mounted) {
-                if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Status berhasil diupdate!'),
-                      backgroundColor: Color(0xFF73986F),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Gagal update! Cek RLS Supabase.'),
-                      backgroundColor: Color(0xFFC23437),
-                    ),
-                  );
-                }
+            onTap: () {
+              final order = _viewModel.orderDetail;
+              if (order == null) return;
+
+              final action = _viewModel.getNextStatusValue(order.status);
+
+              if (action == 'View Review') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AdminOrderReviewView(orderId: order.id),
+                  ),
+                );
+              } else if (action != null) {
+                _viewModel.changeOrderStatus(order.id, action);
               }
             },
             child: Container(
@@ -1097,7 +1104,8 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
               ),
               alignment: Alignment.center,
               child: Text(
-                _viewModel.getNextStatusText(order.status) ?? 'Update Status',
+                _viewModel.getNextStatusText(order.status) ??
+                    'Tunggu Konfirmasi User',
                 style: const TextStyle(
                   color: Color(0xFFFBFBFB),
                   fontSize: 14,

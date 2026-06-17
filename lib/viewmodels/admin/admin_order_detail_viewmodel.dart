@@ -47,17 +47,27 @@ class AdminOrderDetailViewModel extends ChangeNotifier {
 
   String? getNextStatusText(String currentStatus) {
     final s = currentStatus.toLowerCase();
-    if (s.contains('tunggu') || s.contains('bayar'))
+    if (s.contains('konfirmasi') ||
+        s.contains('tunggu') ||
+        s.contains('bayar') ||
+        s.contains('masuk'))
       return 'Update To Preparing';
-    if (s.contains('proses') || s.contains('siap'))
+    if (s.contains('proses') || s.contains('siap') || s.contains('preparing'))
       return 'Update To On The Way';
+    if (s.contains('selesai') || s.contains('delivered')) return 'View Review';
     return null;
   }
 
   String? getNextStatusValue(String currentStatus) {
     final s = currentStatus.toLowerCase();
-    if (s.contains('tunggu') || s.contains('bayar')) return 'Diproses';
-    if (s.contains('proses') || s.contains('siap')) return 'Dikirim';
+    if (s.contains('konfirmasi') ||
+        s.contains('tunggu') ||
+        s.contains('bayar') ||
+        s.contains('masuk'))
+      return 'Diproses';
+    if (s.contains('proses') || s.contains('siap') || s.contains('preparing'))
+      return 'Dikirim';
+    if (s.contains('selesai') || s.contains('delivered')) return 'View Review';
     return null;
   }
 
@@ -73,15 +83,12 @@ class AdminOrderDetailViewModel extends ChangeNotifier {
     final url = Uri.parse(
       'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
     );
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      debugPrint("Gagal membuka Maps");
-    }
-  }
-
-  Future<void> openPaymentProof(String urlString) async {
-    final url = Uri.parse(urlString);
-    if (!await launchUrl(url, mode: LaunchMode.inAppBrowserView)) {
-      debugPrint("Gagal membuka Bukti Pembayaran");
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Error opening maps: $e');
     }
   }
 }

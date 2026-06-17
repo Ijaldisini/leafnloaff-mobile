@@ -30,7 +30,6 @@ class CheckoutViewModel extends ChangeNotifier {
   List<CartItemModel> selectedCartItems = [];
 
   VoucherModel? selectedVoucher;
-  Map<String, double>? adminLocation;
 
   double subTotal = 0;
   double shippingCost = 0;
@@ -68,7 +67,6 @@ class CheckoutViewModel extends ChangeNotifier {
 
     try {
       deliveryAddress = await _service.fetchDefaultAddress();
-      adminLocation = await _service.fetchAdminLocation();
 
       final cartVM = CartViewModel();
       await cartVM.loadCartData();
@@ -80,7 +78,7 @@ class CheckoutViewModel extends ChangeNotifier {
       selectedVoucher = initialVoucher;
 
       _calculateSummary();
-      await _calculateDistance();
+      _calculateDistance();
     } catch (e) {
       errorMessage = "Gagal memuat data checkout: $e";
     } finally {
@@ -148,26 +146,35 @@ class CheckoutViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> _calculateDistance() async {
-    if (deliveryAddress == null || adminLocation == null) {
+  void _calculateDistance() {
+    if (deliveryAddress == null) {
       shippingCost = 0;
       _calculateSummary();
       return;
     }
 
+    final double adminLat = -8.164506;
+    final double adminLng = 113.716869;
+
     try {
       double distanceInMeters = _calculateDistanceInMeters(
         deliveryAddress!.latitude,
         deliveryAddress!.longitude,
-        adminLocation!['latitude']!,
-        adminLocation!['longitude']!,
+        adminLat,
+        adminLng,
       );
 
-      shippingCost = (distanceInMeters / 1000) * 2000;
-      if (shippingCost < 10000) shippingCost = 10000;
+      double distanceInKm = distanceInMeters / 1000;
+
+      if (distanceInKm <= 5) {
+        shippingCost = 0;
+      } else {
+        int extraKm = distanceInKm.ceil() - 5;
+        shippingCost = (extraKm * 10000).toDouble();
+      }
     } catch (e) {
       debugPrint('Error calculating distance: $e');
-      shippingCost = 10000;
+      shippingCost = 0;
     }
 
     _calculateSummary();
@@ -208,7 +215,7 @@ class CheckoutViewModel extends ChangeNotifier {
         'user_id': userId,
         'total_price': totalPayment,
         'delivery_type': shippingMethod,
-        'status': paymentMethod == 'COD' ? 'Diproses' : 'Menunggu Pembayaran',
+        'status': 'Menunggu Pembayaran',
         'notes': selectedCartItems.map((e) => e.notes).join(', '),
         'address_detail': shippingMethod == 'Delivery'
             ? deliveryAddress!.addressDetail
