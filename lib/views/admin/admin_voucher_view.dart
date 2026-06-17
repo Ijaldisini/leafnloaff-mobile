@@ -297,7 +297,6 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
       ),
       child: Column(
         children: [
-          // ✅ GAMBAR VOUCHER
           Container(
             height: 120,
             decoration: BoxDecoration(
@@ -313,7 +312,6 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
             ),
           ),
           
-          // ✅ KONTEN VOUCHER
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -335,7 +333,6 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
                     ),
                     Row(
                       children: [
-                        // ✅ TOMBOL MORE INFO
                         GestureDetector(
                           onTap: () {
                             Navigator.push(
@@ -370,19 +367,6 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        
-                        // GestureDetector(
-                        //   onTap: () => _showDeleteConfirmation(voucher),
-                        //   child: SvgPicture.asset(
-                        //     'assets/images/sampah.svg',
-                        //     width: 20,
-                        //     height: 20,
-                        //     colorFilter: const ColorFilter.mode(
-                        //       Color(0xFFC23437),
-                        //       BlendMode.srcIn,
-                        //     ),
-                        //   ),
-                        // ),
                       ],
                     ),
                   ],

@@ -4,7 +4,7 @@ import '../../models/user_model.dart';
 import '../../models/voucher_model.dart';
 import '../../services/cust/home_service.dart';
 import '../../services/cust/cart_service.dart';
-import 'package:flutter_svg/flutter_svg.dart';  
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../viewmodels/cust/home_viewmodel.dart';
 import '../../viewmodels/cust/cart_viewmodel.dart';
 import 'detail_menu_view.dart';
@@ -77,21 +77,12 @@ class _HomeViewState extends State<HomeView> {
                           child: Row(
                             children: [
                               Container(
-                                decoration: BoxDecoration(
-                                  // boxShadow: [
-                                  //   BoxShadow(
-                                  //     color: Colors.black.withValues(alpha: 0.25),
-                                  //     blurRadius: 4,
-                                  //     offset: const Offset(2, 2),
-                                  //   ),
-                                  // ],
-                                ),
                                 child: SvgPicture.asset(
                                   'assets/images/locations.svg',
                                   width: 28,
                                   height: 28,
                                   colorFilter: const ColorFilter.mode(
-                                    Colors.white, 
+                                    Colors.white,
                                     BlendMode.srcIn,
                                   ),
                                 ),
@@ -113,7 +104,9 @@ class _HomeViewState extends State<HomeView> {
                                           Shadow(
                                             offset: const Offset(2, 2),
                                             blurRadius: 4,
-                                            color: Colors.black.withValues(alpha: 0.25),
+                                            color: Colors.black.withValues(
+                                              alpha: 0.25,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -124,7 +117,9 @@ class _HomeViewState extends State<HomeView> {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        color: Colors.white.withValues(alpha: 0.8),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.8,
+                                        ),
                                         fontSize: 13,
                                         fontFamily: 'Poppins',
                                         fontWeight: FontWeight.w500,
@@ -169,7 +164,10 @@ class _HomeViewState extends State<HomeView> {
                                   fontSize: 14,
                                 ),
                                 prefixIcon: Padding(
-                                  padding: const EdgeInsets.only(left: 12, right: 8),
+                                  padding: const EdgeInsets.only(
+                                    left: 12,
+                                    right: 8,
+                                  ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
@@ -177,7 +175,7 @@ class _HomeViewState extends State<HomeView> {
                                         width: 30,
                                         height: 30,
                                         decoration: const BoxDecoration(
-                                          color: Color(0xFF426E55),  
+                                          color: Color(0xFF426E55),
                                           shape: BoxShape.circle,
                                         ),
                                         child: Center(
@@ -186,7 +184,7 @@ class _HomeViewState extends State<HomeView> {
                                             width: 16,
                                             height: 16,
                                             colorFilter: const ColorFilter.mode(
-                                              Colors.white, 
+                                              Colors.white,
                                               BlendMode.srcIn,
                                             ),
                                           ),
@@ -276,9 +274,7 @@ class _HomeViewState extends State<HomeView> {
                               );
                             },
                             child: Container(
-                              width:
-                                  MediaQuery.of(context).size.width -
-                                  48,
+                              width: MediaQuery.of(context).size.width - 48,
                               decoration: BoxDecoration(
                                 color: const Color(0xFF426E55),
                                 borderRadius: BorderRadius.circular(20),

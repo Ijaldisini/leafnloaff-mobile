@@ -427,7 +427,6 @@ class _AdminMenuManagementViewState extends State<AdminMenuManagementView>
               child: Stack(
                 clipBehavior: Clip.none, 
                 children: [
-                  // ✅ Background gambar di kiri
                   Positioned(
                     left: 0,
                     top: 0,

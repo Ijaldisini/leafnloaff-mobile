@@ -198,10 +198,8 @@ class _AdminEditVoucherViewState extends State<AdminEditVoucherView> {
                                   ),
                                 ),
                                 
-                                // ✅ JARAK
                                 const SizedBox(height: 10),
                                 
-                                // ✅ TOMBOL CHANGE PHOTO DI BAWAH
                                 GestureDetector(
                                   onTap: _viewModel.pickNewImage,
                                   child: Container(
