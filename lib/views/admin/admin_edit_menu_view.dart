@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/menu_model.dart';
 import '../../viewmodels/admin/admin_add_menu_viewmodel.dart';
+import 'package:flutter_svg/flutter_svg.dart'; 
 
 class AdminEditMenuView extends StatefulWidget {
   final MenuModel menu;
@@ -175,92 +176,73 @@ class _AdminEditMenuViewState extends State<AdminEditMenuView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (_viewModel.selectedImage != null ||
-            (_viewModel.existingImageUrl != null &&
-                _viewModel.existingImageUrl!.isNotEmpty))
-          Stack(
-            children: [
-              Container(
-                width: double.infinity,
-                height: 150,
-                margin: const EdgeInsets.only(bottom: 15),
-                decoration: ShapeDecoration(
-                  color: Colors.black12,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  image: DecorationImage(
-                    image: _viewModel.selectedImage != null
-                        ? FileImage(_viewModel.selectedImage!) as ImageProvider
-                        : NetworkImage(_viewModel.existingImageUrl!),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              if (_viewModel.selectedImage != null)
-                Positioned(
-                  top: 5,
-                  right: 5,
-                  child: GestureDetector(
-                    onTap: _viewModel.removeSelectedImage,
-                    child: Container(
-                      padding: const EdgeInsets.all(5),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
+        Row(
+          children: [
+            if (_viewModel.selectedImage != null ||
+                (_viewModel.existingImageUrl != null &&
+                    _viewModel.existingImageUrl!.isNotEmpty))
+              Stack(
+                children: [
+                  Container(
+                    width: 68, 
+                    height: 68, 
+                    decoration: ShapeDecoration(
+                      color: Colors.black12,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 16,
+                      image: DecorationImage(
+                        image: _viewModel.selectedImage != null
+                            ? FileImage(_viewModel.selectedImage!) as ImageProvider
+                            : NetworkImage(_viewModel.existingImageUrl!),
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-
-        Row(
-          children: [
-            GestureDetector(
-              onTap: _viewModel.pickFromGallery,
-              child: Container(
+                  if (_viewModel.selectedImage != null)
+                    Positioned(
+                      top: 2,
+                      right: 2,
+                      child: GestureDetector(
+                        onTap: _viewModel.removeSelectedImage,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            
+            if (_viewModel.selectedImage == null &&
+                (_viewModel.existingImageUrl == null ||
+                    _viewModel.existingImageUrl!.isEmpty))
+              Container(
                 width: 68,
                 height: 68,
                 decoration: ShapeDecoration(
-                  color: const Color(0xFFFDFDFD),
+                  color: Colors.grey.shade300,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  shadows: const [
-                    BoxShadow(
-                      color: Color(0x3F000000),
-                      blurRadius: 4,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
                 ),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.photo_library,
-                      color: Color(0xFF3D5A4A),
-                      size: 28,
-                    ),
-                    Text(
-                      'Gallery',
-                      style: TextStyle(
-                        color: Color(0xFF3D5A4A),
-                        fontSize: 10,
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                  ],
+                child: const Icon(
+                  Icons.image,
+                  color: Colors.grey,
+                  size: 28,
                 ),
               ),
-            ),
+            
             const SizedBox(width: 15),
+            
             GestureDetector(
               onTap: _viewModel.pickFromCamera,
               child: Container(
@@ -279,19 +261,50 @@ class _AdminEditMenuViewState extends State<AdminEditMenuView> {
                     ),
                   ],
                 ),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.camera_alt, color: Color(0xFF3D5A4A), size: 28),
-                    Text(
-                      'Camera',
-                      style: TextStyle(
-                        color: Color(0xFF3D5A4A),
-                        fontSize: 10,
-                        fontFamily: 'Poppins',
-                      ),
+                child: Center(
+                  child: SvgPicture.asset(
+                    'assets/images/Camera.svg',
+                    width: 28,
+                    height: 28,
+                    colorFilter: const ColorFilter.mode(
+                      Color(0xFF3D5A4A),
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            
+            const SizedBox(width: 15),
+            
+            GestureDetector(
+              onTap: _viewModel.pickFromGallery,
+              child: Container(
+                width: 68,
+                height: 68,
+                decoration: ShapeDecoration(
+                  color: const Color(0xFFFDFDFD),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  shadows: const [
+                    BoxShadow(
+                      color: Color(0x3F000000),
+                      blurRadius: 4,
+                      offset: Offset(0, 4),
                     ),
                   ],
+                ),
+                child: Center(
+                  child: SvgPicture.asset(
+                    'assets/images/Galeri.svg',
+                    width: 28,
+                    height: 28,
+                    colorFilter: const ColorFilter.mode(
+                      Color(0xFF3D5A4A),
+                      BlendMode.srcIn,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -300,6 +313,7 @@ class _AdminEditMenuViewState extends State<AdminEditMenuView> {
       ],
     );
   }
+
 
   Widget _buildLabel(String text) {
     return Padding(

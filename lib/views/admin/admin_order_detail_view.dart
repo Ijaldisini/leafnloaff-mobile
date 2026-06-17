@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:leafnloaff/viewmodels/admin/admin_order_detail_viewmodel.dart';
 import 'package:leafnloaff/models/order_model.dart';
 import 'package:leafnloaff/views/admin/admin_order_review_view.dart';
@@ -90,71 +91,78 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                 return Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 15,
-                        vertical: 20,
-                      ),
+                      padding: const EdgeInsets.only(top: 10.0, bottom: 20.0),
                       child: Row(
                         children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.arrow_back_ios_new,
-                              color: Colors.white,
-                            ),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                          const SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Order Details',
-                                style: TextStyle(
-                                  color: Color(0xFFFDFDFD),
-                                  fontSize: 25,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  height: 1.10,
-                                  shadows: [
-                                    Shadow(
-                                      offset: Offset(2, 2),
-                                      blurRadius: 4,
-                                      color: Color(0x3F000000),
-                                    ),
-                                  ],
+                          Padding(
+                            padding: const EdgeInsets.only(left: 15.0),
+                            child: GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: SvgPicture.asset(
+                                'assets/images/back.svg',
+                                width: 24,
+                                height: 24,
+                                colorFilter: const ColorFilter.mode(
+                                  Colors.white,
+                                  BlendMode.srcIn,
                                 ),
                               ),
-                              Opacity(
-                                opacity: 0.70,
-                                child: Text(
-                                  'Order ID: ${order.id.length >= 8 ? order.id.substring(0, 8).toUpperCase() : order.id.toUpperCase()}',
-                                  style: const TextStyle(
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                const Text(
+                                  'Order Details',
+                                  style: TextStyle(
                                     color: Color(0xFFFDFDFD),
-                                    fontSize: 14,
+                                    fontSize: 25,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w900,
+                                    shadows: [
+                                      Shadow(
+                                        offset: Offset(2, 2),
+                                        blurRadius: 4,
+                                        color: Colors.black26,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Text(
+                                  order.id.substring(0, 8).toUpperCase(),
+                                  style: TextStyle(
+                                    color: const Color(
+                                      0xFFFDFDFD,
+                                    ).withValues(alpha: 0.7),
+                                    fontSize: 16,
                                     fontFamily: 'Poppins',
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 48),
                         ],
                       ),
                     ),
                     Expanded(
                       child: ListView(
-                        padding: const EdgeInsets.fromLTRB(25, 10, 25, 40),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25,
+                          vertical: 10,
+                        ),
                         physics: const BouncingScrollPhysics(),
                         children: [
-                          _buildStatusCard(order.status),
+                          _buildOrderStatus(order.status),
+                          const SizedBox(height: 16),
+                          _buildCustomerInformation(order),
+                          const SizedBox(height: 16),
+                          _buildOrderDetail(order.items),
                           const SizedBox(height: 20),
-                          _buildCustomerInfoCard(order),
+                          _buildOrderSummary(order),
                           const SizedBox(height: 20),
-                          _buildOrderItemsList(order.items),
-                          const SizedBox(height: 20),
-                          _buildSummaryCard(order),
-                          const SizedBox(height: 20),
-                          _buildPaymentCard(order),
+                          // _buildPaymentCard(order),
                           const SizedBox(height: 30),
                           _buildActionButtons(order),
                         ],
@@ -170,12 +178,733 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
     );
   }
 
+  Widget _buildOrderStatus(String status) {
+    int getCurrentStep() {
+      final statusStr = status.toLowerCase();
+      if (statusStr.contains('tunggu') || statusStr.contains('waiting')) {
+        return 0;
+      } else if (statusStr.contains('proses') || statusStr.contains('preparing')) {
+        return 1;
+      } else if (statusStr.contains('kirim') || statusStr.contains('on the way')) {
+        return 2;
+      } else if (statusStr.contains('selesai') || statusStr.contains('delivered')) {
+        return 3;
+      }
+      return 0;
+    }
+
+    final currentStep = getCurrentStep();
+
+    return Container(
+      width: 338,
+      height: 123,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x3F000000),
+            blurRadius: 4,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          const Positioned(
+            left: 110,
+            top: 11,
+            child: SizedBox(
+              width: 134,
+              height: 23.76,
+              child: Text(
+                'Order Status',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontSize: 16,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  height: 1.10,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 25,
+            top: 50,
+            child: SvgPicture.asset(
+              'assets/images/Waiting.svg',
+              width: 32,
+              height: 32,
+              colorFilter: ColorFilter.mode(
+                currentStep >= 0 ? const Color(0xFF2D4839) : Colors.grey,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 105,
+            top: 50,
+            child: SvgPicture.asset(
+              'assets/images/bell.svg',
+              width: 32,
+              height: 32,
+              colorFilter: ColorFilter.mode(
+                currentStep >= 1 ? const Color(0xFF2D4839) : Colors.grey,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 195,
+            top: 50,
+            child: SvgPicture.asset(
+              'assets/images/pickup.svg',
+              width: 32,
+              height: 32,
+              colorFilter: ColorFilter.mode(
+                currentStep >= 2 ? const Color(0xFF2D4839) : Colors.grey,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 280,
+            top: 50,
+            child: SvgPicture.asset(
+              'assets/images/deliverid.svg',
+              width: 32,
+              height: 32,
+              colorFilter: ColorFilter.mode(
+                currentStep >= 3 ? const Color(0xFF2D4839) : Colors.grey,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 16,
+            top: 88.50,
+            child: SizedBox(
+              width: 310,
+              height: 6,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Color(0xFFEED5DB),
+                  borderRadius: BorderRadius.all(Radius.circular(7500.95)),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 16,
+            top: 88.50,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              width: currentStep >= 0 ? 62 : 0,
+              height: 6,
+              decoration: const BoxDecoration(
+                color: Color(0xFFCA748D),
+                borderRadius: BorderRadius.all(Radius.circular(7500.95)),
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 16,
+            top: 97.50,
+            child: Text(
+              'Waiting',
+              style: TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 12,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w700,
+                height: 1.10,
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 87,
+            top: 97.50,
+            child: Text(
+              'Preparing',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 12,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w700,
+                height: 1.10,
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 171,
+            top: 97.50,
+            child: Text(
+              'On The Way',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 12,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w700,
+                height: 1.10,
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 267,
+            top: 97.50,
+            child: Text(
+              'Delivered',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 12,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w700,
+                height: 1.10,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomerInformation(OrderDetailModel order) {
+    return Container(
+      width: 338,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x3F000000),
+            blurRadius: 4,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Customer Information',
+              style: TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 20,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/images/person.svg',
+                  width: 20,
+                  height: 20,
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF426E55),
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    order.profile.fullName,
+                    style: const TextStyle(
+                      color: Color(0xFF426E55),
+                      fontSize: 14,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'assets/images/telepon.svg',
+                  width: 20,
+                  height: 20,
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF426E55),
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    order.profile.phoneNumber,
+                    style: const TextStyle(
+                      color: Color(0xFF426E55),
+                      fontSize: 14,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SvgPicture.asset(
+                  'assets/images/locations.svg',
+                  width: 20,
+                  height: 20,
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF426E55),
+                    BlendMode.srcIn,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    order.addressDetail,
+                    style: const TextStyle(
+                      color: Color(0xFF426E55),
+                      fontSize: 14,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w600,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (order.latitude != null && order.longitude != null)
+              GestureDetector(
+                onTap: () => _viewModel.openMap(order.latitude!, order.longitude!),
+                child: Container(
+                  height: 32,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: ShapeDecoration(
+                    color: const Color(0xFFEED5DB),
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(
+                        width: 1,
+                        color: const Color(0xFFCA748D),
+                      ),
+                      borderRadius: BorderRadius.circular(62.50),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.map,
+                        size: 16,
+                        color: Color(0xFFCA748D),
+                      ),
+                      SizedBox(width: 6),
+                      Text(
+                        'View Maps',
+                        style: TextStyle(
+                          color: Color(0xFFCA748D),
+                          fontSize: 12,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderDetail(List<OrderItemModel> items) {
+    return Container(
+      width: 338,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x3F000000),
+            blurRadius: 4,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 188,
+              height: 24,
+              child: Text(
+                'Order Detail',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontSize: 20,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  height: 1.10,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...items.map((item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _buildOrderItem(item),
+            )).toList(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderItem(OrderItemModel item) {
+    return Container(
+      width: 314,
+      height: 81,
+      decoration: ShapeDecoration(
+        color: const Color(0xFFFDFDFD),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+            width: 1,
+            color: const Color(0xFFCA748D),
+          ),
+          borderRadius: BorderRadius.circular(11.68),
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            top: 0,
+            child: Container(
+              width: 91.53,
+              height: 81,
+              decoration: ShapeDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(
+                    item.menuImageUrl ?? 'https://placehold.co/92x81',
+                  ),
+                  fit: BoxFit.cover,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(11.68),
+                    bottomLeft: Radius.circular(11.68),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 95,
+            top: 5,
+            child: Text(
+              item.menuName,
+              style: const TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 12,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w800,
+                height: 1.10,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 95,
+            top: 21,
+            child: SizedBox(
+              width: 213,
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    const TextSpan(
+                      text: 'Notes: ',
+                      style: TextStyle(
+                        color: Color(0xFF426E55),
+                        fontSize: 8,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w700,
+                        height: 1.10,
+                      ),
+                    ),
+                    TextSpan(
+                      text: item.notes ?? '-',
+                      style: const TextStyle(
+                        color: Color(0xFF426E55),
+                        fontSize: 8,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w500,
+                        height: 1.10,
+                      ),
+                    ),
+                  ],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 95,
+            top: 42,
+            child: SizedBox(
+              width: 120.40,
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    const TextSpan(
+                      text: 'Qty:',
+                      style: TextStyle(
+                        color: Color(0xFF426E55),
+                        fontSize: 8,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w700,
+                        height: 1.10,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' ${item.quantity}',
+                      style: const TextStyle(
+                        color: Color(0xFF426E55),
+                        fontSize: 8,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w500,
+                        height: 1.10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 95,
+            top: 59,
+            child: Text(
+              'Rp. ${item.priceAtTime.toInt()}',
+              style: const TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 13,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w800,
+                height: 1.10,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderSummary(OrderDetailModel order) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Order Summary',
+            style: TextStyle(
+              color: Color(0xFF2D4839),
+              fontSize: 20,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 15),
+          _buildSummaryRow('Sub Total', _viewModel.formatCurrency(order.totalPrice)),
+          const SizedBox(height: 6),
+          _buildSummaryRow('Shipping Cost', 'Rp. 0'),
+          const SizedBox(height: 6),
+          _buildSummaryRow('Discount', 'Rp. 0'),
+          const SizedBox(height: 15),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Total Payment',
+                style: TextStyle(
+                  color: Color(0xFF426E55),
+                  fontSize: 18,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                _viewModel.formatCurrency(order.totalPrice),
+                style: const TextStyle(
+                  color: Color(0xFF426E55),
+                  fontSize: 18,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryRow(String title, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFF426E55),
+            fontSize: 15,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Color(0xFF426E55),
+            fontSize: 16,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Widget _buildPaymentCard(OrderDetailModel order) {
+  //   final methodStr = order.paymentMethod;
+  //   final isCOD = methodStr.toUpperCase() == 'COD';
+  //   final isQris = methodStr.toLowerCase().contains('qris');
+  //   final isVA = methodStr.toLowerCase().contains('virtual account');
+
+  //   bool isPaid = true;
+  //   if (isCOD) {
+  //     isPaid = order.status.toLowerCase().contains('selesai') ||
+  //         order.status.toLowerCase().contains('delivered');
+  //   } else if (isVA) {
+  //     isPaid = order.status.toLowerCase().contains('diproses') ||
+  //         order.status.toLowerCase().contains('dikirim') ||
+  //         order.status.toLowerCase().contains('selesai');
+  //   }
+
+  //   String displayMethod = methodStr;
+  //   if (isVA) {
+  //     if (methodStr.toLowerCase() == 'virtual account bank' ||
+  //         methodStr.toLowerCase() == 'virtual account') {
+  //       displayMethod = "Virtual Account";
+  //     } else {
+  //       String bankName = methodStr
+  //           .toLowerCase()
+  //           .replaceAll('virtual account', '')
+  //           .replaceAll('bank', '')
+  //           .trim();
+  //       displayMethod = "Bank ${bankName.toUpperCase()}";
+  //     }
+  //   }
+
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
+  //     decoration: BoxDecoration(
+  //       color: const Color(0xFFFDFDFD),
+  //       borderRadius: BorderRadius.circular(16.69),
+  //       boxShadow: const [
+  //         BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 4)),
+  //       ],
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         const Text(
+  //           'Payment Information',
+  //           style: TextStyle(
+  //             color: Color(0xFF2D4839),
+  //             fontSize: 20,
+  //             fontFamily: 'Poppins',
+  //             fontWeight: FontWeight.w800,
+  //           ),
+  //         ),
+  //         const SizedBox(height: 20),
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             const Text(
+  //               'Payment Method',
+  //               style: TextStyle(
+  //                 color: Color(0xFF426E55),
+  //                 fontSize: 16,
+  //                 fontFamily: 'Poppins',
+  //                 fontWeight: FontWeight.w600,
+  //               ),
+  //             ),
+  //             _buildPill(displayMethod, false),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 12),
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             const Text(
+  //               'Payment Status',
+  //               style: TextStyle(
+  //                 color: Color(0xFF426E55),
+  //                 fontSize: 16,
+  //                 fontFamily: 'Poppins',
+  //                 fontWeight: FontWeight.w600,
+  //               ),
+  //             ),
+  //             _buildPill(isPaid ? 'Paid' : 'Unpaid', isPaid),
+  //           ],
+  //         ),
+  //         if (isQris && order.paymentProofUrl != null) ...[
+  //           const SizedBox(height: 20),
+  //           Align(
+  //             alignment: Alignment.centerLeft,
+  //             child: GestureDetector(
+  //               onTap: () {
+  //                 Navigator.push(
+  //                   context,
+  //                   MaterialPageRoute(
+  //                     builder: (context) => FullScreenImagePage(imageUrl: order.paymentProofUrl!),
+  //                   ),
+  //                 );
+  //               },
+  //               child: _buildPill('See proof of payment', false),
+  //             ),
+  //           ),
+  //         ],
+  //       ],
+  //     ),
+  //   );
+  // }
+
   Widget _buildActionButtons(OrderDetailModel order) {
     final statusStr = order.status.toLowerCase();
-    final isDelivered =
-        statusStr.contains('selesai') || statusStr.contains('delivered');
-    final isCanceled =
-        statusStr.contains('batal') || statusStr.contains('cancel');
+    final isDelivered = statusStr.contains('selesai') || statusStr.contains('delivered');
+    final isCanceled = statusStr.contains('batal') || statusStr.contains('cancel');
 
     if (isCanceled) {
       return const SizedBox();
@@ -212,28 +941,18 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
             ],
           ),
           alignment: Alignment.center,
-          child: Text(
+          child: const Text(
             'View Review',
             style: TextStyle(
-              color: const Color(0xFFFBFBFB),
+              color: Color(0xFFFBFBFB),
               fontSize: 16,
               fontFamily: 'Poppins',
               fontWeight: FontWeight.w800,
-              shadows: [
-                Shadow(
-                  offset: const Offset(2, 2),
-                  blurRadius: 2,
-                  color: Colors.black.withValues(alpha: 0.25),
-                ),
-              ],
             ),
           ),
         ),
       );
     }
-
-    final nextStatusText = _viewModel.getNextStatusText(order.status);
-    final nextStatusValue = _viewModel.getNextStatusValue(order.status);
 
     return Row(
       children: [
@@ -241,11 +960,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
           flex: 4,
           child: GestureDetector(
             onTap: () async {
-              final success = await _viewModel.changeOrderStatus(
-                order.id,
-                'Dibatalkan',
-              );
-
+              final success = await _viewModel.changeOrderStatus(order.id, 'Dibatalkan');
               if (context.mounted) {
                 if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -284,648 +999,77 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                 ],
               ),
               alignment: Alignment.center,
-              child: Text(
+              child: const Text(
                 'Cancel Order',
                 style: TextStyle(
-                  color: const Color(0xFFFBFBFB),
+                  color: Color(0xFFFBFBFB),
                   fontSize: 14,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w800,
-                  shadows: [
-                    Shadow(
-                      offset: const Offset(2, 2),
-                      blurRadius: 2,
-                      color: Colors.black.withValues(alpha: 0.25),
-                    ),
-                  ],
                 ),
               ),
             ),
           ),
         ),
         const SizedBox(width: 15),
+        
         Expanded(
           flex: 6,
-          child: nextStatusValue != null
-              ? GestureDetector(
-                  onTap: () async {
-                    final success = await _viewModel.changeOrderStatus(
-                      order.id,
-                      nextStatusValue,
-                    );
-
-                    if (context.mounted) {
-                      if (success) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Status berhasil diupdate!'),
-                            backgroundColor: Color(0xFF73986F),
-                          ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Gagal update! Cek RLS Supabase.'),
-                            backgroundColor: Color(0xFFC23437),
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  child: Container(
-                    height: 45,
-                    decoration: ShapeDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(87.79),
-                      ),
-                      shadows: const [
-                        BoxShadow(
-                          color: Color(0x3F000000),
-                          blurRadius: 3.51,
-                          offset: Offset(0, 3.51),
-                        ),
-                      ],
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      nextStatusText ?? '',
-                      style: TextStyle(
-                        color: const Color(0xFFFBFBFB),
-                        fontSize: 14,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w800,
-                        shadows: [
-                          Shadow(
-                            offset: const Offset(2, 2),
-                            blurRadius: 2,
-                            color: Colors.black.withValues(alpha: 0.25),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-              : Container(
-                  height: 45,
-                  decoration: ShapeDecoration(
-                    color: Colors.grey,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(87.79),
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Text(
-                    'Waiting for Customer',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatusCard(String status) {
-    String statusStr = status.toLowerCase();
-    double progress = 0.0;
-
-    if (statusStr.contains('tunggu') || statusStr.contains('bayar')) {
-      progress = 0.25;
-    } else if (statusStr.contains('proses') || statusStr.contains('siap')) {
-      progress = 0.50;
-    } else if (statusStr.contains('kirim') || statusStr.contains('jalan')) {
-      progress = 0.75;
-    } else if (statusStr.contains('selesai')) {
-      progress = 1.0;
-    }
-
-    return _buildWhiteContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Order Status',
-            style: TextStyle(
-              color: Color(0xFF2D4839),
-              fontSize: 16,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 15),
-          Stack(
-            children: [
-              Container(
-                width: double.infinity,
-                height: 6,
-                decoration: ShapeDecoration(
-                  color: const Color(0xFFEED5DB),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(7500.95),
-                  ),
-                ),
-              ),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 500),
-                    width: constraints.maxWidth * progress,
-                    height: 6,
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFFCA748D),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(7500.95),
-                      ),
+          child: GestureDetector(
+            onTap: () async {
+              String nextStatus = _viewModel.getNextStatusValue(order.status) ?? 'Diproses';
+              final success = await _viewModel.changeOrderStatus(order.id, nextStatus);
+              if (context.mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Status berhasil diupdate!'),
+                      backgroundColor: Color(0xFF73986F),
                     ),
                   );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Waiting', style: _statusLabelStyle),
-              Text('Preparing', style: _statusLabelStyle),
-              Text('On The Way', style: _statusLabelStyle),
-              Text('Delivered', style: _statusLabelStyle),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  static const TextStyle _statusLabelStyle = TextStyle(
-    color: Color(0xFF2D4839),
-    fontSize: 10,
-    fontFamily: 'Poppins',
-    fontWeight: FontWeight.w700,
-  );
-
-  Widget _buildCustomerInfoCard(OrderDetailModel order) {
-    bool hasLocation = order.latitude != null && order.longitude != null;
-
-    return _buildWhiteContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Customer Information',
-            style: TextStyle(
-              color: Color(0xFF2D4839),
-              fontSize: 16,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 10),
-          _buildInfoRow('Customer’s Name', order.profile.fullName),
-          const SizedBox(height: 5),
-          _buildInfoRow('Phone Number', order.profile.phoneNumber),
-          const SizedBox(height: 5),
-          _buildInfoRow('Address', order.addressDetail),
-          if (hasLocation) ...[
-            const SizedBox(height: 15),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: GestureDetector(
-                onTap: () =>
-                    _viewModel.openMap(order.latitude!, order.longitude!),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 5,
-                  ),
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFFEED5DB),
-                    shape: RoundedRectangleBorder(
-                      side: const BorderSide(
-                        width: 1,
-                        color: Color(0xFFCA748D),
-                      ),
-                      borderRadius: BorderRadius.circular(62.50),
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Gagal update! Cek RLS Supabase.'),
+                      backgroundColor: Color(0xFFC23437),
                     ),
-                  ),
-                  child: const Text(
-                    'View Maps',
-                    style: TextStyle(
-                      color: Color(0xFFCA748D),
-                      fontSize: 11.39,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  );
+                }
+              }
+            },
+            child: Container(
+              height: 45,
+              decoration: ShapeDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
                 ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(87.79),
+                ),
+                shadows: const [
+                  BoxShadow(
+                    color: Color(0x3F000000),
+                    blurRadius: 3.51,
+                    offset: Offset(0, 3.51),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrderItemsList(List<OrderItemModel> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Order Detail',
-          style: TextStyle(
-            color: Color(0xFF2D4839),
-            fontSize: 16,
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: 10),
-        ...items.map((item) {
-          final priceFormatted = _viewModel.formatCurrency(item.menuPrice);
-
-          return Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            height: 85,
-            decoration: ShapeDecoration(
-              color: const Color(0xFFFDFDFD),
-              shape: RoundedRectangleBorder(
-                side: const BorderSide(width: 1, color: Color(0xFFCA748D)),
-                borderRadius: BorderRadius.circular(11.68),
-              ),
-            ),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(11),
-                    bottomLeft: Radius.circular(11),
-                  ),
-                  child: SizedBox(
-                    width: 90,
-                    height: double.infinity,
-                    child:
-                        item.menuImageUrl != null &&
-                            item.menuImageUrl!.isNotEmpty
-                        ? Image.network(
-                            item.menuImageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Image.network(
-                                "https://placehold.co/92x81/png?text=No+Image",
-                                fit: BoxFit.cover,
-                              );
-                            },
-                          )
-                        : Image.network(
-                            "https://placehold.co/92x81/png?text=No+Image",
-                            fit: BoxFit.cover,
-                          ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          item.menuName,
-                          style: const TextStyle(
-                            color: Color(0xFF2D4839),
-                            fontSize: 12,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w800,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Qty: ${item.quantity}',
-                              style: const TextStyle(
-                                color: Color(0xFF426E55),
-                                fontSize: 9,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            Text(
-                              priceFormatted,
-                              style: const TextStyle(
-                                color: Color(0xFF2D4839),
-                                fontSize: 13,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _buildSummaryCard(OrderDetailModel order) {
-    final total = _viewModel.formatCurrency(order.totalPrice);
-
-    return _buildWhiteContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Order Summary',
-            style: TextStyle(
-              color: Color(0xFF2D4839),
-              fontSize: 16,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 10),
-          _buildSummaryRow('Sub Total', total),
-          const SizedBox(height: 5),
-          _buildSummaryRow('Shipping Cost', 'Rp. 0'),
-          const SizedBox(height: 5),
-          _buildSummaryRow('Discount', 'Rp. 0'),
-          const SizedBox(height: 5),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Notes',
-                style: TextStyle(
-                  color: Color(0xFF426E55),
-                  fontSize: 13,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  order.notes,
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    color: Color(0xFF426E55),
-                    fontSize: 13,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const Divider(color: Color(0xFFEED5DB), thickness: 1, height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Total Payment',
-                style: TextStyle(
-                  color: Color(0xFF426E55),
-                  fontSize: 15,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                total,
+              alignment: Alignment.center,
+              child: Text(
+                _viewModel.getNextStatusText(order.status) ?? 'Update Status',
                 style: const TextStyle(
-                  color: Color(0xFF426E55),
-                  fontSize: 15,
+                  color: Color(0xFFFBFBFB),
+                  fontSize: 14,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w800,
                 ),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentCard(OrderDetailModel order) {
-    final methodStr = order.paymentMethod;
-    final isCOD = methodStr.toUpperCase() == 'COD';
-    final isQris = methodStr.toLowerCase().contains('qris');
-    final isVA = methodStr.toLowerCase().contains('virtual account');
-
-    bool isPaid = true;
-    if (isCOD) {
-      isPaid =
-          order.status.toLowerCase().contains('selesai') ||
-          order.status.toLowerCase().contains('delivered');
-    }
-
-    String displayMethod = methodStr;
-    if (isVA) {
-      if (methodStr.toLowerCase() == 'virtual account bank' ||
-          methodStr.toLowerCase() == 'virtual account') {
-        displayMethod = "Virtual Account";
-      } else {
-        String bankName = methodStr
-            .toLowerCase()
-            .replaceAll('virtual account', '')
-            .replaceAll('bank', '')
-            .trim();
-        displayMethod = "Bank ${bankName.toUpperCase()}";
-      }
-    }
-
-    return _buildWhiteContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Payment Information',
-            style: TextStyle(
-              color: Color(0xFF2D4839),
-              fontSize: 16,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w800,
             ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Payment Method',
-                style: TextStyle(
-                  color: Color(0xFF426E55),
-                  fontSize: 13,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: _buildPill(displayMethod, isPaidStyle: false),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Payment Status',
-                style: TextStyle(
-                  color: Color(0xFF426E55),
-                  fontSize: 13,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              _buildPill(isPaid ? 'Paid' : 'Unpaid', isPaidStyle: isPaid),
-            ],
-          ),
-
-          if (isQris && order.paymentProofUrl != null) ...[
-            const SizedBox(height: 15),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          FullScreenImagePage(imageUrl: order.paymentProofUrl!),
-                    ),
-                  );
-                },
-                child: _buildPill('See proof of payment', isPaidStyle: false),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWhiteContainer({required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: ShapeDecoration(
-        color: const Color(0xFFFDFDFD),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.69),
-        ),
-        shadows: const [
-          BoxShadow(
-            color: Color(0x3F000000),
-            blurRadius: 4,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFF426E55),
-            fontSize: 11,
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Color(0xFF426E55),
-            fontSize: 13,
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w600,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSummaryRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFF426E55),
-            fontSize: 13,
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Color(0xFF426E55),
-            fontSize: 14,
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPill(String text, {bool isPaidStyle = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: ShapeDecoration(
-        color: const Color(0xFFEED5DB),
-        shape: RoundedRectangleBorder(
-          side: BorderSide(
-            width: 1,
-            color: isPaidStyle
-                ? const Color(0xFF426E55)
-                : const Color(0xFFCA748D),
-          ),
-          borderRadius: BorderRadius.circular(62.50),
-        ),
-      ),
-      child: Text(
-        text,
-        textAlign: TextAlign.right,
-        style: TextStyle(
-          color: isPaidStyle
-              ? const Color(0xFF426E55)
-              : const Color(0xFFCA748D),
-          fontSize: 11.39,
-          fontFamily: 'Poppins',
-          fontWeight: FontWeight.w600,
-        ),
-      ),
     );
   }
 }

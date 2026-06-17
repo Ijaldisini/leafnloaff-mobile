@@ -4,6 +4,7 @@ import '../../models/menu_model.dart';
 import 'admin_add_menu_view.dart';
 import 'admin_edit_menu_view.dart';
 import 'admin_preview_menu_view.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AdminMenuManagementView extends StatefulWidget {
   const AdminMenuManagementView({super.key});
@@ -156,10 +157,9 @@ class _AdminMenuManagementViewState extends State<AdminMenuManagementView>
                     vertical: 20,
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Menu\nManagement',
+                        'Menu Management',
                         style: TextStyle(
                           color: Color(0xFFFDFDFD),
                           fontSize: 22,
@@ -174,6 +174,68 @@ class _AdminMenuManagementViewState extends State<AdminMenuManagementView>
                           ],
                         ),
                       ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(50),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 4,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: TextField(
+                            onChanged: _viewModel.searchMenu,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 13,
+                              color: Color(0xFF2D4839),
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Cari menu...',
+                              hintStyle: const TextStyle(
+                                color: Colors.grey,
+                                fontFamily: 'Poppins',
+                              ),
+                              prefixIcon: Container(
+                                margin: const EdgeInsets.all(4),
+                                width: 32,
+                                height: 32,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF426E55),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: SvgPicture.asset(
+                                    'assets/images/Search.svg',
+                                    width: 16,
+                                    height: 16,
+                                    colorFilter: const ColorFilter.mode(
+                                      Colors.white,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
                       GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -184,57 +246,50 @@ class _AdminMenuManagementViewState extends State<AdminMenuManagementView>
                           );
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFCA748D),
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment(1.00, 1.00), 
+                              end: Alignment(0.00, 0.00),  
+                              colors: [
+                                Color(0xFF73986F), 
+                                Color(0xFFFDFDFD), 
+                              ],
+                            ),
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black26,
+                                color: Colors.black.withOpacity(0.25),
                                 blurRadius: 4,
-                                offset: Offset(0, 2),
+                                offset: const Offset(0, 4),
                               ),
                             ],
                           ),
-                          child: const Icon(Icons.add, color: Colors.white),
+                          child: Center(
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/images/lingkaran hijau.svg',
+                                  width: 28,
+                                  height: 28,
+                                ),
+                                SvgPicture.asset(
+                                  'assets/images/tambah.svg',
+                                  width: 14,
+                                  height: 14,
+                                  colorFilter: const ColorFilter.mode(
+                                    Color.fromARGB(255, 59, 88, 62), 
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25),
-                  child: Container(
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(50),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      onChanged: _viewModel.searchMenu,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 13,
-                        color: Color(0xFF2D4839),
-                      ),
-                      decoration: const InputDecoration(
-                        hintText: 'Cari menu...',
-                        hintStyle: TextStyle(
-                          color: Colors.grey,
-                          fontFamily: 'Poppins',
-                        ),
-                        prefixIcon: Icon(Icons.search, color: Colors.grey),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -356,121 +411,171 @@ class _AdminMenuManagementViewState extends State<AdminMenuManagementView>
               );
             },
             child: Container(
-              padding: const EdgeInsets.all(12),
+              width: 338,
+              height: 100,
               decoration: BoxDecoration(
                 color: const Color(0xFFFDFDFD),
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: const [
+                borderRadius: BorderRadius.circular(16.69),
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: Colors.black.withOpacity(0.25),
                     blurRadius: 4,
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: Row(
+              child: Stack(
+                clipBehavior: Clip.none, 
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.network(
-                      menu.imageUrl ?? 'https://placehold.co/80x80',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stack) => Container(
-                        width: 80,
-                        height: 80,
-                        color: Colors.grey.shade300,
-                        child: const Icon(
-                          Icons.broken_image,
-                          color: Colors.grey,
+                  // ✅ Background gambar di kiri
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    child: Container(
+                      width: 113,
+                      height: 100,
+                      decoration: ShapeDecoration(
+                        image: DecorationImage(
+                          image: NetworkImage(
+                            menu.imageUrl ?? 'https://placehold.co/113x100',
+                          ),
+                          fit: BoxFit.cover,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(16.69),
+                            bottomLeft: Radius.circular(16.69),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          menu.name,
-                          style: const TextStyle(
-                            color: Color(0xFF2D4839),
-                            fontSize: 15,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _viewModel.formatCurrency(menu.price),
-                          style: const TextStyle(
-                            color: Color(0xFFCA748D),
-                            fontSize: 13,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.inventory_2_outlined,
-                              size: 14,
+
+                  Positioned(
+                    left: 118,
+                    top: 6,
+                    right: 50,
+                    child: Text(
+                      menu.name,
+                      style: const TextStyle(
+                        color: Color(0xFF2D4839),
+                        fontSize: 16,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w800,
+                        height: 1.10,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis, 
+                    ),
+                  ),
+
+                  Positioned(
+                    left: 118,
+                    top: 28,
+                    right: 50, 
+                    child: Text(
+                      menu.description,
+                      style: const TextStyle(
+                        color: Color(0xFF51725F),
+                        fontSize: 10,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w500,
+                        height: 1.20,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+
+                  Positioned(
+                    left: 118,
+                    top: 50,
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          const TextSpan(
+                            text: 'Stock: ',
+                            style: TextStyle(
                               color: Color(0xFF51725F),
+                              fontSize: 10,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w700,
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              isInactive ? 'Nonaktif' : 'Stok: ${menu.stock}',
-                              style: TextStyle(
-                                color: (menu.stock <= 5 && !isInactive)
-                                    ? const Color(0xFFC23437)
-                                    : const Color(0xFF51725F),
-                                fontSize: 11,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.bold,
+                          ),
+                          TextSpan(
+                            text: isInactive
+                                ? 'Nonaktif'
+                                : menu.stock.toString(),
+                            style: TextStyle(
+                              color: (menu.stock <= 5 && !isInactive)
+                                  ? const Color(0xFFC23437)
+                                  : const Color(0xFF51725F),
+                              fontSize: 10,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  Positioned(
+                    left: 118,
+                    bottom: 8,
+                    child: Text(
+                      _viewModel.formatCurrency(menu.price),
+                      style: const TextStyle(
+                        color: Color(0xFF2D4839),
+                        fontSize: 16,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+
+                if (!isInactive)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AdminEditMenuView(menu: menu),
                               ),
+                            );
+                          },
+                          child: SvgPicture.asset(
+                            'assets/images/Pencil.svg',
+                            width: 14,
+                            height: 14,
+                            colorFilter: const ColorFilter.mode(
+                              Color(0xFF426E55),
+                              BlendMode.srcIn,
                             ),
-                          ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => _showDeleteDialog(menu),
+                          child: SvgPicture.asset(
+                            'assets/images/sampah.svg',
+                            width: 14,
+                            height: 14,
+                            colorFilter: const ColorFilter.mode(
+                              Color(0xFF426E55),
+                              BlendMode.srcIn,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  if (!isInactive)
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          constraints: const BoxConstraints(),
-                          padding: const EdgeInsets.only(bottom: 5),
-                          icon: const Icon(
-                            Icons.edit,
-                            color: Color(0xFF426E55),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    AdminEditMenuView(menu: menu),
-                              ),
-                            );
-                          },
-                        ),
-                        IconButton(
-                          constraints: const BoxConstraints(),
-                          padding: const EdgeInsets.only(top: 5),
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Color(0xFFC23437),
-                          ),
-                          onPressed: () => _showDeleteDialog(menu),
-                        ),
-                      ],
-                    ),
                 ],
               ),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/menu_model.dart';
 import '../../models/review_model.dart';
 import '../../viewmodels/admin/admin_review_menu_viewmodel.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AdminReviewMenuView extends StatefulWidget {
   final MenuModel menu;
@@ -68,10 +69,14 @@ class _AdminReviewMenuViewState extends State<AdminReviewMenuView> {
                     children: [
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: const Icon(
-                          Icons.arrow_back_ios,
-                          color: Colors.white,
-                          size: 24,
+                        child: SvgPicture.asset(
+                          'assets/images/back.svg',
+                          width: 24,
+                          height: 24,
+                          colorFilter: const ColorFilter.mode(
+                            Colors.white,
+                            BlendMode.srcIn,
+                          ),
                         ),
                       ),
                       Expanded(
@@ -291,7 +296,7 @@ class _AdminReviewMenuViewState extends State<AdminReviewMenuView> {
                                 ? Icons.star
                                 : Icons.star_border,
                             size: 12,
-                            color: const Color(0xFFCA748D),
+                            color: const Color(0xFFFFC107),
                           );
                         }),
                       ),

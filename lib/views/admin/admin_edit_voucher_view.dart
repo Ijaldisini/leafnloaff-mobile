@@ -165,52 +165,49 @@ class _AdminEditVoucherViewState extends State<AdminEditVoucherView> {
                     const SizedBox(height: 20),
                     _buildLabel('Voucher’s Photo'),
                     const SizedBox(height: 10),
-                    ListenableBuilder(
-                      listenable: _viewModel,
-                      builder: (context, child) {
-                        return Center(
-                          child: Stack(
-                            alignment: Alignment.bottomCenter,
-                            children: [
-                              Container(
-                                width: double.infinity,
-                                height: 121,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x3F000000),
-                                      blurRadius: 4,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
-                                  image: _viewModel.newSelectedImage != null
-                                      ? DecorationImage(
-                                          image: FileImage(
-                                            _viewModel.newSelectedImage!,
+                      ListenableBuilder(
+                        listenable: _viewModel,
+                        builder: (context, child) {
+                          return Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  height: 121,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color(0x3F000000),
+                                        blurRadius: 4,
+                                        offset: Offset(0, 4),
+                                      ),
+                                    ],
+                                    image: _viewModel.newSelectedImage != null
+                                        ? DecorationImage(
+                                            image: FileImage(_viewModel.newSelectedImage!),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : DecorationImage(
+                                            image: NetworkImage(widget.voucher.imageUrl),
+                                            fit: BoxFit.cover,
+                                            onError: (exception, stackTrace) =>
+                                                const NetworkImage("https://placehold.co/334x121.png"),
                                           ),
-                                          fit: BoxFit.cover,
-                                        )
-                                      : DecorationImage(
-                                          image: NetworkImage(
-                                            widget.voucher.imageUrl,
-                                          ),
-                                          fit: BoxFit.cover,
-                                          onError: (exception, stackTrace) =>
-                                              const NetworkImage(
-                                                "https://placehold.co/334x121.png",
-                                              ),
-                                        ),
+                                  ),
                                 ),
-                              ),
-                              Positioned(
-                                bottom: -10,
-                                child: GestureDetector(
+                                
+                                // ✅ JARAK
+                                const SizedBox(height: 10),
+                                
+                                // ✅ TOMBOL CHANGE PHOTO DI BAWAH
+                                GestureDetector(
                                   onTap: _viewModel.pickNewImage,
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 4,
+                                      horizontal: 20,
+                                      vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
@@ -234,19 +231,18 @@ class _AdminEditVoucherViewState extends State<AdminEditVoucherView> {
                                       'Change Photo',
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 10,
+                                        fontSize: 12,
                                         fontFamily: 'Poppins',
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     const SizedBox(height: 30),
                     _buildLabel('Voucher’s Name'),
                     _buildTextField(_nameController, height: 45),

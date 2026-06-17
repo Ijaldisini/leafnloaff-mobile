@@ -3,6 +3,7 @@ import '../../models/menu_model.dart';
 import '../../viewmodels/admin/admin_preview_menu_viewmodel.dart';
 import 'admin_edit_menu_view.dart';
 import 'admin_review_menu_view.dart';
+import 'package:flutter_svg/flutter_svg.dart'; 
 
 class AdminPreviewMenuView extends StatefulWidget {
   final MenuModel menu;
@@ -74,10 +75,14 @@ class _AdminPreviewMenuViewState extends State<AdminPreviewMenuView> {
                           children: [
                             GestureDetector(
                               onTap: () => Navigator.pop(context),
-                              child: const Icon(
-                                Icons.arrow_back_ios,
-                                color: Colors.white,
-                                size: 24,
+                              child: SvgPicture.asset(
+                                'assets/images/back.svg',
+                                width: 24,
+                                height: 24,
+                                colorFilter: const ColorFilter.mode(
+                                  Colors.white,
+                                  BlendMode.srcIn,
+                                ),
                               ),
                             ),
                             Expanded(
@@ -245,181 +250,7 @@ class _AdminPreviewMenuViewState extends State<AdminPreviewMenuView> {
                               ],
                             ),
                             const SizedBox(height: 25),
-
-                            ListenableBuilder(
-                              listenable: _viewModel,
-                              builder: (context, child) {
-                                if (_viewModel.isLoading) {
-                                  return const Center(
-                                    child: CircularProgressIndicator(
-                                      color: Color(0xFFCA748D),
-                                    ),
-                                  );
-                                }
-
-                                return Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 15,
-                                    horizontal: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: const Color(0xFFCA748D),
-                                      width: 2,
-                                    ),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Column(
-                                          children: [
-                                            const Text(
-                                              'Rating',
-                                              style: TextStyle(
-                                                color: Color(0xFFCA748D),
-                                                fontSize: 16,
-                                                fontFamily: 'Poppins',
-                                                fontWeight: FontWeight.w800,
-                                              ),
-                                            ),
-                                            Text(
-                                              _viewModel.averageRating
-                                                  .toStringAsFixed(1),
-                                              style: const TextStyle(
-                                                color: Color(0xFFCA748D),
-                                                fontSize: 32,
-                                                fontFamily: 'Poppins',
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                            Text(
-                                              'Based on ${_viewModel.totalReviews} Reviews',
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                color: Color(0xFFD699AB),
-                                                fontSize: 8,
-                                                fontFamily: 'Poppins',
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 5),
-
-                                            GestureDetector(
-                                              onTap: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        AdminReviewMenuView(
-                                                          menu: widget.menu,
-                                                        ),
-                                                  ),
-                                                );
-                                              },
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 10,
-                                                      vertical: 2,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(
-                                                    0xFFD699AB,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(50),
-                                                ),
-                                                child: const Text(
-                                                  'See More',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 9,
-                                                    fontFamily: 'Poppins',
-                                                    fontWeight: FontWeight.w800,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 3,
-                                        child: Column(
-                                          children: List.generate(5, (index) {
-                                            final stars = 5 - index;
-                                            final reviewCountForStar =
-                                                _viewModel
-                                                    .ratingDistribution[stars] ??
-                                                0;
-                                            final widthPercentage =
-                                                _viewModel.totalReviews == 0
-                                                ? 0.0
-                                                : (reviewCountForStar /
-                                                      _viewModel.totalReviews);
-
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                bottom: 4.0,
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Text(
-                                                    '$stars',
-                                                    style: const TextStyle(
-                                                      color: Color(0xFFCA748D),
-                                                      fontSize: 12,
-                                                      fontFamily: 'Poppins',
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Expanded(
-                                                    child: Container(
-                                                      height: 5,
-                                                      alignment:
-                                                          Alignment.centerLeft,
-                                                      decoration: BoxDecoration(
-                                                        color: const Color(
-                                                          0xFFEED5DB,
-                                                        ),
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              5,
-                                                            ),
-                                                      ),
-                                                      child: FractionallySizedBox(
-                                                        widthFactor:
-                                                            widthPercentage,
-                                                        child: Container(
-                                                          decoration: BoxDecoration(
-                                                            color: const Color(
-                                                              0xFFCA748D,
-                                                            ),
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  5,
-                                                                ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          }),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
+                            _buildRatingSection(),
                           ],
                         ),
                       ),
@@ -497,6 +328,224 @@ class _AdminPreviewMenuViewState extends State<AdminPreviewMenuView> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildRatingSection() {
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder: (context, _) {
+        if (_viewModel.isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFFCA748D)),
+          );
+        }
+
+        final maxCount = _viewModel.ratingDistribution.values.isEmpty
+            ? 1
+            : _viewModel.ratingDistribution.values.reduce((a, b) => a > b ? a : b);
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFCA748D), width: 2),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFCA748D),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Rating',
+                        style: TextStyle(
+                          color: Color(0xFF2D4839),
+                          fontSize: 18,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 5,
+                    ),
+                    decoration: ShapeDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                    ),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AdminReviewMenuView(
+                              menu: widget.menu,
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'See More',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        _viewModel.averageRating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          color: Color(0xFFCA748D),
+                          fontSize: 42,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w800,
+                          height: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: List.generate(5, (i) {
+                          final filled = i < _viewModel.averageRating.round();
+                          return Icon(
+                            filled
+                                ? Icons.star_rounded
+                                : Icons.star_outline_rounded,
+                            size: 14,
+                            color: filled
+                                ? const Color(0xFFFFC107)
+                                : const Color(0xFFFFE082),
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${_viewModel.totalReviews} reviews',
+                        style: const TextStyle(
+                          color: Color(0xFFD699AB),
+                          fontSize: 9,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(width: 20),
+
+                  Expanded(
+                    child: Column(
+                      children: List.generate(5, (index) {
+                        final starValue = 5 - index;
+                        final count = _viewModel.ratingDistribution[starValue] ?? 0;
+                        final ratio = maxCount > 0 ? count / maxCount : 0.0;
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 3),
+                          child: Row(
+                            children: [
+                              Text(
+                                starValue.toString(),
+                                style: const TextStyle(
+                                  color: Color(0xFFCA748D),
+                                  fontSize: 11,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.star_rounded,
+                                size: 10,
+                                color: Color(0xFFCA748D),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Stack(
+                                    children: [
+                                      Container(
+                                        height: 6,
+                                        color: const Color(0xFFEED5DB),
+                                      ),
+                                      FractionallySizedBox(
+                                        widthFactor: ratio.toDouble(),
+                                        child: Container(
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(
+                                              colors: [
+                                                Color(0xFFD699AB),
+                                                Color(0xFFCA748D),
+                                              ],
+                                            ),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              SizedBox(
+                                width: 20,
+                                child: Text(
+                                  count.toString(),
+                                  style: const TextStyle(
+                                    color: Color(0xFFD699AB),
+                                    fontSize: 10,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
