@@ -23,6 +23,11 @@ class _AdminPreviewMenuViewState extends State<AdminPreviewMenuView> {
     _viewModel.fetchReviews(widget.menu.id);
   }
 
+  Future<void> _refreshData() async {
+    await _viewModel.fetchReviews(widget.menu.id);
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
   String formatCurrency(double price) {
     return 'Rp. ${price.toInt()}';
   }
@@ -63,198 +68,205 @@ class _AdminPreviewMenuViewState extends State<AdminPreviewMenuView> {
           SafeArea(
             child: Stack(
               children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 120),
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 20),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () => Navigator.pop(context),
-                              child: SvgPicture.asset(
-                                'assets/images/back.svg',
-                                width: 24,
-                                height: 24,
-                                colorFilter: const ColorFilter.mode(
-                                  Colors.white,
-                                  BlendMode.srcIn,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: Text(
-                                widget.menu.name,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: const Color(0xFFFDFDFD),
-                                  fontSize: 22,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                  shadows: [
-                                    Shadow(
-                                      offset: const Offset(2, 2),
-                                      blurRadius: 4,
-                                      color: Colors.black.withOpacity(0.25),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 24),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 25),
-                        width: double.infinity,
-                        height: 265,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Stack(
+                RefreshIndicator(
+                  color: const Color(0xFFCA748D),
+                  backgroundColor: Colors.white,
+                  onRefresh: _refreshData,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(bottom: 120),
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
                             children: [
-                              SizedBox(
-                                width: double.infinity,
-                                height: double.infinity,
-                                child:
-                                    widget.menu.imageUrl != null &&
-                                        widget.menu.imageUrl!.isNotEmpty
-                                    ? Image.network(
-                                        widget.menu.imageUrl!,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Container(
-                                        color: Colors.grey.shade300,
-                                        child: const Icon(
-                                          Icons.fastfood,
-                                          size: 50,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                child: Container(
-                                  height: 105,
-                                  decoration: const BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        Color(0x00CA748D),
-                                        Color(0xFFCA748D),
-                                      ],
-                                    ),
-                                  ),
-                                  padding: const EdgeInsets.only(
-                                    left: 20,
-                                    bottom: 20,
-                                  ),
-                                  alignment: Alignment.bottomLeft,
-                                  child: Text(
-                                    formatCurrency(widget.menu.price),
-                                    style: const TextStyle(
-                                      color: Color(0xFFFBFBFB),
-                                      fontSize: 20,
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                              GestureDetector(
+                                onTap: () => Navigator.pop(context),
+                                child: SvgPicture.asset(
+                                  'assets/images/back.svg',
+                                  width: 24,
+                                  height: 24,
+                                  colorFilter: const ColorFilter.mode(
+                                    Colors.white,
+                                    BlendMode.srcIn,
                                   ),
                                 ),
                               ),
+                              Expanded(
+                                child: Text(
+                                  widget.menu.name,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: const Color(0xFFFDFDFD),
+                                    fontSize: 22,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w800,
+                                    shadows: [
+                                      Shadow(
+                                        offset: const Offset(2, 2),
+                                        blurRadius: 4,
+                                        color: Colors.black.withOpacity(0.25),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 24),
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 30),
 
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 25),
-                        padding: const EdgeInsets.all(20),
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFDFDFD),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Description',
-                              style: TextStyle(
-                                color: Color(0xFF2D4839),
-                                fontSize: 18,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w800,
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 25),
+                          width: double.infinity,
+                          height: 265,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x3F000000),
+                                blurRadius: 4,
+                                offset: Offset(0, 4),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              widget.menu.description,
-                              style: const TextStyle(
-                                color: Color(0xFF51725F),
-                                fontSize: 14,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 15),
-                            Row(
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Stack(
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 15,
-                                    vertical: 5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(23),
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  child:
+                                      widget.menu.imageUrl != null &&
+                                          widget.menu.imageUrl!.isNotEmpty
+                                      ? Image.network(
+                                          widget.menu.imageUrl!,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Container(
+                                          color: Colors.grey.shade300,
+                                          child: const Icon(
+                                            Icons.fastfood,
+                                            size: 50,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: Container(
+                                    height: 105,
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Color(0x00CA748D),
+                                          Color(0xFFCA748D),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  child: Text(
-                                    widget.menu.category,
-                                    style: const TextStyle(
-                                      color: Color(0xFF333333),
-                                      fontSize: 10,
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w800,
+                                    padding: const EdgeInsets.only(
+                                      left: 20,
+                                      bottom: 20,
+                                    ),
+                                    alignment: Alignment.bottomLeft,
+                                    child: Text(
+                                      formatCurrency(widget.menu.price),
+                                      style: const TextStyle(
+                                        color: Color(0xFFFBFBFB),
+                                        fontSize: 20,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 25),
-                            _buildRatingSection(),
-                          ],
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 20),
+
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 25),
+                          padding: const EdgeInsets.all(20),
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFDFDFD),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x3F000000),
+                                blurRadius: 4,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Description',
+                                style: TextStyle(
+                                  color: Color(0xFF2D4839),
+                                  fontSize: 18,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                widget.menu.description,
+                                style: const TextStyle(
+                                  color: Color(0xFF51725F),
+                                  fontSize: 14,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 15,
+                                      vertical: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(23),
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      widget.menu.category,
+                                      style: const TextStyle(
+                                        color: Color(0xFF333333),
+                                        fontSize: 10,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 25),
+                              _buildRatingSection(),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 

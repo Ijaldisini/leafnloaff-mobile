@@ -30,6 +30,11 @@ class _AddressViewState extends State<AddressView> {
     super.dispose();
   }
 
+  Future<void> _refreshAddresses() async {
+    await _viewModel.fetchAddresses();
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
   Future<void> _navigateToForm({AddressModel? addressToEdit}) async {
     final bool? shouldRefresh = await Navigator.push(
       context,
@@ -142,18 +147,26 @@ class _AddressViewState extends State<AddressView> {
                         );
                       }
 
-                      return ListView.builder(
-                        padding: const EdgeInsets.only(
-                          left: 25.0,
-                          right: 25.0,
-                          top: 10.0,
-                          bottom: 120.0,
+                      return RefreshIndicator(
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        onRefresh: _refreshAddresses,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.only(
+                            left: 25.0,
+                            right: 25.0,
+                            top: 10.0,
+                            bottom: 120.0,
+                          ),
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          itemCount: _viewModel.addresses.length,
+                          itemBuilder: (context, index) {
+                            final address = _viewModel.addresses[index];
+                            return _buildAddressCard(address);
+                          },
                         ),
-                        itemCount: _viewModel.addresses.length,
-                        itemBuilder: (context, index) {
-                          final address = _viewModel.addresses[index];
-                          return _buildAddressCard(address);
-                        },
                       );
                     },
                   ),

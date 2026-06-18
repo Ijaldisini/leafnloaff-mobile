@@ -26,6 +26,11 @@ class _CartViewState extends State<CartView> {
     super.dispose();
   }
 
+  Future<void> _refreshCart() async {
+    await _viewModel.loadCartData();
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
   String _formatCurrency(double amount) {
     return NumberFormat.currency(
       locale: 'id_ID',
@@ -206,17 +211,24 @@ class _CartViewState extends State<CartView> {
                         );
                       }
 
-                      return ListView.builder(
-                        padding: const EdgeInsets.only(
-                          left: 25,
-                          right: 25,
-                          bottom: 200,
+                      return RefreshIndicator(
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        onRefresh: _refreshCart,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.only(
+                            left: 25,
+                            right: 25,
+                            bottom: 200,
+                          ),
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          itemCount: _viewModel.cartItems.length,
+                          itemBuilder: (context, index) {
+                            return _buildCartItem(_viewModel.cartItems[index]);
+                          },
                         ),
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: _viewModel.cartItems.length,
-                        itemBuilder: (context, index) {
-                          return _buildCartItem(_viewModel.cartItems[index]);
-                        },
                       );
                     },
                   ),

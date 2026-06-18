@@ -27,6 +27,11 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
     super.dispose();
   }
 
+  Future<void> _refreshVouchers() async {
+    await _viewModel.fetchVouchers();
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -244,20 +249,27 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
                           );
                         }
 
-                        return ListView.separated(
-                          padding: const EdgeInsets.only(
-                            left: 24,
-                            right: 24,
-                            bottom: 100,
+                        return RefreshIndicator(
+                          color: const Color(0xFFCA748D),
+                          backgroundColor: Colors.white,
+                          onRefresh: _refreshVouchers,
+                          child: ListView.separated(
+                            padding: const EdgeInsets.only(
+                              left: 24,
+                              right: 24,
+                              bottom: 100,
+                            ),
+                            physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics(),
+                            ),
+                            itemCount: _viewModel.filteredVouchers.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 16),
+                            itemBuilder: (context, index) {
+                              final voucher = _viewModel.filteredVouchers[index];
+                              return _buildVoucherCard(voucher);
+                            },
                           ),
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: _viewModel.filteredVouchers.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 16),
-                          itemBuilder: (context, index) {
-                            final voucher = _viewModel.filteredVouchers[index];
-                            return _buildVoucherCard(voucher);
-                          },
                         );
                       },
                     ),
@@ -466,86 +478,4 @@ class _AdminVoucherViewState extends State<AdminVoucherView> {
 
     return cardContent;
   }
-  // void _showDeleteConfirmation(VoucherModel voucher) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (dialogContext) => AlertDialog(
-  //       backgroundColor: const Color(0xFFFDFDFD),
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-  //       title: const Row(
-  //         children: [
-  //           Icon(Icons.delete_outline, color: Color(0xFFC23437)),
-  //           SizedBox(width: 10),
-  //           Text(
-  //             'Hapus Voucher?',
-  //             style: TextStyle(
-  //               fontFamily: 'Poppins',
-  //               fontWeight: FontWeight.w800,
-  //               color: Color(0xFF2D4839),
-  //               fontSize: 16,
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //       content: Text(
-  //         'Voucher "${voucher.title}" akan dihapus secara permanen.',
-  //         style: const TextStyle(
-  //           fontFamily: 'Poppins',
-  //           fontSize: 13,
-  //           color: Color(0xFF51725F),
-  //         ),
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(dialogContext),
-  //           child: const Text(
-  //             'Batal',
-  //             style: TextStyle(
-  //               color: Colors.grey,
-  //               fontFamily: 'Poppins',
-  //               fontWeight: FontWeight.w600,
-  //             ),
-  //           ),
-  //         ),
-  //         TextButton(
-  //           onPressed: () async {
-  //             Navigator.pop(dialogContext);
-  //             final success = await _viewModel.deleteVoucher(voucher.id);
-  //             if (mounted) {
-  //               if (success) {
-  //                 ScaffoldMessenger.of(context).showSnackBar(
-  //                   const SnackBar(
-  //                     content: Text('Voucher berhasil dihapus'),
-  //                     backgroundColor: Color(0xFF73986F),
-  //                   ),
-  //                 );
-  //               } else {
-  //                 ScaffoldMessenger.of(context).showSnackBar(
-  //                   const SnackBar(
-  //                     content: Text('Gagal menghapus voucher'),
-  //                     backgroundColor: Color(0xFFC23437),
-  //                   ),
-  //                 );
-  //               }
-  //             }
-  //           },
-  //           style: TextButton.styleFrom(
-  //             backgroundColor: const Color(0xFFB94F4F).withValues(alpha: 0.1),
-  //             shape: RoundedRectangleBorder(
-  //               borderRadius: BorderRadius.circular(10),
-  //             ),
-  //           ),
-  //           child: const Text(
-  //             'Hapus',
-  //             style: TextStyle(
-  //               color: Color(0xFFB94F4F),
-  //               fontFamily: 'Poppins',
-  //               fontWeight: FontWeight.w700,
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 }

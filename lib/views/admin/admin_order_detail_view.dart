@@ -22,6 +22,10 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
     _viewModel.fetchOrderDetail(widget.orderId);
   }
 
+  Future<void> _refreshOrder() async {
+    await _viewModel.fetchOrderDetail(widget.orderId);
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -147,25 +151,32 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                       ),
                     ),
                     Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 25,
-                          vertical: 10,
+                      child: RefreshIndicator(
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        onRefresh: _refreshOrder,
+                        child: ListView(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 25,
+                            vertical: 10,
+                          ),
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          children: [
+                            _buildOrderStatus(order.status),
+                            const SizedBox(height: 16),
+                            _buildCustomerInformation(order),
+                            const SizedBox(height: 16),
+                            _buildOrderDetail(order.items),
+                            const SizedBox(height: 20),
+                            _buildOrderSummary(order),
+                            const SizedBox(height: 20),
+                            _buildPaymentCard(order),
+                            const SizedBox(height: 30),
+                            _buildActionButtons(order),
+                          ],
                         ),
-                        physics: const BouncingScrollPhysics(),
-                        children: [
-                          _buildOrderStatus(order.status),
-                          const SizedBox(height: 16),
-                          _buildCustomerInformation(order),
-                          const SizedBox(height: 16),
-                          _buildOrderDetail(order.items),
-                          const SizedBox(height: 20),
-                          _buildOrderSummary(order),
-                          const SizedBox(height: 20),
-                          _buildPaymentCard(order),
-                          const SizedBox(height: 30),
-                          _buildActionButtons(order),
-                        ],
                       ),
                     ),
                   ],

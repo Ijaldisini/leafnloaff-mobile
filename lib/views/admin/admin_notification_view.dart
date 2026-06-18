@@ -63,58 +63,61 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
             ),
           ),
           SafeArea(
-            child: RefreshIndicator(
-              onRefresh: () => _viewModel.fetchNotifications(),
-              color: const Color(0xFFCA748D),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(
-                      left: 25.0,
-                      top: 20.0,
-                      bottom: 20.0,
-                    ),
-                    child: Text(
-                      'Notifications',
-                      style: TextStyle(
-                        color: Color(0xFFFDFDFD),
-                        fontSize: 25,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w800,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(2, 2),
-                            blurRadius: 4,
-                            color: Colors.black26,
-                          ),
-                        ],
-                      ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(
+                    left: 25.0,
+                    top: 20.0,
+                    bottom: 20.0,
+                  ),
+                  child: Text(
+                    'Notifications',
+                    style: TextStyle(
+                      color: Color(0xFFFDFDFD),
+                      fontSize: 25,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w800,
+                      shadows: [
+                        Shadow(
+                          offset: Offset(2, 2),
+                          blurRadius: 4,
+                          color: Colors.black26,
+                        ),
+                      ],
                     ),
                   ),
-                  Expanded(
-                    child: ListenableBuilder(
-                      listenable: _viewModel,
-                      builder: (context, _) {
-                        if (_viewModel.isLoading) {
-                          return const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                            ),
-                          );
-                        }
+                ),
+                
+                Expanded(
+                  child: ListenableBuilder(
+                    listenable: _viewModel,
+                    builder: (context, _) {
+                      if (_viewModel.isLoading) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
+                        );
+                      }
 
-                        if (_viewModel.errorMessage != null &&
-                            _viewModel.groupedNotifications.isEmpty) {
-                          return Center(
-                            child: Text(
-                              _viewModel.errorMessage!,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          );
-                        }
+                      if (_viewModel.errorMessage != null &&
+                          _viewModel.groupedNotifications.isEmpty) {
+                        return Center(
+                          child: Text(
+                            _viewModel.errorMessage!,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        );
+                      }
 
-                        return ListView.builder(
+                      // ✅ REFRESH INDICATOR MEMBUNGKUS LISTVIEW
+                      return RefreshIndicator(
+                        onRefresh: () => _viewModel.fetchNotifications(),
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        child: ListView.builder(
                           padding: const EdgeInsets.only(
                             left: 25,
                             right: 25,
@@ -155,12 +158,12 @@ class _AdminNotificationViewState extends State<AdminNotificationView> {
                               ],
                             );
                           },
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],

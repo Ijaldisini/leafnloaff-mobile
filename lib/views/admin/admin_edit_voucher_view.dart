@@ -40,6 +40,17 @@ class _AdminEditVoucherViewState extends State<AdminEditVoucherView> {
     super.dispose();
   }
 
+  Future<void> _refreshData() async {
+    setState(() {
+      _nameController.text = widget.voucher.title;
+      _termsController.text = widget.voucher.termsAndCondition;
+      _discountController.text = widget.voucher.discountPercentage.toString();
+      _viewModel.initExpiryDate(widget.voucher.expiresAt);
+    });
+    
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -124,99 +135,161 @@ class _AdminEditVoucherViewState extends State<AdminEditVoucherView> {
               ),
             ),
             SafeArea(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 25,
-                  vertical: 20,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          padding: EdgeInsets.zero,
-                          alignment: Alignment.centerLeft,
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                          ),
-                          onPressed: () => Navigator.pop(context),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.centerLeft,
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
                         ),
-                        const Text(
-                          'Edit Voucher',
-                          style: TextStyle(
-                            color: Color(0xFFFDFDFD),
-                            fontSize: 25,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w800,
-                            shadows: [
-                              Shadow(
-                                offset: Offset(2, 2),
-                                blurRadius: 4,
-                                color: Color(0x3F000000),
-                              ),
-                            ],
-                          ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const Text(
+                        'Edit Voucher',
+                        style: TextStyle(
+                          color: Color(0xFFFDFDFD),
+                          fontSize: 25,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w800,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(2, 2),
+                              blurRadius: 4,
+                              color: Color(0x3F000000),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    _buildLabel('Voucher’s Photo'),
-                    const SizedBox(height: 10),
-                      ListenableBuilder(
-                        listenable: _viewModel,
-                        builder: (context, child) {
-                          return Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: double.infinity,
-                                  height: 121,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                        color: Color(0x3F000000),
-                                        blurRadius: 4,
-                                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  Expanded(
+                    child: RefreshIndicator(
+                      color: const Color(0xFFCA748D),
+                      backgroundColor: Colors.white,
+                      onRefresh: _refreshData,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25,
+                          vertical: 20,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLabel("Voucher's Photo"),
+                            const SizedBox(height: 10),
+                            ListenableBuilder(
+                              listenable: _viewModel,
+                              builder: (context, child) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: double.infinity,
+                                        height: 121,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(20),
+                                          boxShadow: const [
+                                            BoxShadow(
+                                              color: Color(0x3F000000),
+                                              blurRadius: 4,
+                                              offset: Offset(0, 4),
+                                            ),
+                                          ],
+                                          image: _viewModel.newSelectedImage != null
+                                              ? DecorationImage(
+                                                  image: FileImage(_viewModel.newSelectedImage!),
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : DecorationImage(
+                                                  image: NetworkImage(widget.voucher.imageUrl),
+                                                  fit: BoxFit.cover,
+                                                  onError: (exception, stackTrace) =>
+                                                      const NetworkImage("https://placehold.co/334x121.png"),
+                                                ),
+                                        ),
+                                      ),
+                                      
+                                      const SizedBox(height: 10),
+                                      
+                                      GestureDetector(
+                                        onTap: _viewModel.pickNewImage,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(
+                                              begin: Alignment.topCenter,
+                                              end: Alignment.bottomCenter,
+                                              colors: [
+                                                Color(0xFFD699AB),
+                                                Color(0xFFCA748D),
+                                              ],
+                                            ),
+                                            borderRadius: BorderRadius.circular(53),
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Color(0x3F000000),
+                                                blurRadius: 4,
+                                                offset: Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Text(
+                                            'Change Photo',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontFamily: 'Poppins',
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ],
-                                    image: _viewModel.newSelectedImage != null
-                                        ? DecorationImage(
-                                            image: FileImage(_viewModel.newSelectedImage!),
-                                            fit: BoxFit.cover,
-                                          )
-                                        : DecorationImage(
-                                            image: NetworkImage(widget.voucher.imageUrl),
-                                            fit: BoxFit.cover,
-                                            onError: (exception, stackTrace) =>
-                                                const NetworkImage("https://placehold.co/334x121.png"),
-                                          ),
                                   ),
-                                ),
-                                
-                                const SizedBox(height: 10),
-                                
-                                GestureDetector(
-                                  onTap: _viewModel.pickNewImage,
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 30),
+                            _buildLabel("Voucher's Name"),
+                            _buildTextField(_nameController, height: 45),
+                            _buildLabel('Terms and Condition'),
+                            _buildTextField(_termsController, height: 120, maxLines: 5),
+                            _buildLabel('Discount (%)'),
+                            _buildTextField(
+                              _discountController,
+                              height: 45,
+                              isNumber: true,
+                            ),
+
+                            _buildLabel('Expiration Date'),
+                            ListenableBuilder(
+                              listenable: _viewModel,
+                              builder: (context, child) {
+                                return GestureDetector(
+                                  onTap: () => _selectDate(context),
                                   child: Container(
+                                    height: 45,
+                                    width: double.infinity,
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 20,
-                                      vertical: 8,
+                                      vertical: 12,
                                     ),
                                     decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Color(0xFFD699AB),
-                                          Color(0xFFCA748D),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(53),
+                                      color: const Color(0xFFFDFDFD),
+                                      borderRadius: BorderRadius.circular(50),
                                       boxShadow: const [
                                         BoxShadow(
                                           color: Color(0x3F000000),
@@ -225,175 +298,127 @@ class _AdminEditVoucherViewState extends State<AdminEditVoucherView> {
                                         ),
                                       ],
                                     ),
-                                    child: const Text(
-                                      'Change Photo',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontFamily: 'Poppins',
-                                        fontWeight: FontWeight.w700,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          _viewModel.formattedSelectedExpiryDate,
+                                          style: const TextStyle(
+                                            color: Color(0xFF2D4839),
+                                            fontFamily: 'Poppins',
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const Icon(
+                                          Icons.calendar_month,
+                                          color: Color(0xFF426E55),
+                                          size: 20,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+
+                            const SizedBox(height: 40),
+                            ListenableBuilder(
+                              listenable: _viewModel,
+                              builder: (context, child) {
+                                if (_viewModel.isLoading) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                    ),
+                                  );
+                                }
+                                return Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () => Navigator.pop(context),
+                                      child: Container(
+                                        width: 140,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Color(0xFFF26F71),
+                                              Color(0xFFC23437),
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(85),
+                                          boxShadow: const [
+                                            BoxShadow(
+                                              color: Color(0x3F000000),
+                                              blurRadius: 3,
+                                              offset: Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Center(
+                                          child: Text(
+                                            'Discard',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 15,
+                                              fontFamily: 'Poppins',
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    const SizedBox(height: 30),
-                    _buildLabel('Voucher’s Name'),
-                    _buildTextField(_nameController, height: 45),
-                    _buildLabel('Terms and Condition'),
-                    _buildTextField(_termsController, height: 120, maxLines: 5),
-                    _buildLabel('Discount (%)'),
-                    _buildTextField(
-                      _discountController,
-                      height: 45,
-                      isNumber: true,
-                    ),
-
-                    _buildLabel('Expiration Date'),
-                    ListenableBuilder(
-                      listenable: _viewModel,
-                      builder: (context, child) {
-                        return GestureDetector(
-                          onTap: () => _selectDate(context),
-                          child: Container(
-                            height: 45,
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFDFDFD),
-                              borderRadius: BorderRadius.circular(50),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x3F000000),
-                                  blurRadius: 4,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  _viewModel.formattedSelectedExpiryDate,
-                                  style: const TextStyle(
-                                    color: Color(0xFF2D4839),
-                                    fontFamily: 'Poppins',
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const Icon(
-                                  Icons.calendar_month,
-                                  color: Color(0xFF426E55),
-                                  size: 20,
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 40),
-                    ListenableBuilder(
-                      listenable: _viewModel,
-                      builder: (context, child) {
-                        if (_viewModel.isLoading) {
-                          return const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                            ),
-                          );
-                        }
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            GestureDetector(
-                              onTap: () => Navigator.pop(context),
-                              child: Container(
-                                width: 140,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Color(0xFFF26F71),
-                                      Color(0xFFC23437),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(85),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x3F000000),
-                                      blurRadius: 3,
-                                      offset: Offset(0, 3),
+                                    const SizedBox(width: 20),
+                                    GestureDetector(
+                                      onTap: _onUpdate,
+                                      child: Container(
+                                        width: 140,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Color(0xFFD699AB),
+                                              Color(0xFFCA748D),
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(85),
+                                          boxShadow: const [
+                                            BoxShadow(
+                                              color: Color(0x3F000000),
+                                              blurRadius: 3,
+                                              offset: Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Center(
+                                          child: Text(
+                                            'Save',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 15,
+                                              fontFamily: 'Poppins',
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ],
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    'Discard',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15,
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
-                            const SizedBox(width: 20),
-                            GestureDetector(
-                              onTap: _onUpdate,
-                              child: Container(
-                                width: 140,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Color(0xFFD699AB),
-                                      Color(0xFFCA748D),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(85),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x3F000000),
-                                      blurRadius: 3,
-                                      offset: Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    'Save',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15,
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            const SizedBox(height: 30),
                           ],
-                        );
-                      },
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 30),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],

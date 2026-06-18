@@ -22,6 +22,11 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
     _viewModel.fetchOrders();
   }
 
+  Future<void> _refreshOrders() async {
+    await _viewModel.fetchOrders();
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
   Future<void> _handlePdfExport() async {
     try {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -123,7 +128,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
               ),
               SafeArea(
                 child: RefreshIndicator(
-                  onRefresh: () => _viewModel.fetchOrders(),
+                  onRefresh: _refreshOrders,
                   color: const Color(0xFFCA748D),
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(25, 20, 25, 120),
@@ -141,8 +146,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: const Color(0xFFFDFDFD),
-                                fontSize:
-                                    24,
+                                fontSize: 24,
                                 fontFamily: 'Poppins',
                                 fontWeight: FontWeight.w800,
                                 shadows: [
@@ -155,9 +159,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            width: 8,
-                          ),
+                          const SizedBox(width: 8),
                           GestureDetector(
                             onTap: _handlePdfExport,
                             child: Container(
@@ -202,7 +204,6 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                         ],
                       ),
                       const SizedBox(height: 20),
-
                       GestureDetector(
                         onTap: _selectDateRange,
                         child: Container(
@@ -272,7 +273,6 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                         ),
                       ),
                       const SizedBox(height: 30),
-
                       if (_viewModel.isFiltering) ...[
                         Text(
                           'Filtered Results',

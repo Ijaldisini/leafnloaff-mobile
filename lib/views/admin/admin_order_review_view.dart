@@ -23,6 +23,11 @@ class _AdminOrderReviewViewState extends State<AdminOrderReviewView> {
     _viewModel.fetchReviews(widget.orderId);
   }
 
+  Future<void> _refreshReviews() async {
+    await _viewModel.fetchReviews(widget.orderId);
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -126,18 +131,25 @@ class _AdminOrderReviewViewState extends State<AdminOrderReviewView> {
                         );
                       }
 
-                      return ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
+                      return RefreshIndicator(
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        onRefresh: _refreshReviews,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          itemCount: _viewModel.reviews.length,
+                          itemBuilder: (context, index) {
+                            final OrderReviewModel reviewData =
+                                _viewModel.reviews[index];
+                            return _buildReviewedCard(reviewData);
+                          },
                         ),
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: _viewModel.reviews.length,
-                        itemBuilder: (context, index) {
-                          final OrderReviewModel reviewData =
-                              _viewModel.reviews[index];
-                          return _buildReviewedCard(reviewData);
-                        },
                       );
                     },
                   ),

@@ -22,6 +22,11 @@ class _AdminReviewMenuViewState extends State<AdminReviewMenuView> {
     _viewModel.fetchReviewsDetail(widget.menu.id);
   }
 
+  Future<void> _refreshReviews() async {
+    await _viewModel.fetchReviewsDetail(widget.menu.id);
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
   String formatCurrency(double price) {
     return 'Rp. ${price.toInt()}';
   }
@@ -221,17 +226,24 @@ class _AdminReviewMenuViewState extends State<AdminReviewMenuView> {
                           );
                         }
 
-                        return ListView.separated(
-                          padding: const EdgeInsets.all(20),
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: _viewModel.reviews.length,
-                          separatorBuilder: (context, index) => const Divider(
-                            height: 30,
-                            color: Color(0xFFEFEDED),
+                        return RefreshIndicator(
+                          color: const Color(0xFFCA748D),
+                          backgroundColor: Colors.white,
+                          onRefresh: _refreshReviews,
+                          child: ListView.separated(
+                            padding: const EdgeInsets.all(20),
+                            physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics(),
+                            ),
+                            itemCount: _viewModel.reviews.length,
+                            separatorBuilder: (context, index) => const Divider(
+                              height: 30,
+                              color: Color(0xFFEFEDED),
+                            ),
+                            itemBuilder: (context, index) {
+                              return _buildReviewItem(_viewModel.reviews[index]);
+                            },
                           ),
-                          itemBuilder: (context, index) {
-                            return _buildReviewItem(_viewModel.reviews[index]);
-                          },
                         );
                       },
                     ),

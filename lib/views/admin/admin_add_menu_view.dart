@@ -68,86 +68,95 @@ class _AdminAddMenuViewState extends State<AdminAddMenuView> {
                     ),
                     const SizedBox(height: 30),
                     Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 25),
-                        physics: const BouncingScrollPhysics(),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildLabel('Item’s Name'),
-                            _buildTextField(
-                              controller: _viewModel.nameController,
-                            ),
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          await Future.delayed(const Duration(milliseconds: 500));
+                        },
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 25),
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildLabel("Item's Name"),
+                              _buildTextField(
+                                controller: _viewModel.nameController,
+                              ),
 
-                            _buildLabel('Category'),
-                            _buildDropdown(),
+                              _buildLabel('Category'),
+                              _buildDropdown(),
 
-                            _buildLabel('Description'),
-                            _buildTextField(
-                              controller: _viewModel.descController,
-                              height: 125,
-                              borderRadius: 10,
-                              maxLines: 4,
-                            ),
+                              _buildLabel('Description'),
+                              _buildTextField(
+                                controller: _viewModel.descController,
+                                height: 125,
+                                borderRadius: 10,
+                                maxLines: 4,
+                              ),
 
-                            _buildLabel('Price'),
-                            _buildTextField(
-                              controller: _viewModel.priceController,
-                              keyboardType: TextInputType.number,
-                            ),
+                              _buildLabel('Price'),
+                              _buildTextField(
+                                controller: _viewModel.priceController,
+                                keyboardType: TextInputType.number,
+                              ),
 
-                            _buildLabel('Stock Amount'),
-                            _buildTextField(
-                              controller: _viewModel.stockController,
-                              keyboardType: TextInputType.number,
-                            ),
+                              _buildLabel('Stock Amount'),
+                              _buildTextField(
+                                controller: _viewModel.stockController,
+                                keyboardType: TextInputType.number,
+                              ),
 
-                            _buildLabel('Upload Photo'),
-                            _buildPhotoPicker(),
+                              _buildLabel('Upload Photo'),
+                              _buildPhotoPicker(),
 
-                            const SizedBox(height: 40),
+                              const SizedBox(height: 40),
 
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _buildButton(
-                                  text: 'Discard',
-                                  colors: [
-                                    const Color(0xFFF26F71),
-                                    const Color(0xFFC23437),
-                                  ],
-                                  onTap: () => Navigator.pop(context),
-                                ),
-                                _buildButton(
-                                  text: _viewModel.isLoading
-                                      ? 'Saving...'
-                                      : 'Save',
-                                  colors: [
-                                    const Color(0xFFD699AB),
-                                    const Color(0xFFCA748D),
-                                  ],
-                                  onTap: _viewModel.isLoading
-                                      ? null
-                                      : () async {
-                                          final errorMsg = await _viewModel
-                                              .saveMenu();
-                                          if (!context.mounted) return;
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildButton(
+                                    text: 'Discard',
+                                    colors: [
+                                      const Color(0xFFF26F71),
+                                      const Color(0xFFC23437),
+                                    ],
+                                    onTap: () => Navigator.pop(context),
+                                  ),
+                                  _buildButton(
+                                    text: _viewModel.isLoading
+                                        ? 'Saving...'
+                                        : 'Save',
+                                    colors: [
+                                      const Color(0xFFD699AB),
+                                      const Color(0xFFCA748D),
+                                    ],
+                                    onTap: _viewModel.isLoading
+                                        ? null
+                                        : () async {
+                                            final errorMsg = await _viewModel
+                                                .saveMenu();
+                                            if (!context.mounted) return;
 
-                                          if (errorMsg == null) {
-                                            Navigator.pop(context, true);
-                                          } else {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(content: Text(errorMsg)),
-                                            );
-                                          }
-                                        },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 40),
-                          ],
+                                            if (errorMsg == null) {
+                                              Navigator.pop(context, true);
+                                            } else {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(content: Text(errorMsg)),
+                                              );
+                                            }
+                                          },
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 40),
+                            ],
+                          ),
                         ),
                       ),
                     ),

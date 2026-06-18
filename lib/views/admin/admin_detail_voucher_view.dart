@@ -78,102 +78,111 @@ class AdminDetailVoucherView extends StatelessWidget {
                 ),
 
                 Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(
-                      left: 25,
-                      right: 25,
-                      top: 10,
-                      bottom: 120,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          height: 121,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x3F000000),
-                                blurRadius: 4,
-                                offset: Offset(0, 4),
+                  child: RefreshIndicator(
+                    color: const Color(0xFFCA748D),
+                    backgroundColor: Colors.white,
+                    onRefresh: () async {
+                      await Future.delayed(const Duration(milliseconds: 500));
+                    },
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: const EdgeInsets.only(
+                        left: 25,
+                        right: 25,
+                        top: 10,
+                        bottom: 120,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            height: 121,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x3F000000),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                              image: DecorationImage(
+                                image: NetworkImage(imageUrl),
+                                fit: BoxFit.cover,
+                                onError: (exception, stackTrace) =>
+                                    const NetworkImage(
+                                      "https://placehold.co/334x121",
+                                    ),
                               ),
-                            ],
-                            image: DecorationImage(
-                              image: NetworkImage(imageUrl),
-                              fit: BoxFit.cover,
-                              onError: (exception, stackTrace) =>
-                                  const NetworkImage(
-                                    "https://placehold.co/334x121",
-                                  ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(25),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFDFDFD),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x3F000000),
-                                blurRadius: 4,
-                                offset: Offset(0, 4),
-                              ),
-                            ],
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(25),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFDFDFD),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x3F000000),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: const TextStyle(
+                                    color: Color(0xFF51725F),
+                                    fontSize: 16,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  discount,
+                                  style: const TextStyle(
+                                    color: Color(0xFF2D4839),
+                                    fontSize: 35,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.1,
+                                  ),
+                                ),
+                                const SizedBox(height: 25),
+                                const Text(
+                                  'Terms and Conditions',
+                                  style: TextStyle(
+                                    color: Color(0xFF2D4839),
+                                    fontSize: 18,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  terms,
+                                  style: const TextStyle(
+                                    color: Color(0xFF51725F),
+                                    fontSize: 14,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                style: const TextStyle(
-                                  color: Color(0xFF51725F),
-                                  fontSize: 16,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                discount,
-                                style: const TextStyle(
-                                  color: Color(0xFF2D4839),
-                                  fontSize: 35,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.1,
-                                ),
-                              ),
-                              const SizedBox(height: 25),
-                              const Text(
-                                'Terms and Conditions',
-                                style: TextStyle(
-                                  color: Color(0xFF2D4839),
-                                  fontSize: 18,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                terms,
-                                style: const TextStyle(
-                                  color: Color(0xFF51725F),
-                                  fontSize: 14,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w500,
-                                  height: 1.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

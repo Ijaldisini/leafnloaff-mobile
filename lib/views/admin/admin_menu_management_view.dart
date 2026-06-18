@@ -39,6 +39,11 @@ class _AdminMenuManagementViewState extends State<AdminMenuManagementView>
     super.dispose();
   }
 
+  Future<void> _refreshMenus() async {
+    await _viewModel.fetchMenus();
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
   void _showDeleteDialog(MenuModel menu) {
     showDialog(
       context: context,
@@ -365,21 +370,28 @@ class _AdminMenuManagementViewState extends State<AdminMenuManagementView>
                         );
                       }
 
-                      return ListView.builder(
-                        padding: const EdgeInsets.only(
-                          left: 25,
-                          right: 25,
-                          bottom: 100,
+                      return RefreshIndicator(
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        onRefresh: _refreshMenus,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.only(
+                            left: 25,
+                            right: 25,
+                            bottom: 100,
+                          ),
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          itemCount: _viewModel.menus.length,
+                          itemBuilder: (context, index) {
+                            final menu = _viewModel.menus[index];
+                            return FadeTransition(
+                              opacity: _fadeAnim,
+                              child: _buildMenuCard(menu),
+                            );
+                          },
                         ),
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: _viewModel.menus.length,
-                        itemBuilder: (context, index) {
-                          final menu = _viewModel.menus[index];
-                          return FadeTransition(
-                            opacity: _fadeAnim,
-                            child: _buildMenuCard(menu),
-                          );
-                        },
                       );
                     },
                   ),

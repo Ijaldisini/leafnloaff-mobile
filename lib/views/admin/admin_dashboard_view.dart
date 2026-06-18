@@ -146,6 +146,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
               SafeArea(
                 child: RefreshIndicator(
                   color: const Color(0xFFCA748D),
+                  backgroundColor: Colors.white,
                   onRefresh: _viewModel.fetchDashboardData,
                   child: ListView(
                     padding: const EdgeInsets.only(bottom: 100),
