@@ -40,7 +40,7 @@ class HomeViewModel extends ChangeNotifier {
   String get currentLocation => _currentLocation;
 
   List<Map<String, dynamic>> get filteredMenus {
-    List<Map<String, dynamic>> result = _menus;
+    List<Map<String, dynamic>> result = List.from(_menus);
 
     if (_selectedCategory != 'All') {
       result = result.where((m) {
@@ -56,6 +56,15 @@ class HomeViewModel extends ChangeNotifier {
       }).toList();
     }
 
+    result.sort((a, b) {
+      final stockA = (a['stock'] as num?)?.toInt() ?? 0;
+      final stockB = (b['stock'] as num?)?.toInt() ?? 0;
+
+      if (stockA > 0 && stockB <= 0) return -1;
+      if (stockA <= 0 && stockB > 0) return 1;
+      return 0;
+    });
+
     return result;
   }
 
@@ -66,8 +75,7 @@ class HomeViewModel extends ChangeNotifier {
     try {
       final results = await Future.wait([
         _homeService.fetchDefaultAddress(),
-        _homeService
-            .fetchActiveVouchers(),
+        _homeService.fetchActiveVouchers(),
         _homeService.fetchActiveMenus(),
       ]);
 

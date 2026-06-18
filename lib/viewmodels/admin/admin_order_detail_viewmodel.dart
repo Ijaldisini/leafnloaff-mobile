@@ -31,6 +31,16 @@ class AdminOrderDetailViewModel extends ChangeNotifier {
 
   Future<bool> changeOrderStatus(String orderId, String newStatus) async {
     try {
+      if (newStatus == 'Dibatalkan' && _orderDetail != null) {
+        final s = _orderDetail!.status.toLowerCase();
+        if (s.contains('kirim') ||
+            s.contains('jalan') ||
+            s.contains('otw') ||
+            s.contains('selesai')) {
+          return false;
+        }
+      }
+
       _isLoading = true;
       notifyListeners();
 

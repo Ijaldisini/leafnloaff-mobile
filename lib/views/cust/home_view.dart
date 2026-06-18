@@ -433,6 +433,9 @@ class _HomeViewState extends State<HomeView> {
   ) {
     final isAdded = _viewModel.recentlyAddedItems.contains(id);
 
+    final stock = (menuData['stock'] as num?)?.toInt() ?? 0;
+    final isOutOfStock = stock <= 0;
+
     final priceFormatted = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp',
@@ -440,23 +443,25 @@ class _HomeViewState extends State<HomeView> {
     ).format(price is int ? price : (price as num).toInt());
 
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => DetailMenuView(
-            productId: id,
-            productName: name,
-            productImage: imageUrl,
-            price: price is int ? price : (price as num).toInt(),
-            description: menuData['description'] ?? 'Tidak ada deskripsi',
-            rating: (menuData['rating'] ?? 5.0).toDouble(),
-            totalReviews: menuData['total_reviews'] ?? 0,
-            ratingDistribution: menuData['rating_distribution'] != null
-                ? Map<int, int>.from(menuData['rating_distribution'])
-                : null,
-          ),
-        ),
-      ),
+      onTap: isOutOfStock
+          ? null
+          : () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DetailMenuView(
+                  productId: id,
+                  productName: name,
+                  productImage: imageUrl,
+                  price: price is int ? price : (price as num).toInt(),
+                  description: menuData['description'] ?? 'Tidak ada deskripsi',
+                  rating: (menuData['rating'] ?? 5.0).toDouble(),
+                  totalReviews: menuData['total_reviews'] ?? 0,
+                  ratingDistribution: menuData['rating_distribution'] != null
+                      ? Map<int, int>.from(menuData['rating_distribution'])
+                      : null,
+                ),
+              ),
+            ),
       child: Hero(
         tag: 'product_$id',
         child: Stack(
@@ -464,17 +469,46 @@ class _HomeViewState extends State<HomeView> {
             Positioned.fill(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF426E55),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Icon(
-                      Icons.image_not_supported,
-                      color: Colors.white54,
+                child: ColorFiltered(
+                  colorFilter: isOutOfStock
+                      ? const ColorFilter.matrix(<double>[
+                          0.2126,
+                          0.7152,
+                          0.0722,
+                          0,
+                          0,
+                          0.2126,
+                          0.7152,
+                          0.0722,
+                          0,
+                          0,
+                          0.2126,
+                          0.7152,
+                          0.0722,
+                          0,
+                          0,
+                          0,
+                          0,
+                          0,
+                          1,
+                          0,
+                        ])
+                      : const ColorFilter.mode(
+                          Colors.transparent,
+                          BlendMode.multiply,
+                        ),
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF426E55),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(
+                        Icons.image_not_supported,
+                        color: Colors.white54,
+                      ),
                     ),
                   ),
                 ),
@@ -530,37 +564,61 @@ class _HomeViewState extends State<HomeView> {
                 ],
               ),
             ),
-            Positioned(
-              right: 8,
-              bottom: 8,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _viewModel.addToCart(id),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 30,
-                  height: 30,
+
+            if (isOutOfStock)
+              Positioned.fill(
+                child: Container(
                   decoration: BoxDecoration(
-                    color: isAdded
-                        ? const Color(0xFFCA748D)
-                        : Colors.white.withValues(alpha: 0.9),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    color: Colors.black.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Icon(
-                    isAdded ? Icons.check : Icons.add,
-                    size: 24,
-                    color: isAdded ? Colors.white : const Color(0xFF426E55),
+                  child: const Center(
+                    child: Text(
+                      'HABIS',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+
+            if (!isOutOfStock)
+              Positioned(
+                right: 8,
+                bottom: 8,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _viewModel.addToCart(id),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: isAdded
+                          ? const Color(0xFFCA748D)
+                          : Colors.white.withValues(alpha: 0.9),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      isAdded ? Icons.check : Icons.add,
+                      size: 24,
+                      color: isAdded ? Colors.white : const Color(0xFF426E55),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/cust/checkout_viewmodel.dart';
-import 'package:flutter_svg/flutter_svg.dart'; 
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/cart_model.dart';
 import 'address_view.dart';
 import '../cust/detail_order_view.dart';
@@ -79,23 +79,23 @@ class _CheckoutViewState extends State<CheckoutView> {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                        Row(
-                          children: [
-                            const SizedBox(width: 25), 
-                            GestureDetector(
-                              onTap: () => Navigator.pop(context),
-                              child: SvgPicture.asset(
-                                'assets/images/back.svg',
-                                width: 24,
-                                height: 24,
-                                colorFilter: const ColorFilter.mode(
-                                  Colors.white,
-                                  BlendMode.srcIn,
-                                ),
+                      Row(
+                        children: [
+                          const SizedBox(width: 25),
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: SvgPicture.asset(
+                              'assets/images/back.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Colors.white,
+                                BlendMode.srcIn,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
+                      ),
                       const Text(
                         'Checkout',
                         style: TextStyle(
@@ -257,6 +257,25 @@ class _CheckoutViewState extends State<CheckoutView> {
                                           ),
                                         ),
                                       );
+                                    } else if (result == null &&
+                                        context.mounted &&
+                                        _viewModel.errorMessage != null) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            _viewModel.errorMessage!,
+                                            style: const TextStyle(
+                                              fontFamily: 'Poppins',
+                                            ),
+                                          ),
+                                          backgroundColor: const Color(
+                                            0xFFC23437,
+                                          ),
+                                          behavior: SnackBarBehavior.floating,
+                                        ),
+                                      );
                                     }
                                   },
                             child: Container(
@@ -319,12 +338,23 @@ class _CheckoutViewState extends State<CheckoutView> {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       height: 100,
-      decoration: BoxDecoration(color: const Color(0xFFFDFDFD), borderRadius: BorderRadius.circular(16.69)),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+      ),
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: const BorderRadius.only(topLeft: Radius.circular(16.69), bottomLeft: Radius.circular(16.69)),
-            child: Image.network(item.menuImageUrl ?? 'https://placehold.co/113x100', width: 110, height: 100, fit: BoxFit.cover),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16.69),
+              bottomLeft: Radius.circular(16.69),
+            ),
+            child: Image.network(
+              item.menuImageUrl ?? 'https://placehold.co/113x100',
+              width: 110,
+              height: 100,
+              fit: BoxFit.cover,
+            ),
           ),
           Expanded(
             child: Padding(
@@ -332,11 +362,45 @@ class _CheckoutViewState extends State<CheckoutView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.menuName, style: const TextStyle(color: Color(0xFF2D4839), fontSize: 16, fontFamily: 'Poppins', fontWeight: FontWeight.w800)),
-                  Text('Notes: ${item.notes ?? '-'}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF51725F), fontSize: 10, fontFamily: 'Poppins', fontWeight: FontWeight.w500)),
-                  Text('Qty: ${item.quantity}', style: const TextStyle(color: Color(0xFF51725F), fontSize: 10, fontFamily: 'Poppins', fontWeight: FontWeight.w500)),
+                  Text(
+                    item.menuName,
+                    style: const TextStyle(
+                      color: Color(0xFF2D4839),
+                      fontSize: 16,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    'Notes: ${item.notes ?? '-'}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF51725F),
+                      fontSize: 10,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    'Qty: ${item.quantity}',
+                    style: const TextStyle(
+                      color: Color(0xFF51725F),
+                      fontSize: 10,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const Spacer(),
-                  Text(_formatCurrency(item.menuPrice), style: const TextStyle(color: Color(0xFF2D4839), fontSize: 16, fontFamily: 'Poppins', fontWeight: FontWeight.w800)),
+                  Text(
+                    _formatCurrency(item.menuPrice),
+                    style: const TextStyle(
+                      color: Color(0xFF2D4839),
+                      fontSize: 16,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -386,9 +450,17 @@ class _CheckoutViewState extends State<CheckoutView> {
           const SizedBox(height: 15),
           Row(
             children: [
-              _buildTogglePill('Pickup', !isDelivery, () => _viewModel.setShippingMethod('Pickup')),
+              _buildTogglePill(
+                'Pickup',
+                !isDelivery,
+                () => _viewModel.setShippingMethod('Pickup'),
+              ),
               const SizedBox(width: 10),
-              _buildTogglePill('Delivery', isDelivery, () => _viewModel.setShippingMethod('Delivery')),
+              _buildTogglePill(
+                'Delivery',
+                isDelivery,
+                () => _viewModel.setShippingMethod('Delivery'),
+              ),
             ],
           ),
           if (isDelivery) ...[
@@ -405,7 +477,8 @@ class _CheckoutViewState extends State<CheckoutView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _viewModel.deliveryAddress?.recipientName ?? "Recipient's Name",
+                        _viewModel.deliveryAddress?.recipientName ??
+                            "Recipient's Name",
                         style: const TextStyle(
                           color: Color(0xFF2D4839),
                           fontSize: 14,
@@ -415,7 +488,8 @@ class _CheckoutViewState extends State<CheckoutView> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _viewModel.deliveryAddress?.addressDetail ?? 'Belum ada alamat, silakan tambahkan',
+                        _viewModel.deliveryAddress?.addressDetail ??
+                            'Belum ada alamat, silakan tambahkan',
                         style: const TextStyle(
                           color: Color(0xFF51725F),
                           fontSize: 12,
@@ -490,19 +564,19 @@ class _CheckoutViewState extends State<CheckoutView> {
     );
   }
 
-Widget _buildPaymentMethod() {
-  return Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: const Color(0xFFFDFDFD),
-      borderRadius: BorderRadius.circular(16.69),
-      boxShadow: const [
-        BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 4)),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+  Widget _buildPaymentMethod() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
             children: [
               SvgPicture.asset(
@@ -526,19 +600,19 @@ Widget _buildPaymentMethod() {
               ),
             ],
           ),
-        const SizedBox(height: 15),
-        _buildPaymentSelectableBox('Cash On Delivery', 'COD'),
-        const SizedBox(height: 10),
-        _buildPaymentSelectableBox('QRIS', 'QRIS Statis'),
-        if (_viewModel.paymentMethod == 'QRIS Statis') _buildQRISSection(),
-        const SizedBox(height: 10),
-        _buildPaymentSelectableBox('Virtual Account', 'Virtual Account Bank'),
-        if (_viewModel.paymentMethod == 'Virtual Account Bank')
-          _buildVASection(),
-      ],
-    ),
-  );
-}
+          const SizedBox(height: 15),
+          _buildPaymentSelectableBox('Cash On Delivery', 'COD'),
+          const SizedBox(height: 10),
+          _buildPaymentSelectableBox('QRIS', 'QRIS Statis'),
+          if (_viewModel.paymentMethod == 'QRIS Statis') _buildQRISSection(),
+          const SizedBox(height: 10),
+          _buildPaymentSelectableBox('Virtual Account', 'Virtual Account Bank'),
+          if (_viewModel.paymentMethod == 'Virtual Account Bank')
+            _buildVASection(),
+        ],
+      ),
+    );
+  }
 
   Widget _buildPaymentSelectableBox(String title, String methodValue) {
     final isActive = _viewModel.paymentMethod == methodValue;
@@ -565,7 +639,7 @@ Widget _buildPaymentMethod() {
     );
   }
 
-Widget _buildQRISSection() {
+  Widget _buildQRISSection() {
     return Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(16),
@@ -574,27 +648,27 @@ Widget _buildQRISSection() {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min, 
+        mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
-            'Scan code to pay', 
+            'Scan code to pay',
             style: TextStyle(
               color: Color(0xFF2D4839),
               fontSize: 14,
               fontFamily: 'Poppins',
-              fontWeight: FontWeight.w600, 
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 10),
-          Center( 
+          Center(
             child: Container(
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.of(context).size.height * 0.45,
-                maxWidth: MediaQuery.of(context).size.width * 0.85, 
+                maxWidth: MediaQuery.of(context).size.width * 0.85,
               ),
               child: Image.asset(
                 'assets/images/qris.jpg',
-                fit: BoxFit.contain, 
+                fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) => Container(
                   color: Colors.grey.shade200,
                   alignment: Alignment.center,
@@ -690,6 +764,7 @@ Widget _buildQRISSection() {
       ),
     );
   }
+
   Widget _buildVoucherOption() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -703,19 +778,19 @@ Widget _buildQRISSection() {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row( 
+          Row(
             children: [
               SvgPicture.asset(
                 'assets/images/voucher.svg',
                 width: 22,
                 height: 22,
-                colorFilter: const ColorFilter.mode( 
+                colorFilter: const ColorFilter.mode(
                   Color(0xFF2D4839),
                   BlendMode.srcIn,
                 ),
               ),
-              const SizedBox(width: 10),  
-              const Text(  
+              const SizedBox(width: 10),
+              const Text(
                 'Voucher',
                 style: TextStyle(
                   color: Color(0xFF2D4839),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/cust/detail_menu_viewmodel.dart';
-import 'package:flutter_svg/flutter_svg.dart'; 
+import 'package:flutter_svg/flutter_svg.dart';
 import 'review_menu_view.dart';
 import '../../models/menu_model.dart';
 
@@ -337,17 +337,14 @@ class _DetailMenuViewState extends State<DetailMenuView>
 
   Widget _backButton() {
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0), 
+      padding: const EdgeInsets.only(left: 16.0),
       child: GestureDetector(
         onTap: () => Navigator.pop(context),
         child: SvgPicture.asset(
           'assets/images/back.svg',
           width: 24,
           height: 24,
-          colorFilter: const ColorFilter.mode(
-            Colors.white,
-            BlendMode.srcIn,
-          ),
+          colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
         ),
       ),
     );
@@ -636,20 +633,24 @@ class _DetailMenuViewState extends State<DetailMenuView>
                             strokeWidth: 2.5,
                           ),
                         )
-                      : const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(width: 8),
-                            Text(
-                              'Add to Cart',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w800,
+                      : const SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          physics: NeverScrollableScrollPhysics(),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(width: 8),
+                              Text(
+                                'Add to Cart',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                 ),
               ),
