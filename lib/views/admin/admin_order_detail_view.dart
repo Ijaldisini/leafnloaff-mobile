@@ -953,8 +953,23 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
     final isCanceled =
         statusStr.contains('batal') || statusStr.contains('cancel');
 
+    final isShipped =
+        statusStr.contains('kirim') ||
+        statusStr.contains('jalan') ||
+        statusStr.contains('otw');
+
     if (isCanceled) {
-      return const SizedBox();
+      return const Center(
+        child: Text(
+          "Pesanan Dibatalkan",
+          style: TextStyle(
+            color: Color(0xFFF26F71),
+            fontSize: 18,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      );
     }
 
     if (isDelivered) {
@@ -1003,68 +1018,72 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
 
     return Row(
       children: [
-        Expanded(
-          flex: 4,
-          child: GestureDetector(
-            onTap: () async {
-              final success = await _viewModel.changeOrderStatus(
-                order.id,
-                'Dibatalkan',
-              );
-              if (context.mounted) {
-                if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Order dibatalkan!'),
-                      backgroundColor: Color(0xFF73986F),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Gagal cancel! Cek RLS Supabase.'),
-                      backgroundColor: Color(0xFFC23437),
-                    ),
-                  );
+        if (!isShipped) ...[
+          Expanded(
+            flex: 4,
+            child: GestureDetector(
+              onTap: () async {
+                final success = await _viewModel.changeOrderStatus(
+                  order.id,
+                  'Dibatalkan',
+                );
+                if (context.mounted) {
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Order dibatalkan!'),
+                        backgroundColor: Color(0xFF73986F),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Gagal cancel! Cek RLS Supabase.'),
+                        backgroundColor: Color(0xFFC23437),
+                      ),
+                    );
+                  }
                 }
-              }
-            },
-            child: Container(
-              height: 45,
-              decoration: ShapeDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFF26F71), Color(0xFFC23437)],
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(87.79),
-                ),
-                shadows: const [
-                  BoxShadow(
-                    color: Color(0x3F000000),
-                    blurRadius: 3.51,
-                    offset: Offset(0, 3.51),
+              },
+              child: Container(
+                height: 45,
+                decoration: ShapeDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFFF26F71), Color(0xFFC23437)],
                   ),
-                ],
-              ),
-              alignment: Alignment.center,
-              child: const Text(
-                'Cancel Order',
-                style: TextStyle(
-                  color: Color(0xFFFBFBFB),
-                  fontSize: 14,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w800,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(87.79),
+                  ),
+                  shadows: const [
+                    BoxShadow(
+                      color: Color(0x3F000000),
+                      blurRadius: 3.51,
+                      offset: Offset(0, 3.51),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: const Text(
+                  'Cancel Order',
+                  style: TextStyle(
+                    color: Color(0xFFFBFBFB),
+                    fontSize: 14,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 15),
+          const SizedBox(width: 15),
+        ],
 
         Expanded(
-          flex: 6,
+          flex: isShipped
+              ? 1
+              : 6,
           child: GestureDetector(
             onTap: () {
               final order = _viewModel.orderDetail;
@@ -1086,10 +1105,12 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
             child: Container(
               height: 45,
               decoration: ShapeDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                  colors: isShipped
+                      ? [const Color(0xFF9E9E9E), const Color(0xFF757575)]
+                      : [const Color(0xFFD699AB), const Color(0xFFCA748D)],
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(87.79),

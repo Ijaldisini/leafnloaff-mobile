@@ -54,11 +54,11 @@ class CheckoutViewModel extends ChangeNotifier {
   }
 
   final Map<String, String> bankCodes = {
-    'BCA': 'bca',
-    'BNI': 'bni',
-    'BRI': 'bri',
-    'Mandiri': 'echannel',
-    'Permata': 'permata',
+    'BCA Virtual Account': 'bca',
+    'BNI Virtual Account': 'bni',
+    'BRI Virtual Account': 'bri',
+    'Mandiri Virtual Account': 'echannel',
+    'Permata Virtual Account': 'permata',
   };
 
   void initCheckoutData({VoucherModel? initialVoucher}) async {
@@ -187,8 +187,9 @@ class CheckoutViewModel extends ChangeNotifier {
       return null;
     }
 
-    if (paymentMethod == 'Transfer Bank' && paymentProofFile == null) {
-      errorMessage = 'Silakan unggah bukti pembayaran';
+    if ((paymentMethod == 'Transfer Bank' || paymentMethod == 'QRIS Statis') &&
+        paymentProofFile == null) {
+      errorMessage = 'Silakan unggah bukti pembayaran terlebih dahulu';
       notifyListeners();
       return null;
     }

@@ -39,8 +39,15 @@ class NotificationService {
           ),
           callback: (payload) {
             final newRecord = payload.newRecord;
-            if (newRecord == null)
+            if (newRecord == null) return;
+
+            final titleLower = (newRecord['title'] ?? '')
+                .toString()
+                .toLowerCase();
+            if (titleLower.contains('diperbarui') ||
+                titleLower.contains('diupdate')) {
               return;
+            }
 
             final orderId = newRecord['order_id']?.toString().trim();
 

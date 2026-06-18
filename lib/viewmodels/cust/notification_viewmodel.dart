@@ -14,11 +14,21 @@ class NotificationViewModel extends ChangeNotifier {
   List<NotificationModel> _rawNotifications = [];
   List<Map<String, dynamic>> groupedNotifications = [];
 
+  bool _isValidNotification(NotificationModel notif) {
+    final titleLower = notif.title.toLowerCase();
+
+    if (titleLower.contains('diperbarui') || titleLower.contains('diupdate')) {
+      return false;
+    }
+
+    return notif.orderId != null && notif.orderId!.trim().isNotEmpty;
+  }
+
   void initListener() {
     _realtimeSubscription?.unsubscribe();
 
     _realtimeSubscription = _service.listenToCustomerNotifications((newNotif) {
-      if (newNotif.orderId != null && newNotif.orderId!.trim().isNotEmpty) {
+      if (_isValidNotification(newNotif)) {
         final isDuplicate = _rawNotifications.any((n) => n.id == newNotif.id);
 
         if (!isDuplicate) {
@@ -44,9 +54,7 @@ class NotificationViewModel extends ChangeNotifier {
     try {
       final allNotifications = await _service.fetchNotifications();
 
-      _rawNotifications = allNotifications.where((notif) {
-        return notif.orderId != null && notif.orderId!.trim().isNotEmpty;
-      }).toList();
+      _rawNotifications = allNotifications.where(_isValidNotification).toList();
 
       _removeDuplicates();
 

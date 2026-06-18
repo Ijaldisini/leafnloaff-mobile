@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/user_model.dart';
 import '../../viewmodels/cust/profile_viewmodel.dart';
 import '../../services/cust/profile_service.dart';
-import 'package:flutter_svg/flutter_svg.dart'; 
+import 'package:flutter_svg/flutter_svg.dart';
 import '../login_view.dart';
 import 'edit_profile_view.dart';
 import 'history_view.dart';
@@ -180,40 +180,40 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
 
                 const SizedBox(height: 50),
-                  _buildMenuButton(
-                    'History',
-                    iconPath: 'assets/images/history.svg',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HistoryView(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
+                _buildMenuButton(
+                  'History',
+                  iconPath: 'assets/images/history.svg',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HistoryView(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
 
-                  _buildMenuButton(
-                    'Address',
-                    iconPath: 'assets/images/address.svg',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AddressView(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
+                _buildMenuButton(
+                  'Address',
+                  iconPath: 'assets/images/address.svg',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddressView(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
 
-                  _buildMenuButton(
-                    'Delete Account',
-                    iconPath: 'assets/images/deleteakun.svg',
-                    onTap: () {},
-                  ),
-                  const SizedBox(height: 40),
+                _buildMenuButton(
+                  'Delete Account',
+                  iconPath: 'assets/images/deleteakun.svg',
+                  onTap: () => _showDeleteAccountConfirmation(context),
+                ),
+                const SizedBox(height: 40),
 
                 ListenableBuilder(
                   listenable: _viewModel,
@@ -271,7 +271,11 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  Widget _buildMenuButton(String title, {required String iconPath, required VoidCallback onTap}) {
+  Widget _buildMenuButton(
+    String title, {
+    required String iconPath,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -414,6 +418,105 @@ class _ProfileViewState extends State<ProfileView> {
         const SnackBar(
           content: Text('Gagal logout. Silakan coba lagi.'),
           backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showDeleteAccountConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Hapus Akun',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+          content: const Text(
+            'Apakah Anda yakin ingin menghapus akun ini secara permanen? Semua data Anda akan hilang dan tidak dapat dikembalikan.',
+            style: TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              child: const Text(
+                'Batal',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _handleDeleteAccount();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+              ),
+              child: const Text(
+                'Ya, Hapus',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _handleDeleteAccount() async {
+    final success = await _viewModel.deleteAccount();
+
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Akun berhasil dihapus.'),
+          backgroundColor: Color(0xFF426E55),
+        ),
+      );
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginView()),
+        (route) => false,
+      );
+    } else if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal menghapus akun. Pastikan koneksi stabil.'),
+          backgroundColor: Color(0xFFC23437),
         ),
       );
     }

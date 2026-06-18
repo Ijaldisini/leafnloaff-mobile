@@ -16,6 +16,7 @@ class FormAddressViewModel extends ChangeNotifier {
   bool isLoading = false;
   bool isSaving = false;
   String? errorMessage;
+  bool _isDisposed = false;
 
   LatLng selectedLocation = const LatLng(-8.1689, 113.7020);
   GoogleMapController? mapController;
@@ -61,6 +62,8 @@ class FormAddressViewModel extends ChangeNotifier {
 
     try {
       final position = await _mapsService.getCurrentLocation();
+      if (_isDisposed) return;
+
       await mapController?.animateCamera(
         CameraUpdate.newLatLngZoom(
           LatLng(position.latitude, position.longitude),
@@ -68,10 +71,13 @@ class FormAddressViewModel extends ChangeNotifier {
         ),
       );
     } catch (e) {
+      if (_isDisposed) return;
       errorMessage = e.toString();
     } finally {
-      isLoading = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -80,6 +86,8 @@ class FormAddressViewModel extends ChangeNotifier {
 
   Future<void> _updateAddressText(double lat, double lng) async {
     final addressText = await _mapsService.getAddressFromLatLng(lat, lng);
+    if (_isDisposed) return;
+
     addressController.text = addressText;
     notifyListeners();
   }
@@ -114,16 +122,20 @@ class FormAddressViewModel extends ChangeNotifier {
 
       return true;
     } catch (e) {
+      if (_isDisposed) return false;
       errorMessage = "Gagal menyimpan alamat: $e";
       return false;
     } finally {
-      isSaving = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        isSaving = false;
+        notifyListeners();
+      }
     }
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
     nameController.dispose();
     addressController.dispose();
     phoneController.dispose();

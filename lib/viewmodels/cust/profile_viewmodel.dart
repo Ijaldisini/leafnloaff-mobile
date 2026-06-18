@@ -24,4 +24,20 @@ class ProfileViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> deleteAccount() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _service.deleteAccount();
+      return true;
+    } catch (e) {
+      debugPrint("Error delete account: $e");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

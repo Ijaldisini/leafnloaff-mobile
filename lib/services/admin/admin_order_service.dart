@@ -31,56 +31,52 @@ class AdminOrderService {
     try {
       final orderData = await _supabase
           .from('orders')
-          .select('''
-            id, created_at, status, total_price, notes, payment_method, address_detail,
-            va_number, latitude, longitude, payment_proof_url, user_id,
-            profiles:user_id ( full_name, phone_number )
-          ''')
+          .select('*, profiles:user_id(full_name, phone_number)')
           .eq('id', orderId)
           .single();
 
-      String phoneNumber = orderData['profiles']?['phone_number'] ?? '-';
-      String fullName = orderData['profiles']?['full_name'] ?? 'Unknown';
+      final Map<String, dynamic> mutableOrderData = Map<String, dynamic>.from(
+        orderData,
+      );
 
-      if (orderData['user_id'] != null &&
-          orderData['address_detail'] != null &&
-          orderData['address_detail'] != 'Diambil di Toko') {
+      String phoneNumber = mutableOrderData['profiles']?['phone_number'] ?? '-';
+      String fullName = mutableOrderData['profiles']?['full_name'] ?? 'Unknown';
+
+      if (mutableOrderData['user_id'] != null &&
+          mutableOrderData['address_detail'] != null &&
+          mutableOrderData['address_detail'] != 'Diambil di Toko') {
         final addressData = await _supabase
             .from('user_addresses')
             .select('recipient_name, phone_number')
-            .eq('user_id', orderData['user_id'])
-            .eq('address_detail', orderData['address_detail'])
+            .eq('user_id', mutableOrderData['user_id'])
+            .eq('address_detail', mutableOrderData['address_detail'])
             .limit(1)
             .maybeSingle();
 
         if (addressData != null) {
           if (addressData['phone_number'] != null &&
-              addressData['phone_number'].toString().isNotEmpty) {
+              addressData['phone_number'].toString().trim().isNotEmpty) {
             phoneNumber = addressData['phone_number'];
           }
           if (addressData['recipient_name'] != null &&
-              addressData['recipient_name'].toString().isNotEmpty) {
+              addressData['recipient_name'].toString().trim().isNotEmpty) {
             fullName = addressData['recipient_name'];
           }
         }
       }
 
-      orderData['profiles'] ??= {};
-      orderData['profiles']['phone_number'] = phoneNumber;
-      orderData['profiles']['full_name'] =
-          fullName;
+      mutableOrderData['profiles'] ??= {};
+      mutableOrderData['profiles']['phone_number'] = phoneNumber;
+      mutableOrderData['profiles']['full_name'] = fullName;
 
       final itemsData = await _supabase
           .from('order_items')
-          .select('''
-            menu_id, quantity, price_at_time,
-            menus ( name, image_url )
-          ''')
+          .select('*, menus(*)')
           .eq('order_id', orderId);
 
-      orderData['order_items'] = itemsData;
+      mutableOrderData['order_items'] = itemsData;
 
-      return orderData;
+      return mutableOrderData;
     } catch (e) {
       debugPrint("Error fetching order detail: $e");
       throw Exception("Detail pesanan tidak ditemukan.");

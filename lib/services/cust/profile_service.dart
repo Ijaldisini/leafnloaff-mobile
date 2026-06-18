@@ -10,4 +10,19 @@ class ProfileService {
       throw Exception('Gagal melakukan logout: $e');
     }
   }
+
+  Future<void> deleteAccount() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId != null) {
+        await _supabase.from('profiles').update({
+          'is_active': false,
+        }).eq('id', userId);
+
+        await _supabase.auth.signOut();
+      }
+    } catch (e) {
+      throw Exception('Gagal menghapus akun: $e');
+    }
+  }
 }
