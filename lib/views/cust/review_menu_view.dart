@@ -47,6 +47,11 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
     _animController.forward();
   }
 
+  Future<void> _refreshReviews() async {
+    await _viewModel.fetchReviews(widget.menu.id);
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
   @override
   void dispose() {
     _animController.dispose();
@@ -104,176 +109,184 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                   opacity: _fadeAnim,
                   child: SlideTransition(
                     position: _slideAnim,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 16),
+                    child: RefreshIndicator(
+                      color: const Color(0xFFCA748D),
+                      backgroundColor: Colors.white,
+                      onRefresh: _refreshReviews,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 16),
 
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Row(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 16.0), 
-                                  child: GestureDetector(
-                                    onTap: () => Navigator.pop(context),
-                                    child: SvgPicture.asset(
-                                      'assets/images/back.svg',
-                                      width: 24,
-                                      height: 24,
-                                      colorFilter: const ColorFilter.mode(
-                                        Colors.white,  
-                                        BlendMode.srcIn,
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 16.0), 
+                                    child: GestureDetector(
+                                      onTap: () => Navigator.pop(context),
+                                      child: SvgPicture.asset(
+                                        'assets/images/back.svg',
+                                        width: 24,
+                                        height: 24,
+                                        colorFilter: const ColorFilter.mode(
+                                          Colors.white,  
+                                          BlendMode.srcIn,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    widget.menu.name,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22,
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w800,
-                                      height: 1.10,
-                                      shadows: [
-                                        Shadow(
-                                          offset: Offset(2, 2),
-                                          blurRadius: 4,
-                                          color: Colors.black26,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 44),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 32),
-
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 26),
-                            child: Stack(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Container(
-                                    height: 265,
-                                    width: double.infinity,
-                                    color: const Color(0xFF426E55),
-                                    child:
-                                        (widget.menu.imageUrl != null &&
-                                            widget.menu.imageUrl!.isNotEmpty)
-                                        ? Image.network(
-                                            widget.menu.imageUrl!,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                                  return const _ImagePlaceholder();
-                                                },
-                                          )
-                                        : const _ImagePlaceholder(),
-                                  ),
-                                ),
-                                Positioned(
-                                  left: 0,
-                                  right: 0,
-                                  bottom: 0,
-                                  child: Container(
-                                    height: 105,
-                                    decoration: const BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Color(0x00CA748D),
-                                          Color(0xFFCA748D),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      widget.menu.name,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 22,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w800,
+                                        height: 1.10,
+                                        shadows: [
+                                          Shadow(
+                                            offset: Offset(2, 2),
+                                            blurRadius: 4,
+                                            color: Colors.black26,
+                                          ),
                                         ],
                                       ),
-                                      borderRadius: BorderRadius.only(
-                                        bottomLeft: Radius.circular(20),
-                                        bottomRight: Radius.circular(20),
-                                      ),
                                     ),
-                                    child: Align(
-                                      alignment: Alignment.bottomLeft,
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: 16,
-                                          bottom: 14,
+                                  ),
+                                  const SizedBox(width: 44),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 32),
+
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 26),
+                              child: Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Container(
+                                      height: 265,
+                                      width: double.infinity,
+                                      color: const Color(0xFF426E55),
+                                      child:
+                                          (widget.menu.imageUrl != null &&
+                                              widget.menu.imageUrl!.isNotEmpty)
+                                          ? Image.network(
+                                              widget.menu.imageUrl!,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (context, error, stackTrace) {
+                                                    return const _ImagePlaceholder();
+                                                  },
+                                            )
+                                          : const _ImagePlaceholder(),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    child: Container(
+                                      height: 105,
+                                      decoration: const BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Color(0x00CA748D),
+                                            Color(0xFFCA748D),
+                                          ],
                                         ),
-                                        child: Text(
-                                          _formattedPrice,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 20,
-                                            fontFamily: 'Poppins',
-                                            fontWeight: FontWeight.w800,
-                                            height: 1.10,
-                                            shadows: [
-                                              Shadow(
-                                                offset: Offset(1, 1),
-                                                blurRadius: 3,
-                                                color: Colors.black26,
-                                              ),
-                                            ],
+                                        borderRadius: BorderRadius.only(
+                                          bottomLeft: Radius.circular(20),
+                                          bottomRight: Radius.circular(20),
+                                        ),
+                                      ),
+                                      child: Align(
+                                        alignment: Alignment.bottomLeft,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 16,
+                                            bottom: 14,
+                                          ),
+                                          child: Text(
+                                            _formattedPrice,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 20,
+                                              fontFamily: 'Poppins',
+                                              fontWeight: FontWeight.w800,
+                                              height: 1.10,
+                                              shadows: [
+                                                Shadow(
+                                                  offset: Offset(1, 1),
+                                                  blurRadius: 3,
+                                                  color: Colors.black26,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
 
-                          const SizedBox(height: 20),
+                            const SizedBox(height: 20),
 
-                          _viewModel.isLoading
-                              ? const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(32),
-                                    child: CircularProgressIndicator(
-                                      color: Color(0xFFCA748D),
+                            _viewModel.isLoading
+                                ? const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(32),
+                                      child: CircularProgressIndicator(
+                                        color: Color(0xFFCA748D),
+                                      ),
+                                    ),
+                                  )
+                                : _viewModel.reviews.isEmpty
+                                ? _buildEmptyState()
+                                : Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 26,
+                                    ),
+                                    child: ListView.separated(
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      itemCount: _viewModel.reviews.length,
+                                      separatorBuilder: (_, __) =>
+                                          const SizedBox(height: 12),
+                                      itemBuilder: (context, index) {
+                                        final review = _viewModel.reviews[index];
+                                        return _buildReviewCard(
+                                          userName:
+                                              review.userName ?? 'Anonymous',
+                                          date: review.createdAt
+                                              .toIso8601String(),
+                                          rating: review.rating.toDouble(),
+                                          comment: review.comment ?? '',
+                                          imageUrl: review.imageUrl,
+                                        );
+                                      },
                                     ),
                                   ),
-                                )
-                              : _viewModel.reviews.isEmpty
-                              ? _buildEmptyState()
-                              : Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 26,
-                                  ),
-                                  child: ListView.separated(
-                                    shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    itemCount: _viewModel.reviews.length,
-                                    separatorBuilder: (_, __) =>
-                                        const SizedBox(height: 12),
-                                    itemBuilder: (context, index) {
-                                      final review = _viewModel.reviews[index];
-                                      return _buildReviewCard(
-                                        userName:
-                                            review.userName ?? 'Anonymous',
-                                        date: review.createdAt
-                                            .toIso8601String(),
-                                        rating: review.rating.toDouble(),
-                                        comment: review.comment ?? '',
-                                        imageUrl: review.imageUrl,
-                                      );
-                                    },
-                                  ),
-                                ),
 
-                          const SizedBox(height: 120),
-                        ],
+                            const SizedBox(height: 120),
+                          ],
+                        ),
                       ),
                     ),
                   ),

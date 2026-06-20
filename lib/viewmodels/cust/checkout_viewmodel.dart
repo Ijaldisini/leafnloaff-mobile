@@ -61,7 +61,7 @@ class CheckoutViewModel extends ChangeNotifier {
     'Permata': 'permata',
   };
 
-  void initCheckoutData({VoucherModel? initialVoucher}) async {
+  Future<void> initCheckoutData({VoucherModel? initialVoucher}) async {
     isLoading = true;
     notifyListeners();
 

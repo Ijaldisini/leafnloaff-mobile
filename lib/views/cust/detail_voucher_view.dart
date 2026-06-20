@@ -8,6 +8,10 @@ class DetailVoucherView extends StatelessWidget {
 
   const DetailVoucherView({super.key, required this.voucher});
 
+  Future<void> _refreshData() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
   @override
   Widget build(BuildContext context) {
     final expiryText =
@@ -87,99 +91,106 @@ class DetailVoucherView extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 25),
-                    physics: const BouncingScrollPhysics(),
-                    children: [
-                      Container(
-                        height: 140,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
+                  child: RefreshIndicator(
+                    color: const Color(0xFFCA748D),
+                    backgroundColor: Colors.white,
+                    onRefresh: _refreshData,
+                    child: ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 25),
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      children: [
+                        Container(
+                          height: 140,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 4,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                            image: DecorationImage(
+                              image: NetworkImage(voucher.imageUrl),
+                              fit: BoxFit.cover,
                             ),
-                          ],
-                          image: DecorationImage(
-                            image: NetworkImage(voucher.imageUrl),
-                            fit: BoxFit.cover,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFDFDFD),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFDFDFD),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 4,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                voucher.title,
+                                style: const TextStyle(
+                                  color: Color(0xFF51725F),
+                                  fontSize: 16,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                '${voucher.discountPercentage}% Off',
+                                style: const TextStyle(
+                                  color: Color(0xFF2D4839),
+                                  fontSize: 35,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                expiryText,
+                                style: const TextStyle(
+                                  color: Color(0xFF51725F),
+                                  fontSize: 12,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              const Text(
+                                'Terms and Conditions',
+                                style: TextStyle(
+                                  color: Color(0xFF2D4839),
+                                  fontSize: 18,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                voucher.termsAndCondition,
+                                style: const TextStyle(
+                                  color: Color(0xFF51725F),
+                                  fontSize: 14,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w500,
+                                  height: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                            ],
+                          ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              voucher.title,
-                              style: const TextStyle(
-                                color: Color(0xFF51725F),
-                                fontSize: 16,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Text(
-                              '${voucher.discountPercentage}% Off',
-                              style: const TextStyle(
-                                color: Color(0xFF2D4839),
-                                fontSize: 35,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              expiryText,
-                              style: const TextStyle(
-                                color: Color(0xFF51725F),
-                                fontSize: 12,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            const Text(
-                              'Terms and Conditions',
-                              style: TextStyle(
-                                color: Color(0xFF2D4839),
-                                fontSize: 18,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              voucher.termsAndCondition,
-                              style: const TextStyle(
-                                color: Color(0xFF51725F),
-                                fontSize: 14,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w500,
-                                height: 1.5,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 120),
-                    ],
+                        const SizedBox(height: 120),
+                      ],
+                    ),
                   ),
                 ),
               ],

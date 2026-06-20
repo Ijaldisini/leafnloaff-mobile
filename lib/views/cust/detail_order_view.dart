@@ -22,12 +22,20 @@ class _DetailOrderViewState extends State<DetailOrderView> {
   final DetailOrderViewModel _viewModel = DetailOrderViewModel();
   Timer? _timer;
   Duration _timeLeft = Duration.zero;
+  
+  bool _isInitialLoad = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _viewModel.fetchOrder(widget.orderId);
+      
+      if (mounted) {
+        setState(() {
+          _isInitialLoad = false;
+        });
+      }
 
       if (mounted && _viewModel.orderDetail != null) {
         final expiryTime = _viewModel.orderDetail!.vaExpiryTime;
@@ -36,6 +44,11 @@ class _DetailOrderViewState extends State<DetailOrderView> {
         }
       }
     });
+  }
+
+  Future<void> _refreshOrder() async {
+    await _viewModel.fetchOrder(widget.orderId);
+    await Future.delayed(const Duration(milliseconds: 300));
   }
 
   void _startTimer(DateTime expiryTime) {
@@ -176,7 +189,7 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                   child: ListenableBuilder(
                     listenable: _viewModel,
                     builder: (context, _) {
-                      if (_viewModel.isLoading) {
+                      if (_viewModel.isLoading && _isInitialLoad) {
                         return const Center(
                           child: CircularProgressIndicator(color: Colors.white),
                         );
@@ -201,30 +214,37 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                         'Selesai',
                       ].contains(status);
 
-                      return ListView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 25,
-                          vertical: 10,
-                        ),
-                        physics: const BouncingScrollPhysics(),
-                        children: [
-                          _buildOrderStatus(status),
-                          const SizedBox(height: 16),
-                          _buildCustomerInformation(order),
-                          const SizedBox(height: 16),
-                          _buildOrderDetail(order.items),
-                          const SizedBox(height: 20),
-                          _buildOrderSummary(),
-                          const SizedBox(height: 20),
-                          _buildPaymentInformation(
-                            paymentMethod,
-                            isPaid,
-                            order,
+                      return RefreshIndicator(
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        onRefresh: _refreshOrder,
+                        child: ListView(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 25,
+                            vertical: 10,
                           ),
-                          const SizedBox(height: 30),
-                          _buildActionButtons(status, order.items),
-                          const SizedBox(height: 40),
-                        ],
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          children: [
+                            _buildOrderStatus(status),
+                            const SizedBox(height: 16),
+                            _buildCustomerInformation(order),
+                            const SizedBox(height: 16),
+                            _buildOrderDetail(order.items),
+                            const SizedBox(height: 20),
+                            _buildOrderSummary(),
+                            const SizedBox(height: 20),
+                            _buildPaymentInformation(
+                              paymentMethod,
+                              isPaid,
+                              order,
+                            ),
+                            const SizedBox(height: 30),
+                            _buildActionButtons(status, order.items),
+                            const SizedBox(height: 40),
+                          ],
+                        ),
                       );
                     },
                   ),

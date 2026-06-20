@@ -14,6 +14,8 @@ class HistoryView extends StatefulWidget {
 
 class _HistoryViewState extends State<HistoryView> {
   late final HistoryViewModel _viewModel;
+  
+  bool _isInitialLoad = true;
 
   @override
   void initState() {
@@ -21,8 +23,19 @@ class _HistoryViewState extends State<HistoryView> {
     _viewModel = HistoryViewModel(service: HistoryService());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel.fetchHistory();
+      _viewModel.fetchHistory().then((_) {
+        if (mounted) {
+          setState(() {
+            _isInitialLoad = false;
+          });
+        }
+      });
     });
+  }
+
+  Future<void> _refreshHistory() async {
+    await _viewModel.fetchHistory();
+    await Future.delayed(const Duration(milliseconds: 300));
   }
 
   @override
@@ -105,7 +118,7 @@ class _HistoryViewState extends State<HistoryView> {
                   child: ListenableBuilder(
                     listenable: _viewModel,
                     builder: (context, _) {
-                      if (_viewModel.isLoading) {
+                      if (_viewModel.isLoading && _isInitialLoad) {
                         return const Center(
                           child: CircularProgressIndicator(color: Colors.white),
                         );
@@ -130,36 +143,44 @@ class _HistoryViewState extends State<HistoryView> {
                         );
                       }
 
-                      return ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 20),
-                        itemCount: _viewModel.groupedOrders.keys.length,
-                        itemBuilder: (context, index) {
-                          final dateKey = _viewModel.groupedOrders.keys
-                              .elementAt(index);
-                          final orders = _viewModel.groupedOrders[dateKey]!;
+                      return RefreshIndicator(
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        onRefresh: _refreshHistory,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          itemCount: _viewModel.groupedOrders.keys.length,
+                          itemBuilder: (context, index) {
+                            final dateKey = _viewModel.groupedOrders.keys
+                                .elementAt(index);
+                            final orders = _viewModel.groupedOrders[dateKey]!;
 
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 25,
-                                  vertical: 10,
-                                ),
-                                child: Text(
-                                  dateKey,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w700,
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 25,
+                                    vertical: 10,
+                                  ),
+                                  child: Text(
+                                    dateKey,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              ...orders.map((order) => _buildOrderCard(order)),
-                            ],
-                          );
-                        },
+                                ...orders.map((order) => _buildOrderCard(order)),
+                              ],
+                            );
+                          },
+                        ),
                       );
                     },
                   ),

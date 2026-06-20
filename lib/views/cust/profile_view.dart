@@ -25,8 +25,11 @@ class _ProfileViewState extends State<ProfileView> {
   void initState() {
     super.initState();
     _currentUser = widget.user;
-
     _viewModel = ProfileViewModel(service: ProfileService());
+  }
+
+  Future<void> _refreshData() async {
+    await Future.delayed(const Duration(milliseconds: 500));
   }
 
   @override
@@ -59,211 +62,224 @@ class _ProfileViewState extends State<ProfileView> {
           ),
 
           SafeArea(
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFDFDFD),
-                          shape: BoxShape.circle,
-                          image: _currentUser.profileImageUrl != null
-                              ? DecorationImage(
-                                  image: NetworkImage(
-                                    _currentUser.profileImageUrl!,
-                                  ),
-                                  fit: BoxFit.cover,
-                                )
-                              : null,
-                        ),
-                        child: _currentUser.profileImageUrl == null
-                            ? const Icon(
-                                Icons.person,
-                                size: 50,
-                                color: Color(0xFF3D5A4A),
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _currentUser.fullName,
-                              style: TextStyle(
-                                color: const Color(0xFFFDFDFD),
-                                fontSize: 22,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w800,
-                                shadows: [
-                                  Shadow(
-                                    offset: const Offset(1, 1),
-                                    blurRadius: 3,
-                                    color: Colors.black.withValues(alpha: 0.25),
-                                  ),
-                                ],
-                              ),
+            child: RefreshIndicator(
+              color: const Color(0xFFCA748D),
+              backgroundColor: Colors.white,
+              onRefresh: _refreshData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFDFDFD),
+                              shape: BoxShape.circle,
+                              image: _currentUser.profileImageUrl != null
+                                  ? DecorationImage(
+                                      image: NetworkImage(
+                                        _currentUser.profileImageUrl!,
+                                      ),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              _currentUser.phoneNumber ?? _currentUser.email,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            GestureDetector(
-                              onTap: () async {
-                                final updatedUser = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        EditProfileView(user: _currentUser),
-                                  ),
-                                );
-
-                                if (updatedUser != null &&
-                                    updatedUser is UserModel) {
-                                  setState(() {
-                                    _currentUser = updatedUser;
-                                  });
-                                }
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Color(0xFF51725F),
-                                      Color(0xFF2D4839),
+                            child: _currentUser.profileImageUrl == null
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: Color(0xFF3D5A4A),
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _currentUser.fullName,
+                                  style: TextStyle(
+                                    color: const Color(0xFFFDFDFD),
+                                    fontSize: 22,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w800,
+                                    shadows: [
+                                      Shadow(
+                                        offset: const Offset(1, 1),
+                                        blurRadius: 3,
+                                        color: Colors.black.withValues(alpha: 0.25),
+                                      ),
                                     ],
                                   ),
-                                  borderRadius: BorderRadius.circular(50),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 4,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
                                 ),
-                                child: const Text(
-                                  'Edit Profile',
-                                  style: TextStyle(
-                                    color: Color(0xFFFBFBFB),
-                                    fontSize: 12,
+                                const SizedBox(height: 2),
+                                Text(
+                                  _currentUser.phoneNumber ?? _currentUser.email,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
                                     fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                              ),
+                                const SizedBox(height: 12),
+                                GestureDetector(
+                                  onTap: () async {
+                                    final updatedUser = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            EditProfileView(user: _currentUser),
+                                      ),
+                                    );
+
+                                    if (updatedUser != null &&
+                                        updatedUser is UserModel) {
+                                      setState(() {
+                                        _currentUser = updatedUser;
+                                      });
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Color(0xFF51725F),
+                                          Color(0xFF2D4839),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(50),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black26,
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Text(
+                                      'Edit Profile',
+                                      style: TextStyle(
+                                        color: Color(0xFFFBFBFB),
+                                        fontSize: 12,
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 50),
-                  _buildMenuButton(
-                    'History',
-                    iconPath: 'assets/images/history.svg',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HistoryView(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildMenuButton(
-                    'Address',
-                    iconPath: 'assets/images/address.svg',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AddressView(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildMenuButton(
-                    'Delete Account',
-                    iconPath: 'assets/images/deleteakun.svg',
-                    onTap: () {},
-                  ),
-                  const SizedBox(height: 40),
-
-                ListenableBuilder(
-                  listenable: _viewModel,
-                  builder: (context, _) {
-                    return GestureDetector(
-                      onTap: _viewModel.isLoading
-                          ? null
-                          : () => _showLogoutConfirmation(context),
-                      child: Container(
-                        width: 160,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Color(0xFFF26F71), Color(0xFFC23437)],
                           ),
-                          borderRadius: BorderRadius.circular(100),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        alignment: Alignment.center,
-                        child: _viewModel.isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text(
-                                'Logout',
-                                style: TextStyle(
-                                  color: Color(0xFFFBFBFB),
-                                  fontSize: 18,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
+                        ],
                       ),
-                    );
-                  },
+                    ),
+
+                    const SizedBox(height: 50),
+                    _buildMenuButton(
+                      'History',
+                      iconPath: 'assets/images/history.svg',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HistoryView(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildMenuButton(
+                      'Address',
+                      iconPath: 'assets/images/address.svg',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AddressView(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildMenuButton(
+                      'Delete Account',
+                      iconPath: 'assets/images/deleteakun.svg',
+                      onTap: () {},
+                    ),
+                    const SizedBox(height: 40),
+
+                    ListenableBuilder(
+                      listenable: _viewModel,
+                      builder: (context, _) {
+                        return GestureDetector(
+                          onTap: _viewModel.isLoading
+                              ? null
+                              : () => _showLogoutConfirmation(context),
+                          child: Container(
+                            width: 160,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Color(0xFFF26F71), Color(0xFFC23437)],
+                              ),
+                              borderRadius: BorderRadius.circular(100),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 4,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            child: _viewModel.isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Logout',
+                                    style: TextStyle(
+                                      color: Color(0xFFFBFBFB),
+                                      fontSize: 18,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                          ),
+                        );
+                      },
+                    ),
+                    
+                    // ✅ Tambahan spacing bawah agar bisa di-scroll
+                    const SizedBox(height: 120),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ],

@@ -19,13 +19,26 @@ class CheckoutView extends StatefulWidget {
 
 class _CheckoutViewState extends State<CheckoutView> {
   final CheckoutViewModel _viewModel = CheckoutViewModel();
+  
+  bool _isInitialLoad = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel.initCheckoutData(initialVoucher: widget.initialVoucher);
+      _viewModel.initCheckoutData(initialVoucher: widget.initialVoucher).then((_) {
+        if (mounted) {
+          setState(() {
+            _isInitialLoad = false;
+          });
+        }
+      });
     });
+  }
+
+  Future<void> _refreshCheckout() async {
+    await _viewModel.initCheckoutData(initialVoucher: widget.initialVoucher);
+    await Future.delayed(const Duration(milliseconds: 300));
   }
 
   String _formatCurrency(double amount) {
@@ -119,51 +132,58 @@ class _CheckoutViewState extends State<CheckoutView> {
                   child: ListenableBuilder(
                     listenable: _viewModel,
                     builder: (context, _) {
-                      if (_viewModel.isLoading) {
+                      if (_viewModel.isLoading && _isInitialLoad) {
                         return const Center(
                           child: CircularProgressIndicator(color: Colors.white),
                         );
                       }
 
-                      return ListView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 25,
-                          vertical: 10,
-                        ),
-                        physics: const BouncingScrollPhysics(),
-                        children: [
-                          if (_viewModel.errorMessage != null)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 15),
-                              child: Text(
-                                _viewModel.errorMessage!,
-                                style: const TextStyle(
-                                  color: Colors.redAccent,
-                                  fontWeight: FontWeight.bold,
+                      return RefreshIndicator(
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        onRefresh: _refreshCheckout,
+                        child: ListView(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 25,
+                            vertical: 10,
+                          ),
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          children: [
+                            if (_viewModel.errorMessage != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 15),
+                                child: Text(
+                                  _viewModel.errorMessage!,
+                                  style: const TextStyle(
+                                    color: Colors.redAccent,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
+                            _buildShippingOption(),
+                            const SizedBox(height: 20),
+                            _buildPaymentMethod(),
+                            const SizedBox(height: 20),
+                            _buildVoucherOption(),
+                            const SizedBox(height: 20),
+                            const Text(
+                              'Order Items',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
-                          _buildShippingOption(),
-                          const SizedBox(height: 20),
-                          _buildPaymentMethod(),
-                          const SizedBox(height: 20),
-                          _buildVoucherOption(),
-                          const SizedBox(height: 20),
-                          const Text(
-                            'Order Items',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w800,
+                            const SizedBox(height: 10),
+                            ..._viewModel.selectedCartItems.map(
+                              (item) => _buildItemCard(item),
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          ..._viewModel.selectedCartItems.map(
-                            (item) => _buildItemCard(item),
-                          ),
-                          const SizedBox(height: 220),
-                        ],
+                            const SizedBox(height: 220),
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -490,55 +510,55 @@ class _CheckoutViewState extends State<CheckoutView> {
     );
   }
 
-Widget _buildPaymentMethod() {
-  return Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: const Color(0xFFFDFDFD),
-      borderRadius: BorderRadius.circular(16.69),
-      boxShadow: const [
-        BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 4)),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-          Row(
-            children: [
-              SvgPicture.asset(
-                'assets/images/uang.svg',
-                width: 22,
-                height: 22,
-                colorFilter: const ColorFilter.mode(
-                  Color(0xFF2D4839),
-                  BlendMode.srcIn,
+  Widget _buildPaymentMethod() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+            Row(
+              children: [
+                SvgPicture.asset(
+                  'assets/images/uang.svg',
+                  width: 22,
+                  height: 22,
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF2D4839),
+                    BlendMode.srcIn,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              const Text(
-                'Payment Method',
-                style: TextStyle(
-                  color: Color(0xFF2D4839),
-                  fontSize: 20,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w800,
+                const SizedBox(width: 10),
+                const Text(
+                  'Payment Method',
+                  style: TextStyle(
+                    color: Color(0xFF2D4839),
+                    fontSize: 20,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        const SizedBox(height: 15),
-        _buildPaymentSelectableBox('Cash On Delivery', 'COD'),
-        const SizedBox(height: 10),
-        _buildPaymentSelectableBox('QRIS', 'QRIS Statis'),
-        if (_viewModel.paymentMethod == 'QRIS Statis') _buildQRISSection(),
-        const SizedBox(height: 10),
-        _buildPaymentSelectableBox('Virtual Account', 'Virtual Account Bank'),
-        if (_viewModel.paymentMethod == 'Virtual Account Bank')
-          _buildVASection(),
-      ],
-    ),
-  );
-}
+              ],
+            ),
+          const SizedBox(height: 15),
+          _buildPaymentSelectableBox('Cash On Delivery', 'COD'),
+          const SizedBox(height: 10),
+          _buildPaymentSelectableBox('QRIS', 'QRIS Statis'),
+          if (_viewModel.paymentMethod == 'QRIS Statis') _buildQRISSection(),
+          const SizedBox(height: 10),
+          _buildPaymentSelectableBox('Virtual Account', 'Virtual Account Bank'),
+          if (_viewModel.paymentMethod == 'Virtual Account Bank')
+            _buildVASection(),
+        ],
+      ),
+    );
+  }
 
   Widget _buildPaymentSelectableBox(String title, String methodValue) {
     final isActive = _viewModel.paymentMethod == methodValue;
@@ -565,7 +585,7 @@ Widget _buildPaymentMethod() {
     );
   }
 
-Widget _buildQRISSection() {
+  Widget _buildQRISSection() {
     return Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(16),
@@ -690,6 +710,7 @@ Widget _buildQRISSection() {
       ),
     );
   }
+
   Widget _buildVoucherOption() {
     return Container(
       padding: const EdgeInsets.all(16),

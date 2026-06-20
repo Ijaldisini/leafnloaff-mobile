@@ -63,6 +63,10 @@ class _DetailMenuViewState extends State<DetailMenuView>
     _animController.forward();
   }
 
+  Future<void> _refreshData() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
   @override
   void dispose() {
     _animController.dispose();
@@ -106,218 +110,227 @@ class _DetailMenuViewState extends State<DetailMenuView>
               opacity: _fadeAnim,
               child: SlideTransition(
                 position: _slideAnim,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
+                // ✅ WRAP DENGAN REFRESH INDICATOR
+                child: RefreshIndicator(
+                  color: const Color(0xFFCA748D),
+                  backgroundColor: Colors.white,
+                  onRefresh: _refreshData,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16),
 
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          children: [
-                            _backButton(),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                widget.productName,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 28,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.5,
-                                  shadows: [
-                                    Shadow(
-                                      offset: Offset(2, 2),
-                                      blurRadius: 4,
-                                      color: Colors.black26,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 44),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 26),
-                        child: Hero(
-                          tag: 'product_${widget.productId}',
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Image.network(
-                              widget.productImage,
-                              width: double.infinity,
-                              height: 265,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                height: 265,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF426E55),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: const Icon(
-                                  Icons.image_not_supported,
-                                  color: Colors.white54,
-                                  size: 48,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      Transform.translate(
-                        offset: const Offset(0, -90),
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 26,
-                              ),
-                              child: Container(
-                                width: double.infinity,
-                                height: 100,
-                                decoration: const ShapeDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Color(0x00CA748D),
-                                      Color(0xFFCA748D),
-                                    ],
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.only(
-                                      bottomLeft: Radius.circular(20),
-                                      bottomRight: Radius.circular(20),
-                                    ),
-                                  ),
-                                ),
-                                alignment: Alignment.bottomLeft,
-                                padding: const EdgeInsets.only(
-                                  left: 16,
-                                  bottom: 14,
-                                ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
+                            children: [
+                              _backButton(),
+                              const SizedBox(width: 12),
+                              Expanded(
                                 child: Text(
-                                  _formattedPrice,
+                                  widget.productName,
+                                  textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 22,
+                                    fontSize: 28,
                                     fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
                                     shadows: [
                                       Shadow(
-                                        offset: Offset(1, 1),
-                                        blurRadius: 3,
+                                        offset: Offset(2, 2),
+                                        blurRadius: 4,
                                         color: Colors.black26,
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
-                            ),
+                              const SizedBox(width: 44),
+                            ],
+                          ),
+                        ),
 
-                            const SizedBox(height: 16),
+                        const SizedBox(height: 32),
 
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(26, 0, 26, 0),
-                              child: Container(
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 26),
+                          child: Hero(
+                            tag: 'product_${widget.productId}',
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Image.network(
+                                widget.productImage,
                                 width: double.infinity,
-                                decoration: ShapeDecoration(
-                                  color: Colors.white,
-                                  shape: RoundedRectangleBorder(
+                                height: 265,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  height: 265,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF426E55),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  shadows: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 6),
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        16,
-                                        16,
-                                        16,
-                                        0,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            width: 4,
-                                            height: 22,
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFCA748D),
-                                              borderRadius:
-                                                  BorderRadius.circular(2),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            'Description',
-                                            style: TextStyle(
-                                              color: Color(0xFF2D4839),
-                                              fontSize: 18,
-                                              fontFamily: 'Poppins',
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        16,
-                                        10,
-                                        16,
-                                        16,
-                                      ),
-                                      child: Text(
-                                        widget.description,
-                                        style: const TextStyle(
-                                          color: Color(0xFF51725F),
-                                          fontSize: 14,
-                                          fontFamily: 'Poppins',
-                                          fontWeight: FontWeight.w500,
-                                          height: 1.6,
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      height: 1,
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                      ),
-                                      color: const Color(0xFFEED5DB),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: _buildRatingSection(),
-                                    ),
-                                  ],
+                                  child: const Icon(
+                                    Icons.image_not_supported,
+                                    color: Colors.white54,
+                                    size: 48,
+                                  ),
                                 ),
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(height: 110),
-                    ],
+                        Transform.translate(
+                          offset: const Offset(0, -90),
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 26,
+                                ),
+                                child: Container(
+                                  width: double.infinity,
+                                  height: 100,
+                                  decoration: const ShapeDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Color(0x00CA748D),
+                                        Color(0xFFCA748D),
+                                      ],
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.only(
+                                        bottomLeft: Radius.circular(20),
+                                        bottomRight: Radius.circular(20),
+                                      ),
+                                    ),
+                                  ),
+                                  alignment: Alignment.bottomLeft,
+                                  padding: const EdgeInsets.only(
+                                    left: 16,
+                                    bottom: 14,
+                                  ),
+                                  child: Text(
+                                    _formattedPrice,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w800,
+                                      shadows: [
+                                        Shadow(
+                                          offset: Offset(1, 1),
+                                          blurRadius: 3,
+                                          color: Colors.black26,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(26, 0, 26, 0),
+                                child: Container(
+                                  width: double.infinity,
+                                  decoration: ShapeDecoration(
+                                    color: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    shadows: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          16,
+                                          16,
+                                          16,
+                                          0,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              width: 4,
+                                              height: 22,
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFCA748D),
+                                                borderRadius:
+                                                    BorderRadius.circular(2),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            const Text(
+                                              'Description',
+                                              style: TextStyle(
+                                                color: Color(0xFF2D4839),
+                                                fontSize: 18,
+                                                fontFamily: 'Poppins',
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          16,
+                                          10,
+                                          16,
+                                          16,
+                                        ),
+                                        child: Text(
+                                          widget.description,
+                                          style: const TextStyle(
+                                            color: Color(0xFF51725F),
+                                            fontSize: 14,
+                                            fontFamily: 'Poppins',
+                                            fontWeight: FontWeight.w500,
+                                            height: 1.6,
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        height: 1,
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                        ),
+                                        color: const Color(0xFFEED5DB),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: _buildRatingSection(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 110),
+                      ],
+                    ),
                   ),
                 ),
               ),

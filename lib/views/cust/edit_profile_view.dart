@@ -17,6 +17,9 @@ class EditProfileView extends StatefulWidget {
 class _EditProfileViewState extends State<EditProfileView> {
   late final EditProfileViewModel _viewModel;
 
+  bool _showOldPassword = false;
+  bool _showNewPassword = false;
+
   @override
   void initState() {
     super.initState();
@@ -25,6 +28,10 @@ class _EditProfileViewState extends State<EditProfileView> {
       imagePickerUtil: ImagePickerUtil(),
     );
     _viewModel.initData(widget.user);
+  }
+
+  Future<void> _refreshData() async {
+    await Future.delayed(const Duration(milliseconds: 500));
   }
 
   @override
@@ -63,247 +70,267 @@ class _EditProfileViewState extends State<EditProfileView> {
           ),
 
           SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: SvgPicture.asset(
-                            'assets/images/back.svg',
-                            width: 24,
-                            height: 24,
-                            colorFilter: const ColorFilter.mode(
-                              Colors.white,
-                              BlendMode.srcIn,
+            child: RefreshIndicator(
+              color: const Color(0xFFCA748D),
+              backgroundColor: Colors.white,
+              onRefresh: _refreshData,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: SvgPicture.asset(
+                              'assets/images/back.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Colors.white,
+                                BlendMode.srcIn,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const Expanded(
-                        child: Text(
-                          'Edit Profile',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 25,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w800,
-                            shadows: [
-                              Shadow(
-                                offset: Offset(2, 2),
-                                blurRadius: 4,
-                                color: Colors.black26,
-                              ),
-                            ],
+                        const Expanded(
+                          child: Text(
+                            'Edit Profile',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 25,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w800,
+                              shadows: [
+                                Shadow(
+                                  offset: Offset(2, 2),
+                                  blurRadius: 4,
+                                  color: Colors.black26,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 40),
-                    ],
-                  ),
+                        const SizedBox(width: 40),
+                      ],
+                    ),
 
-                  const SizedBox(height: 30),
+                    const SizedBox(height: 30),
 
-                  ListenableBuilder(
-                    listenable: _viewModel,
-                    builder: (context, _) {
-                      return GestureDetector(
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(20),
-                              ),
-                            ),
-                            builder: (context) => SafeArea(
-                              child: Wrap(
-                                children: [
-                                  ListTile(
-                                    leading: const Icon(
-                                      Icons.camera_alt,
-                                      color: Color(0xFF3D5A4A),
-                                    ),
-                                    title: const Text(
-                                      'Ambil dari Kamera',
-                                      style: TextStyle(fontFamily: 'Poppins'),
-                                    ),
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      _viewModel.pickImageFromCamera();
-                                    },
-                                  ),
-                                  ListTile(
-                                    leading: const Icon(
-                                      Icons.photo_library,
-                                      color: Color(0xFF3D5A4A),
-                                    ),
-                                    title: const Text(
-                                      'Pilih dari Galeri',
-                                      style: TextStyle(fontFamily: 'Poppins'),
-                                    ),
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                      _viewModel.pickImageFromGallery();
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                        child: Stack(
-                          alignment: Alignment.bottomRight,
-                          children: [
-                            CircleAvatar(
-                              radius: 50,
-                              backgroundColor: Colors.grey.shade400,
-                              backgroundImage: _viewModel.selectedImage != null
-                                  ? FileImage(_viewModel.selectedImage!)
-                                  : (widget.user.profileImageUrl != null
-                                        ? NetworkImage(
-                                            widget.user.profileImageUrl!,
-                                          )
-                                        : null),
-                              child:
-                                  _viewModel.selectedImage == null &&
-                                      widget.user.profileImageUrl == null
-                                  ? const Icon(
-                                      Icons.person,
-                                      size: 60,
-                                      color: Colors.white,
-                                    )
-                                  : null,
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: Color.fromARGB(255, 255, 255, 255),
-                                shape: BoxShape.circle,
-                              ),
-                              child: SvgPicture.asset(
-                                'assets/images/Pencil.svg',
-                                width: 18,
-                                height: 18,
-                                colorFilter: const ColorFilter.mode(
-                                  Color.fromARGB(255, 64, 95, 69),
-                                  BlendMode.srcIn,
+                    ListenableBuilder(
+                      listenable: _viewModel,
+                      builder: (context, _) {
+                        return GestureDetector(
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(20),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  _buildLabel('Name'),
-                  _buildTextField(
-                    _viewModel.nameController,
-                    'Masukkan Nama Lengkap',
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildLabel('Username'),
-                  _buildTextField(
-                    _viewModel.usernameController,
-                    'Masukkan Username',
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildLabel('No. Whatsapp'),
-                  _buildTextField(
-                    _viewModel.phoneController,
-                    'Contoh: 08123456789',
-                    isNumber: true,
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildLabel('Old Password'),
-                  _buildTextField(
-                    _viewModel.oldPasswordController,
-                    'Masukkan Password Lama',
-                    isPassword: true,
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildLabel('New Password'),
-                  _buildTextField(
-                    _viewModel.newPasswordController,
-                    'Masukkan Password Baru',
-                    isPassword: true,
-                  ),
-                  const SizedBox(height: 40),
-
-                  ListenableBuilder(
-                    listenable: _viewModel,
-                    builder: (context, _) {
-                      return GestureDetector(
-                        onTap: _viewModel.isLoading
-                            ? null
-                            : () async {
-                                final updatedUser = await _viewModel
-                                    .saveProfile(context, widget.user);
-
-                                if (updatedUser != null && context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Profil berhasil disimpan!',
+                              builder: (context) => SafeArea(
+                                child: Wrap(
+                                  children: [
+                                    ListTile(
+                                      leading: const Icon(
+                                        Icons.camera_alt,
+                                        color: Color(0xFF3D5A4A),
                                       ),
+                                      title: const Text(
+                                        'Ambil dari Kamera',
+                                        style: TextStyle(fontFamily: 'Poppins'),
+                                      ),
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                        _viewModel.pickImageFromCamera();
+                                      },
                                     ),
-                                  );
-                                  Navigator.pop(context, updatedUser);
-                                }
-                              },
-                        child: Container(
-                          width: 200,
-                          height: 46,
-                          decoration: ShapeDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(100),
-                            ),
-                            shadows: const [
-                              BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 4,
-                                offset: Offset(0, 4),
+                                    ListTile(
+                                      leading: const Icon(
+                                        Icons.photo_library,
+                                        color: Color(0xFF3D5A4A),
+                                      ),
+                                      title: const Text(
+                                        'Pilih dari Galeri',
+                                        style: TextStyle(fontFamily: 'Poppins'),
+                                      ),
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                        _viewModel.pickImageFromGallery();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                          child: Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              CircleAvatar(
+                                radius: 50,
+                                backgroundColor: Colors.grey.shade400,
+                                backgroundImage: _viewModel.selectedImage != null
+                                    ? FileImage(_viewModel.selectedImage!)
+                                    : (widget.user.profileImageUrl != null
+                                          ? NetworkImage(
+                                              widget.user.profileImageUrl!,
+                                            )
+                                          : null),
+                                child:
+                                    _viewModel.selectedImage == null &&
+                                        widget.user.profileImageUrl == null
+                                    ? const Icon(
+                                        Icons.person,
+                                        size: 60,
+                                        color: Colors.white,
+                                      )
+                                    : null,
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: SvgPicture.asset(
+                                  'assets/images/Pencil.svg',
+                                  width: 18,
+                                  height: 18,
+                                  colorFilter: const ColorFilter.mode(
+                                    Color.fromARGB(255, 64, 95, 69),
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
-                          alignment: Alignment.center,
-                          child: _viewModel.isLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
-                              : const Text(
-                                  'Save Changes',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    _buildLabel('Name'),
+                    _buildTextField(
+                      _viewModel.nameController,
+                      'Masukkan Nama Lengkap',
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildLabel('Username'),
+                    _buildTextField(
+                      _viewModel.usernameController,
+                      'Masukkan Username',
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildLabel('No. Whatsapp'),
+                    _buildTextField(
+                      _viewModel.phoneController,
+                      'Contoh: 08123456789',
+                      isNumber: true,
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildLabel('Old Password'),
+                    _buildTextField(
+                      _viewModel.oldPasswordController,
+                      'Masukkan Password Lama',
+                      isPassword: true,
+                      isPasswordVisible: _showOldPassword,
+                      onToggleVisibility: () {
+                        setState(() {
+                          _showOldPassword = !_showOldPassword;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildLabel('New Password'),
+                    _buildTextField(
+                      _viewModel.newPasswordController,
+                      'Masukkan Password Baru',
+                      isPassword: true,
+                      isPasswordVisible: _showNewPassword,
+                      onToggleVisibility: () {
+                        setState(() {
+                          _showNewPassword = !_showNewPassword;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 40),
+
+                    ListenableBuilder(
+                      listenable: _viewModel,
+                      builder: (context, _) {
+                        return GestureDetector(
+                          onTap: _viewModel.isLoading
+                              ? null
+                              : () async {
+                                  final updatedUser = await _viewModel
+                                      .saveProfile(context, widget.user);
+
+                                  if (updatedUser != null && context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Profil berhasil disimpan!',
+                                        ),
+                                      ),
+                                    );
+                                    Navigator.pop(context, updatedUser);
+                                  }
+                                },
+                          child: Container(
+                            width: 200,
+                            height: 46,
+                            decoration: ShapeDecoration(
+                              gradient: const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              shadows: const [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 4,
+                                  offset: Offset(0, 4),
                                 ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 40),
-                ],
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            child: _viewModel.isLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const Text(
+                                    'Save Changes',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
           ),
@@ -342,6 +369,8 @@ class _EditProfileViewState extends State<EditProfileView> {
     String hint, {
     bool isPassword = false,
     bool isNumber = false,
+    bool isPasswordVisible = false,
+    VoidCallback? onToggleVisibility,
   }) {
     return Container(
       height: 44,
@@ -354,7 +383,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       ),
       child: TextField(
         controller: controller,
-        obscureText: isPassword,
+        obscureText: isPassword ? !isPasswordVisible : false,
         keyboardType: isNumber ? TextInputType.phone : TextInputType.text,
         style: const TextStyle(
           color: Color(0xFF2D4839),
@@ -374,6 +403,28 @@ class _EditProfileViewState extends State<EditProfileView> {
             horizontal: 20,
             vertical: 12,
           ),
+          suffix: isPassword
+              ? SizedBox(
+                  width: 30,  
+                  child: GestureDetector(
+                    onTap: onToggleVisibility,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: SvgPicture.asset(
+                        'assets/images/password.svg',
+                        width: 17,
+                        height: 17,
+                        colorFilter: ColorFilter.mode(
+                          isPasswordVisible
+                              ? const Color(0xFFCA748D)
+                              : const Color(0xFF3D5A4A),
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              : null,
         ),
       ),
     );

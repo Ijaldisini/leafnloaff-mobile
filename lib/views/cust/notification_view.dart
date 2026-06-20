@@ -12,6 +12,8 @@ class NotificationView extends StatefulWidget {
 
 class _NotificationViewState extends State<NotificationView> {
   final NotificationViewModel _viewModel = NotificationViewModel();
+  
+  bool _isInitialLoad = true;
 
   @override
   void initState() {
@@ -19,8 +21,19 @@ class _NotificationViewState extends State<NotificationView> {
     _viewModel.initListener();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel.loadNotifications();
+      _viewModel.loadNotifications().then((_) {
+        if (mounted) {
+          setState(() {
+            _isInitialLoad = false;
+          });
+        }
+      });
     });
+  }
+
+  Future<void> _refreshNotifications() async {
+    await _viewModel.loadNotifications();
+    await Future.delayed(const Duration(milliseconds: 300));
   }
 
   @override
@@ -88,7 +101,7 @@ class _NotificationViewState extends State<NotificationView> {
                   child: ListenableBuilder(
                     listenable: _viewModel,
                     builder: (context, _) {
-                      if (_viewModel.isLoading) {
+                      if (_viewModel.isLoading && _isInitialLoad) {
                         return const Center(
                           child: CircularProgressIndicator(color: Colors.white),
                         );
@@ -116,50 +129,57 @@ class _NotificationViewState extends State<NotificationView> {
                         );
                       }
 
-                      return ListView.builder(
-                        padding: const EdgeInsets.only(
-                          left: 25,
-                          right: 25,
-                          bottom: 100,
-                        ),
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: _viewModel.groupedNotifications.length,
-                        itemBuilder: (context, index) {
-                          final group = _viewModel.groupedNotifications[index];
-                          final dateLabel = group['date'] as String;
-                          final items =
-                              group['items'] as List<NotificationModel>;
+                      return RefreshIndicator(
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        onRefresh: _refreshNotifications,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.only(
+                            left: 25,
+                            right: 25,
+                            bottom: 100,
+                          ),
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          itemCount: _viewModel.groupedNotifications.length,
+                          itemBuilder: (context, index) {
+                            final group = _viewModel.groupedNotifications[index];
+                            final dateLabel = group['date'] as String;
+                            final items =
+                                group['items'] as List<NotificationModel>;
 
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 15.0,
-                                ),
-                                child: Text(
-                                  dateLabel,
-                                  style: const TextStyle(
-                                    color: Color(0xFFFDFDFD),
-                                    fontSize: 17,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w800,
-                                    shadows: [
-                                      Shadow(
-                                        offset: Offset(2, 2),
-                                        blurRadius: 4,
-                                        color: Colors.black26,
-                                      ),
-                                    ],
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 15.0,
+                                  ),
+                                  child: Text(
+                                    dateLabel,
+                                    style: const TextStyle(
+                                      color: Color(0xFFFDFDFD),
+                                      fontSize: 17,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w800,
+                                      shadows: [
+                                        Shadow(
+                                          offset: Offset(2, 2),
+                                          blurRadius: 4,
+                                          color: Colors.black26,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                              ...items.map(
-                                (item) => _buildNotificationCard(item),
-                              ),
-                            ],
-                          );
-                        },
+                                ...items.map(
+                                  (item) => _buildNotificationCard(item),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
                       );
                     },
                   ),
