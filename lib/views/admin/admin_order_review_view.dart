@@ -44,7 +44,12 @@ class _AdminOrderReviewViewState extends State<AdminOrderReviewView> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0xFFD699AB), Color(0xFFD699AB)],
+                  colors: [
+                    Color(0xFFD699AB),  
+                    Color(0xFFD699AB),  
+                    Color(0xFF3D5A4A),  
+                  ],
+                  stops: [0.0, 0.6, 1.0], 
                 ),
               ),
             ),
@@ -133,7 +138,7 @@ class _AdminOrderReviewViewState extends State<AdminOrderReviewView> {
 
                       return RefreshIndicator(
                         color: const Color(0xFFCA748D),
-                        backgroundColor: Colors.white,
+                        backgroundColor: const Color(0xFFD699AB),
                         onRefresh: _refreshReviews,
                         child: ListView.builder(
                           padding: const EdgeInsets.symmetric(
