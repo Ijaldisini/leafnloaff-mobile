@@ -44,56 +44,68 @@ class _CustomerMainViewState extends State<CustomerMainView> {
       builder: (context, child) {
         return Scaffold(
           backgroundColor: const Color(0xFF3D5A4A),
-          body: Stack(
+          resizeToAvoidBottomInset: false,
+          extendBody: true,
+          body: IndexedStack(
+            index: _viewModel.selectedIndex,
+            children: _pages,
+          ),
+          bottomNavigationBar: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.bottomCenter,
             children: [
-              IndexedStack(index: _viewModel.selectedIndex, children: _pages),
-
               Positioned(
+                bottom: 0,
                 left: 0,
                 right: 0,
-                bottom: 0,
-                height: 110,
                 child: Container(
+                  height: 130,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
-                      colors: [Color(0xFF3D5A4A), Color(0x003D5A4A)],
+                      colors: [
+                        Color(0xFF3D5A4A),
+                        Color(0x003D5A4A),
+                      ],
                     ),
                   ),
                 ),
               ),
-
-              Positioned(
-                left: 24,
-                right: 24,
-                bottom: 20,
-                child: Container(
-                  height: 58,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
-                    ),
-                    borderRadius: BorderRadius.circular(120),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        blurRadius: 4,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+              
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildNavItem(0, Icons.home_rounded, 'Home'),
-                      _buildNavItem(1, Icons.shopping_cart_outlined, 'Cart'),
-                      _buildNavItem(2, Icons.notifications_outlined, 'Notif'),
-                      _buildNavItem(3, Icons.person_outline, 'Profile'),
-                    ],
+                  child: Container(
+                    height: 58,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                      ),
+                      borderRadius: BorderRadius.circular(120),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildNavItem(0, Icons.home_rounded, 'Home'),
+                        _buildNavItem(1, Icons.shopping_cart_outlined, 'Cart'),
+                        _buildNavItem(2, Icons.notifications_outlined, 'Notif'),
+                        _buildNavItem(3, Icons.person_outline, 'Profile'),
+                      ],
+                    ),
                   ),
                 ),
               ),

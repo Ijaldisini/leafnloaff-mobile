@@ -32,6 +32,7 @@ class _AdminMainViewState extends State<AdminMainView> {
       builder: (context, child) {
         return Scaffold(
           backgroundColor: const Color(0xFF3D5A4A),
+          resizeToAvoidBottomInset: false,
           body: Stack(
             children: [
               IndexedStack(
@@ -53,57 +54,61 @@ class _AdminMainViewState extends State<AdminMainView> {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      height: 110, 
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [Color(0xFF3D5A4A), Color(0x003D5A4A)],
-                        ),
-                      ),
+                child: Container(
+                  height: 180,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Color(0xFF3D5A4A),
+                        Color(0x003D5A4A),
+                      ],
                     ),
-                    Container(
-                      color: const Color(0xFF3D5A4A),
-                      padding: const EdgeInsets.only(
-                        bottom: 30,
-                        left: 24,
-                        right: 24,
-                      ),
-                      child: Container(
-                        height: 58,  
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                  ),
+                ),
+              ),
+
+              Positioned(
+                bottom: 20,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    child: Container(
+                      height: 58,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                        ),
+                        borderRadius: BorderRadius.circular(120),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x3F000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 4),
                           ),
-                          borderRadius: BorderRadius.circular(120),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildNavItem(0, Icons.home_rounded, 'Home'),
-                            _buildNavItem(1, Icons.receipt_long_rounded, 'Order'),
-                            _buildNavItem(2, Icons.restaurant_menu_rounded, 'Menu'),
-                            _buildNavItem(3, Icons.notifications_outlined, 'Notif'),
-                            _buildNavItem(4, Icons.confirmation_number_outlined, 'Voucher'),
-                          ],
-                        ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildNavItem(0, Icons.home_rounded, 'Home'),
+                          _buildNavItem(1, Icons.receipt_long_rounded, 'Order'),
+                          _buildNavItem(2, Icons.restaurant_menu_rounded, 'Menu'),
+                          _buildNavItem(3, Icons.notifications_outlined, 'Notif'),
+                          _buildNavItem(4, Icons.confirmation_number_outlined, 'Voucher'),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],
