@@ -65,12 +65,54 @@ class _LoginViewState extends State<LoginView>
         );
       }
     } else if (_viewModel.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_viewModel.errorMessage!),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (_viewModel.errorMessage!.contains('Akun telah terhapus')) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              title: const Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text(
+                    'Peringatan',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              content: const Text(
+                'Akun Anda telah terhapus dan tidak dapat digunakan untuk login kembali.',
+                style: TextStyle(fontFamily: 'Poppins'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text(
+                    'Tutup',
+                    style: TextStyle(
+                      color: Color(0xFFCA748D),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_viewModel.errorMessage!),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -219,8 +261,8 @@ class _LoginViewState extends State<LoginView>
   Widget _buildLogo() {
     return Image.asset(
       'assets/images/logo.png',
-      width: 200,  
-      height: 200, 
+      width: 200,
+      height: 200,
       fit: BoxFit.contain,
     );
   }
@@ -330,9 +372,7 @@ class _LoginViewState extends State<LoginView>
 
   Widget _buildLoginButton() {
     return GestureDetector(
-      onTap: _viewModel.isLoading
-          ? null
-          : _handleLogin,
+      onTap: _viewModel.isLoading ? null : _handleLogin,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         width: 200,

@@ -6,6 +6,7 @@ class UserModel {
   final String role;
   final String? phoneNumber;
   final String? profileImageUrl;
+  final bool isActive;
 
   UserModel({
     required this.id,
@@ -15,6 +16,7 @@ class UserModel {
     this.role = 'customer',
     this.phoneNumber,
     this.profileImageUrl,
+    this.isActive = true,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,6 +28,7 @@ class UserModel {
       'role': role,
       'phone_number': phoneNumber,
       'profile_image_url': profileImageUrl,
+      'is_active': isActive,
     };
   }
 
@@ -38,6 +41,7 @@ class UserModel {
       role: map['role'] ?? 'customer',
       phoneNumber: map['phone_number'],
       profileImageUrl: map['profile_image_url'],
+      isActive: map['is_active'] ?? true,
     );
   }
 
@@ -47,6 +51,7 @@ class UserModel {
     String? username,
     String? phoneNumber,
     String? profileImageUrl,
+    bool? isActive,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -56,6 +61,7 @@ class UserModel {
       role: role,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      isActive: isActive ?? this.isActive,
     );
   }
 }

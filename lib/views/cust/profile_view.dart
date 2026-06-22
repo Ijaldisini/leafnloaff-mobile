@@ -222,7 +222,9 @@ class _ProfileViewState extends State<ProfileView> {
                     _buildMenuButton(
                       'Delete Account',
                       iconPath: 'assets/images/deleteakun.svg',
-                      onTap: () {},
+                      onTap: () {
+                        _showDeleteAccountConfirmation(context);
+                      },
                     ),
                     const SizedBox(height: 40),
 

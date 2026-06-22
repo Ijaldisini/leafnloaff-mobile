@@ -57,11 +57,21 @@ class AuthService {
             .eq('id', response.user!.id)
             .single();
 
-        return UserModel.fromMap(profileData);
+        final userModel = UserModel.fromMap(profileData);
+
+        if (!userModel.isActive) {
+          await _supabase.auth.signOut();
+          throw Exception('Akun telah terhapus');
+        }
+
+        return userModel;
       }
 
       throw Exception('User tidak ditemukan');
     } catch (e) {
+      if (e.toString().contains('Akun telah terhapus')) {
+        throw Exception('Akun telah terhapus');
+      }
       throw Exception('Gagal login: ${e.toString()}');
     }
   }
