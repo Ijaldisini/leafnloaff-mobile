@@ -40,6 +40,10 @@ class _WriteReviewViewState extends State<WriteReviewView> {
     }
   }
 
+  Future<void> _refreshData() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
   @override
   void dispose() {
     for (var controller in reviewControllers.values) {
@@ -182,17 +186,24 @@ class _WriteReviewViewState extends State<WriteReviewView> {
                       ),
                     ),
                     Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
+                      child: RefreshIndicator(
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        onRefresh: _refreshData,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          itemCount: widget.orderItems.length,
+                          itemBuilder: (context, index) {
+                            final item = widget.orderItems[index];
+                            return _buildReviewCard(index, item);
+                          },
                         ),
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: widget.orderItems.length,
-                        itemBuilder: (context, index) {
-                          final item = widget.orderItems[index];
-                          return _buildReviewCard(index, item);
-                        },
                       ),
                     ),
                     Padding(

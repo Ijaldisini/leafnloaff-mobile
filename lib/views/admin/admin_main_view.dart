@@ -25,23 +25,6 @@ class _AdminMainViewState extends State<AdminMainView> {
     super.dispose();
   }
 
-  Future<void> _refreshCurrentPage() async {
-    switch (_viewModel.selectedIndex) {
-      case 0:
-        break;
-      case 1:
-        break;
-      case 2:
-        break;
-      case 3:
-        break;
-      case 4:
-        break;
-    }
-    
-    await Future.delayed(const Duration(milliseconds: 500));
-  }
-
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
@@ -51,24 +34,19 @@ class _AdminMainViewState extends State<AdminMainView> {
           backgroundColor: const Color(0xFF3D5A4A),
           body: Stack(
             children: [
-              RefreshIndicator(
-                color: const Color(0xFFCA748D),
-                backgroundColor: Colors.white,
-                onRefresh: _refreshCurrentPage,
-                child: IndexedStack(
-                  index: _viewModel.selectedIndex,
-                  children: [
-                    AdminDashboardView(
-                      onNavigate: (index) {
-                        _viewModel.setSelectedIndex(index);
-                      },
-                    ),
-                    const AdminOrderManagementView(),
-                    const AdminMenuManagementView(),
-                    const AdminNotificationView(),
-                    const AdminVoucherView(),
-                  ],
-                ),
+              IndexedStack(
+                index: _viewModel.selectedIndex,
+                children: [
+                  AdminDashboardView(
+                    onNavigate: (index) {
+                      _viewModel.setSelectedIndex(index);
+                    },
+                  ),
+                  const AdminOrderManagementView(),
+                  const AdminMenuManagementView(),
+                  const AdminNotificationView(),
+                  const AdminVoucherView(),
+                ],
               ),
               
               Positioned(

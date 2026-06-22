@@ -21,18 +21,31 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
   final AdminDashboardViewModel _viewModel = AdminDashboardViewModel();
   final PageController _pageController = PageController();
 
+  bool _isInitialLoad = true;
+
   int _currentPage = 0;
 
   @override
   void initState() {
     super.initState();
-    _viewModel.fetchDashboardData();
+    _viewModel.fetchDashboardData().then((_) {
+      if (mounted) {
+        setState(() {
+          _isInitialLoad = false;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _refreshDashboard() async {
+    await _viewModel.fetchDashboardData();
+    await Future.delayed(const Duration(milliseconds: 300));
   }
 
   String _capitalize(String text) {
@@ -109,7 +122,8 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, child) {
-          if (_viewModel.isLoading) {
+          // ✅ PERBAIKAN: Hanya tampilkan loading di tengah untuk initial load
+          if (_viewModel.isLoading && _isInitialLoad) {
             return const Center(
               child: CircularProgressIndicator(color: Color(0xFFD699AB)),
             );
@@ -147,7 +161,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                 child: RefreshIndicator(
                   color: const Color(0xFFCA748D),
                   backgroundColor: Colors.white,
-                  onRefresh: _viewModel.fetchDashboardData,
+                  onRefresh: _refreshDashboard, // ✅ Gunakan method terpisah
                   child: ListView(
                     padding: const EdgeInsets.only(bottom: 100),
                     physics: const AlwaysScrollableScrollPhysics(

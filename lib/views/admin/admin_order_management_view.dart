@@ -16,10 +16,18 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
   final AdminOrderManagementViewModel _viewModel =
       AdminOrderManagementViewModel();
 
+  bool _isInitialLoad = true;
+
   @override
   void initState() {
     super.initState();
-    _viewModel.fetchOrders();
+    _viewModel.fetchOrders().then((_) {
+      if (mounted) {
+        setState(() {
+          _isInitialLoad = false; 
+        });
+      }
+    });
   }
 
   Future<void> _refreshOrders() async {
@@ -83,7 +91,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, child) {
-          if (_viewModel.isLoading) {
+          if (_viewModel.isLoading && _isInitialLoad) {
             return const Center(
               child: CircularProgressIndicator(color: Color(0xFFD699AB)),
             );
@@ -130,6 +138,7 @@ class _AdminOrderManagementViewState extends State<AdminOrderManagementView> {
                 child: RefreshIndicator(
                   onRefresh: _refreshOrders,
                   color: const Color(0xFFCA748D),
+                  backgroundColor: Colors.white,
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(25, 20, 25, 120),
                     physics: const AlwaysScrollableScrollPhysics(

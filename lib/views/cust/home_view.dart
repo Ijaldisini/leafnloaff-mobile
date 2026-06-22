@@ -22,6 +22,8 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   late final HomeViewModel _viewModel;
   final TextEditingController _searchController = TextEditingController();
+  
+  bool _isInitialLoad = true;
 
   @override
   void initState() {
@@ -33,7 +35,18 @@ class _HomeViewState extends State<HomeView> {
         CartViewModel().loadCartData();
       },
     );
-    _viewModel.fetchHomeData();
+    _viewModel.fetchHomeData().then((_) {
+      if (mounted) {
+        setState(() {
+          _isInitialLoad = false;
+        });
+      }
+    });
+  }
+
+  Future<void> _refreshHome() async {
+    await _viewModel.fetchHomeData();
+    await Future.delayed(const Duration(milliseconds: 300));
   }
 
   @override
@@ -49,7 +62,7 @@ class _HomeViewState extends State<HomeView> {
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, child) {
-          if (_viewModel.isLoading) {
+          if (_viewModel.isLoading && _isInitialLoad) {
             return const Center(
               child: CircularProgressIndicator(color: Color(0xFFD699AB)),
             );
@@ -57,366 +70,373 @@ class _HomeViewState extends State<HomeView> {
 
           final products = _viewModel.filteredMenus;
 
-          return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: 120),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: double.infinity,
-                  color: const Color(0xFFD699AB),
-                  child: SafeArea(
-                    bottom: false,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Row(
-                            children: [
-                              Container(
-                                child: SvgPicture.asset(
-                                  'assets/images/locations.svg',
-                                  width: 28,
-                                  height: 28,
-                                  colorFilter: const ColorFilter.mode(
-                                    Colors.white,
-                                    BlendMode.srcIn,
+          return RefreshIndicator(
+            color: const Color(0xFFCA748D),
+            backgroundColor: Colors.white,
+            onRefresh: _refreshHome,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              padding: const EdgeInsets.only(bottom: 120),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    color: const Color(0xFFD699AB),
+                    child: SafeArea(
+                      bottom: false,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              children: [
+                                Container(
+                                  child: SvgPicture.asset(
+                                    'assets/images/locations.svg',
+                                    width: 28,
+                                    height: 28,
+                                    colorFilter: const ColorFilter.mode(
+                                      Colors.white,
+                                      BlendMode.srcIn,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Your Location',
-                                      style: TextStyle(
-                                        color: const Color(0xFFFDFDFD),
-                                        fontSize: 19.17,
-                                        fontFamily: 'Poppins',
-                                        fontWeight: FontWeight.w800,
-                                        height: 1.10,
-                                        shadows: [
-                                          Shadow(
-                                            offset: const Offset(2, 2),
-                                            blurRadius: 4,
-                                            color: Colors.black.withValues(
-                                              alpha: 0.25,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      _viewModel.currentLocation,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.8,
-                                        ),
-                                        fontSize: 13,
-                                        fontFamily: 'Poppins',
-                                        fontWeight: FontWeight.w500,
-                                        height: 1.10,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Container(
-                            height: 45,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(100),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.1),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: TextField(
-                              controller: _searchController,
-                              onChanged: _viewModel.setSearchQuery,
-                              style: const TextStyle(
-                                color: Color(0xFF2D4839),
-                                fontFamily: 'Poppins',
-                                fontSize: 14,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: 'Search...',
-                                hintStyle: const TextStyle(
-                                  color: Colors.grey,
-                                  fontFamily: 'Poppins',
-                                  fontSize: 14,
-                                ),
-                                prefixIcon: Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 12,
-                                    right: 8,
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Container(
-                                        width: 30,
-                                        height: 30,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFF426E55),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Center(
-                                          child: SvgPicture.asset(
-                                            'assets/images/Search.svg',
-                                            width: 16,
-                                            height: 16,
-                                            colorFilter: const ColorFilter.mode(
-                                              Colors.white,
-                                              BlendMode.srcIn,
+                                      Text(
+                                        'Your Location',
+                                        style: TextStyle(
+                                          color: const Color(0xFFFDFDFD),
+                                          fontSize: 19.17,
+                                          fontFamily: 'Poppins',
+                                          fontWeight: FontWeight.w800,
+                                          height: 1.10,
+                                          shadows: [
+                                            Shadow(
+                                              offset: const Offset(2, 2),
+                                              blurRadius: 4,
+                                              color: Colors.black.withValues(
+                                                alpha: 0.25,
+                                              ),
                                             ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _viewModel.currentLocation,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.8,
                                           ),
+                                          fontSize: 13,
+                                          fontFamily: 'Poppins',
+                                          fontWeight: FontWeight.w500,
+                                          height: 1.10,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                suffixIcon: _viewModel.searchQuery.isNotEmpty
-                                    ? IconButton(
-                                        icon: const Icon(
-                                          Icons.clear,
-                                          color: Colors.grey,
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Container(
+                              height: 45,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(100),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: TextField(
+                                controller: _searchController,
+                                onChanged: _viewModel.setSearchQuery,
+                                style: const TextStyle(
+                                  color: Color(0xFF2D4839),
+                                  fontFamily: 'Poppins',
+                                  fontSize: 14,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Search...',
+                                  hintStyle: const TextStyle(
+                                    color: Colors.grey,
+                                    fontFamily: 'Poppins',
+                                    fontSize: 14,
+                                  ),
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 12,
+                                      right: 8,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 30,
+                                          height: 30,
+                                          decoration: const BoxDecoration(
+                                            color: Color(0xFF426E55),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Center(
+                                            child: SvgPicture.asset(
+                                              'assets/images/Search.svg',
+                                              width: 16,
+                                              height: 16,
+                                              colorFilter: const ColorFilter.mode(
+                                                Colors.white,
+                                                BlendMode.srcIn,
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                        onPressed: () {
-                                          _searchController.clear();
-                                          _viewModel.setSearchQuery('');
-                                        },
-                                      )
-                                    : null,
-                                border: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 12,
+                                      ],
+                                    ),
+                                  ),
+                                  suffixIcon: _viewModel.searchQuery.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(
+                                            Icons.clear,
+                                            color: Colors.grey,
+                                          ),
+                                          onPressed: () {
+                                            _searchController.clear();
+                                            _viewModel.setSearchQuery('');
+                                          },
+                                        )
+                                      : null,
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
-
-                Container(
-                  width: double.infinity,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFFD699AB), Color(0xFF3D5A4A)],
-                    ),
-                  ),
-                ),
-
-                if (_viewModel.activeVouchers.isNotEmpty)
-                  Transform.translate(
-                    offset: const Offset(0, -30),
-                    child: SizedBox(
-                      height: 130,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        itemCount: _viewModel.activeVouchers.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(width: 16),
-                        itemBuilder: (context, index) {
-                          final voucher = _viewModel.activeVouchers[index];
-                          return GestureDetector(
-                            onTap: () {
-                              final cartVM = CartViewModel();
-
-                              if (cartVM.selectedItemIds.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Silahkan untuk memilih menu untuk dibeli terlebih dahulu',
-                                      style: TextStyle(fontFamily: 'Poppins'),
-                                    ),
-                                    backgroundColor: Colors.orange,
-                                  ),
-                                );
-                                return;
-                              }
-
-                              final voucherData = VoucherModel.fromJson(
-                                voucher,
-                              );
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      CheckoutView(initialVoucher: voucherData),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              width: MediaQuery.of(context).size.width - 48,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF426E55),
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.25),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: Image.network(
-                                  voucher['image_url'] ??
-                                      'https://picsum.photos/334/130',
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const Center(
-                                    child: Icon(
-                                      Icons.broken_image,
-                                      color: Colors.white54,
-                                      size: 40,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+                          const SizedBox(height: 20),
+                        ],
                       ),
                     ),
                   ),
 
-                Transform.translate(
-                  offset: const Offset(0, -20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (_viewModel.categories.isNotEmpty &&
-                          _viewModel.searchQuery.isEmpty)
-                        SingleChildScrollView(
+                  Container(
+                    width: double.infinity,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFFD699AB), Color(0xFF3D5A4A)],
+                      ),
+                    ),
+                  ),
+
+                  if (_viewModel.activeVouchers.isNotEmpty)
+                    Transform.translate(
+                      offset: const Offset(0, -30),
+                      child: SizedBox(
+                        height: 130,
+                        child: ListView.separated(
                           scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
                           padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Row(
-                            children: _viewModel.categories.map((cat) {
-                              final isActive =
-                                  cat == _viewModel.selectedCategory;
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: GestureDetector(
-                                  onTap: () => _viewModel.selectCategory(cat),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 200),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isActive
-                                          ? const Color(0xFFCA748D)
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(50),
-                                      border: Border.all(
-                                        color: isActive
-                                            ? const Color(0xFFCA748D)
-                                            : Colors.white.withValues(
-                                                alpha: 0.5,
-                                              ),
-                                        width: 1,
+                          itemCount: _viewModel.activeVouchers.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(width: 16),
+                          itemBuilder: (context, index) {
+                            final voucher = _viewModel.activeVouchers[index];
+                            return GestureDetector(
+                              onTap: () {
+                                final cartVM = CartViewModel();
+
+                                if (cartVM.selectedItemIds.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Silahkan untuk memilih menu untuk dibeli terlebih dahulu',
+                                        style: TextStyle(fontFamily: 'Poppins'),
                                       ),
+                                      backgroundColor: Colors.orange,
                                     ),
-                                    child: Text(
-                                      cat,
-                                      style: TextStyle(
-                                        color: isActive
-                                            ? Colors.white
-                                            : Colors.white.withValues(
-                                                alpha: 0.8,
-                                              ),
-                                        fontSize: 12,
-                                        fontFamily: 'Poppins',
-                                        fontWeight: isActive
-                                            ? FontWeight.w700
-                                            : FontWeight.w500,
+                                  );
+                                  return;
+                                }
+
+                                final voucherData = VoucherModel.fromJson(
+                                  voucher,
+                                );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        CheckoutView(initialVoucher: voucherData),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                width: MediaQuery.of(context).size.width - 48,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF426E55),
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.25),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.network(
+                                    voucher['image_url'] ??
+                                        'https://picsum.photos/334/130',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Center(
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        color: Colors.white54,
+                                        size: 40,
                                       ),
                                     ),
                                   ),
                                 ),
-                              );
-                            }).toList(),
-                          ),
+                              ),
+                            );
+                          },
                         ),
+                      ),
+                    ),
 
-                      const SizedBox(height: 16),
-
-                      if (products.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 20,
-                          ),
-                          child: Text(
-                            _viewModel.searchQuery.isNotEmpty
-                                ? 'Tidak ada menu yang cocok dengan "${_viewModel.searchQuery}".'
-                                : 'Belum ada menu di kategori ini.',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontFamily: 'Poppins',
+                  Transform.translate(
+                    offset: const Offset(0, -20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_viewModel.categories.isNotEmpty &&
+                            _viewModel.searchQuery.isEmpty)
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              children: _viewModel.categories.map((cat) {
+                                final isActive =
+                                    cat == _viewModel.selectedCategory;
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: GestureDetector(
+                                    onTap: () => _viewModel.selectCategory(cat),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isActive
+                                            ? const Color(0xFFCA748D)
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(50),
+                                        border: Border.all(
+                                          color: isActive
+                                              ? const Color(0xFFCA748D)
+                                              : Colors.white.withValues(
+                                                  alpha: 0.5,
+                                                ),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        cat,
+                                        style: TextStyle(
+                                          color: isActive
+                                              ? Colors.white
+                                              : Colors.white.withValues(
+                                                  alpha: 0.8,
+                                                ),
+                                          fontSize: 12,
+                                          fontFamily: 'Poppins',
+                                          fontWeight: isActive
+                                              ? FontWeight.w700
+                                              : FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                             ),
                           ),
-                        )
-                      else
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  childAspectRatio: 155 / 163,
-                                  crossAxisSpacing: 14,
-                                  mainAxisSpacing: 14,
-                                ),
-                            itemCount: products.length,
-                            itemBuilder: (_, i) {
-                              final m = products[i];
-                              return _buildProductItem(
-                                m['id'].toString(),
-                                m['image_url'] ??
-                                    'https://picsum.photos/155/163',
-                                m['name'] ?? 'Unknown',
-                                m['price'] ?? 0,
-                                m,
-                              );
-                            },
+
+                        const SizedBox(height: 16),
+
+                        if (products.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 20,
+                            ),
+                            child: Text(
+                              _viewModel.searchQuery.isNotEmpty
+                                  ? 'Tidak ada menu yang cocok dengan "${_viewModel.searchQuery}".'
+                                  : 'Belum ada menu di kategori ini.',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontFamily: 'Poppins',
+                              ),
+                            ),
+                          )
+                        else
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    childAspectRatio: 155 / 163,
+                                    crossAxisSpacing: 14,
+                                    mainAxisSpacing: 14,
+                                  ),
+                              itemCount: products.length,
+                              itemBuilder: (_, i) {
+                                final m = products[i];
+                                return _buildProductItem(
+                                  m['id'].toString(),
+                                  m['image_url'] ??
+                                      'https://picsum.photos/155/163',
+                                  m['name'] ?? 'Unknown',
+                                  m['price'] ?? 0,
+                                  m,
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },

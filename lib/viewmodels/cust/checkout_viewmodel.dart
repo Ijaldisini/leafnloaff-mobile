@@ -61,7 +61,7 @@ class CheckoutViewModel extends ChangeNotifier {
     'Permata Virtual Account': 'permata',
   };
 
-  void initCheckoutData({VoucherModel? initialVoucher}) async {
+  Future<void> initCheckoutData({VoucherModel? initialVoucher}) async {
     isLoading = true;
     notifyListeners();
 

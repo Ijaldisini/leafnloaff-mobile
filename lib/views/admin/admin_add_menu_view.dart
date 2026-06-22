@@ -345,14 +345,23 @@ class _AdminAddMenuViewState extends State<AdminAddMenuView> {
         controller: controller,
         maxLines: maxLines,
         keyboardType: keyboardType,
-        style: const TextStyle(fontFamily: 'Poppins', fontSize: 14),
+        textAlignVertical: TextAlignVertical.center,
+        style: const TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 14,
+          color: Color(0xFF2D4839),
+        ),
         decoration: InputDecoration(
           hintText: hintText,
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: maxLines > 1 ? 12 : 10,
+          hintStyle: const TextStyle(
+            color: Color(0xFF9E9E9E),
+            fontFamily: 'Poppins',
+            fontSize: 14,
           ),
+          border: InputBorder.none,
+          contentPadding: maxLines == 1
+              ? const EdgeInsets.symmetric(horizontal: 20, vertical: 10)
+              : const EdgeInsets.fromLTRB(20, 16, 20, 16),
         ),
       ),
     );
@@ -382,7 +391,7 @@ class _AdminAddMenuViewState extends State<AdminAddMenuView> {
           icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF3D5A4A)),
           isExpanded: true,
           style: const TextStyle(
-            color: Color(0xFF3D5A4A),
+            color: Color(0xFF2D4839),
             fontFamily: 'Poppins',
             fontSize: 14,
             fontWeight: FontWeight.w600,

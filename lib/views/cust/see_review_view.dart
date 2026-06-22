@@ -32,6 +32,11 @@ class _SeeReviewViewState extends State<SeeReviewView> {
     });
   }
 
+  Future<void> _refreshReviews() async {
+    await _viewModel.fetchReviewsForOrder(widget.orderId);
+    await Future.delayed(const Duration(milliseconds: 300));
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -128,29 +133,36 @@ class _SeeReviewViewState extends State<SeeReviewView> {
                         );
                       }
 
-                      return ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
+                      return RefreshIndicator(
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        onRefresh: _refreshReviews,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          itemCount: widget.orderItems.length,
+                          itemBuilder: (context, index) {
+                            final item = widget
+                                .orderItems[index];
+                            final menuId = item.menuId;
+
+                            final reviewDataList = _viewModel.orderReviews
+                                .where((r) => r.menuId == menuId)
+                                .toList();
+
+                            final ReviewModel? reviewData =
+                                reviewDataList.isNotEmpty
+                                ? reviewDataList.first
+                                : null;
+
+                            return _buildReviewedCard(item, reviewData);
+                          },
                         ),
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: widget.orderItems.length,
-                        itemBuilder: (context, index) {
-                          final item = widget
-                              .orderItems[index];
-                          final menuId = item.menuId;
-
-                          final reviewDataList = _viewModel.orderReviews
-                              .where((r) => r.menuId == menuId)
-                              .toList();
-
-                          final ReviewModel? reviewData =
-                              reviewDataList.isNotEmpty
-                              ? reviewDataList.first
-                              : null;
-
-                          return _buildReviewedCard(item, reviewData);
-                        },
                       );
                     },
                   ),
