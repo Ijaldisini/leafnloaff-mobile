@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart'; 
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import '../../models/voucher_model.dart';
 import '../../viewmodels/cust/select_voucher_viewmodel.dart';
@@ -21,17 +21,72 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel.initVoucherData(widget.selectedVoucher);
+      _viewModel.initVoucherData(
+        widget.selectedVoucher,
+        onError: _showErrorDialog,
+      );
     });
   }
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _refreshVouchers() async {
-    await _viewModel.fetchVouchers();
+    await _viewModel.fetchVouchers(onError: _showErrorDialog);
     await Future.delayed(const Duration(milliseconds: 300));
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
       body: Stack(
@@ -40,7 +95,7 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
             left: -17,
             top: -30,
             child: Container(
-              width: MediaQuery.of(context).size.width + 34,
+              width: screenWidth + 34,
               height: 289,
               decoration: const BoxDecoration(color: Color(0xFFD699AB)),
             ),
@@ -49,7 +104,7 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
             left: -17,
             top: 147,
             child: Container(
-              width: MediaQuery.of(context).size.width + 34,
+              width: screenWidth + 34,
               height: 114,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -64,17 +119,14 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10.0,
-                    bottom: 20.0,
-                  ),
+                  padding: const EdgeInsets.only(top: 10.0, bottom: 20.0),
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 25.0), 
+                          padding: const EdgeInsets.only(left: 25.0),
                           child: GestureDetector(
                             onTap: () => Navigator.pop(
                               context,
@@ -119,14 +171,6 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
                       if (_viewModel.isLoading) {
                         return const Center(
                           child: CircularProgressIndicator(color: Colors.white),
-                        );
-                      }
-                      if (_viewModel.errorMessage != null) {
-                        return Center(
-                          child: Text(
-                            _viewModel.errorMessage!,
-                            style: const TextStyle(color: Colors.white),
-                          ),
                         );
                       }
                       if (_viewModel.vouchers.isEmpty) {
@@ -339,19 +383,23 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
                                                         'assets/images/jam.svg',
                                                         width: 12,
                                                         height: 12,
-                                                        colorFilter: const ColorFilter.mode(
-                                                          Color(0xFFCA748D),
-                                                          BlendMode.srcIn,
-                                                        ),
+                                                        colorFilter:
+                                                            const ColorFilter.mode(
+                                                              Color(0xFFCA748D),
+                                                              BlendMode.srcIn,
+                                                            ),
                                                       ),
                                                       const SizedBox(width: 4),
                                                       Text(
                                                         expiryText,
                                                         style: const TextStyle(
-                                                          color: Color(0xFFCA748D),
+                                                          color: Color(
+                                                            0xFFCA748D,
+                                                          ),
                                                           fontSize: 10,
                                                           fontFamily: 'Poppins',
-                                                          fontWeight: FontWeight.w600,
+                                                          fontWeight:
+                                                              FontWeight.w600,
                                                         ),
                                                       ),
                                                     ],
@@ -363,19 +411,23 @@ class _SelectVoucherViewState extends State<SelectVoucherView> {
                                                         'assets/images/catatan.svg',
                                                         width: 12,
                                                         height: 12,
-                                                        colorFilter: const ColorFilter.mode(
-                                                          Color(0xFFCA748D),
-                                                          BlendMode.srcIn,
-                                                        ),
+                                                        colorFilter:
+                                                            const ColorFilter.mode(
+                                                              Color(0xFFCA748D),
+                                                              BlendMode.srcIn,
+                                                            ),
                                                       ),
                                                       const SizedBox(width: 4),
                                                       const Text(
                                                         'Terms and conditions apply',
                                                         style: TextStyle(
-                                                          color: Color(0xFFCA748D),
+                                                          color: Color(
+                                                            0xFFCA748D,
+                                                          ),
                                                           fontSize: 10,
                                                           fontFamily: 'Poppins',
-                                                          fontWeight: FontWeight.w600,
+                                                          fontWeight:
+                                                              FontWeight.w600,
                                                         ),
                                                       ),
                                                     ],

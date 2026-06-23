@@ -12,7 +12,7 @@ class NotificationView extends StatefulWidget {
 
 class _NotificationViewState extends State<NotificationView> {
   final NotificationViewModel _viewModel = NotificationViewModel();
-  
+
   bool _isInitialLoad = true;
 
   @override
@@ -29,6 +29,56 @@ class _NotificationViewState extends State<NotificationView> {
         }
       });
     });
+  }
+
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _refreshNotifications() async {
@@ -144,7 +194,8 @@ class _NotificationViewState extends State<NotificationView> {
                           ),
                           itemCount: _viewModel.groupedNotifications.length,
                           itemBuilder: (context, index) {
-                            final group = _viewModel.groupedNotifications[index];
+                            final group =
+                                _viewModel.groupedNotifications[index];
                             final dateLabel = group['date'] as String;
                             final items =
                                 group['items'] as List<NotificationModel>;
@@ -222,11 +273,8 @@ class _NotificationViewState extends State<NotificationView> {
             ),
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Notifikasi ini tidak memiliki tautan pesanan.'),
-              backgroundColor: Color(0xFFC23437),
-            ),
+          _showErrorDialog(
+            'Notifikasi ini tidak memiliki tautan pesanan yang valid.',
           );
         }
       },

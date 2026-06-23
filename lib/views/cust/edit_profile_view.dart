@@ -40,6 +40,56 @@ class _EditProfileViewState extends State<EditProfileView> {
     super.dispose();
   }
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,7 +228,8 @@ class _EditProfileViewState extends State<EditProfileView> {
                               CircleAvatar(
                                 radius: 50,
                                 backgroundColor: Colors.grey.shade400,
-                                backgroundImage: _viewModel.selectedImage != null
+                                backgroundImage:
+                                    _viewModel.selectedImage != null
                                     ? FileImage(_viewModel.selectedImage!)
                                     : (widget.user.profileImageUrl != null
                                           ? NetworkImage(
@@ -277,14 +328,21 @@ class _EditProfileViewState extends State<EditProfileView> {
                               ? null
                               : () async {
                                   final updatedUser = await _viewModel
-                                      .saveProfile(context, widget.user);
+                                      .saveProfile(
+                                        widget.user,
+                                        onError: _showErrorDialog,
+                                      );
 
                                   if (updatedUser != null && context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(
                                           'Profil berhasil disimpan!',
+                                          style: TextStyle(
+                                            fontFamily: 'Poppins',
+                                          ),
                                         ),
+                                        backgroundColor: Color(0xFF426E55),
                                       ),
                                     );
                                     Navigator.pop(context, updatedUser);
@@ -403,25 +461,15 @@ class _EditProfileViewState extends State<EditProfileView> {
             horizontal: 20,
             vertical: 12,
           ),
-          suffix: isPassword
-              ? SizedBox(
-                  width: 30,  
-                  child: GestureDetector(
-                    onTap: onToggleVisibility,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: SvgPicture.asset(
-                        'assets/images/password.svg',
-                        width: 17,
-                        height: 17,
-                        colorFilter: ColorFilter.mode(
-                          isPasswordVisible
-                              ? const Color(0xFFCA748D)
-                              : const Color(0xFF3D5A4A),
-                          BlendMode.srcIn,
-                        ),
-                      ),
-                    ),
+          suffixIcon: isPassword
+              ? GestureDetector(
+                  onTap: onToggleVisibility,
+                  child: Icon(
+                    !isPasswordVisible
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    size: 19,
+                    color: const Color(0xFFCA748D),
                   ),
                 )
               : null,

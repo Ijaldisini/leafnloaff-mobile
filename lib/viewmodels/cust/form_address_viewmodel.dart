@@ -15,7 +15,6 @@ class FormAddressViewModel extends ChangeNotifier {
   String? addressId;
   bool isLoading = false;
   bool isSaving = false;
-  String? errorMessage;
   bool _isDisposed = false;
 
   LatLng selectedLocation = const LatLng(-8.1689, 113.7020);
@@ -55,9 +54,8 @@ class FormAddressViewModel extends ChangeNotifier {
     );
   }
 
-  Future<void> fetchCurrentLocation() async {
+  Future<void> fetchCurrentLocation({Function(String)? onError}) async {
     isLoading = true;
-    errorMessage = null;
     notifyListeners();
 
     try {
@@ -72,7 +70,7 @@ class FormAddressViewModel extends ChangeNotifier {
       );
     } catch (e) {
       if (_isDisposed) return;
-      errorMessage = e.toString();
+      onError?.call(e.toString());
     } finally {
       if (!_isDisposed) {
         isLoading = false;
@@ -92,17 +90,15 @@ class FormAddressViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> saveOrUpdateAddress() async {
+  Future<bool> saveOrUpdateAddress({Function(String)? onError}) async {
     if (nameController.text.trim().isEmpty ||
         addressController.text.trim().isEmpty ||
         phoneController.text.trim().isEmpty) {
-      errorMessage = "Semua kolom harus diisi";
-      notifyListeners();
+      onError?.call("Semua kolom harus diisi");
       return false;
     }
 
     isSaving = true;
-    errorMessage = null;
     notifyListeners();
 
     try {
@@ -123,7 +119,7 @@ class FormAddressViewModel extends ChangeNotifier {
       return true;
     } catch (e) {
       if (_isDisposed) return false;
-      errorMessage = "Gagal menyimpan alamat: $e";
+      onError?.call("Gagal menyimpan alamat: $e");
       return false;
     } finally {
       if (!_isDisposed) {

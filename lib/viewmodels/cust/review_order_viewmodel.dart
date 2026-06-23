@@ -6,16 +6,14 @@ class ReviewOrderViewModel extends ChangeNotifier {
   final ReviewOrderService _service = ReviewOrderService();
 
   bool isLoading = false;
-  String? errorMessage;
-
   List<ReviewModel> orderReviews = [];
 
   Future<bool> submitAllReviews(
     String orderId,
-    List<ReviewSubmitModel> reviewsData,
-  ) async {
+    List<ReviewSubmitModel> reviewsData, {
+    Function(String)? onError,
+  }) async {
     isLoading = true;
-    errorMessage = null;
     notifyListeners();
 
     try {
@@ -30,21 +28,23 @@ class ReviewOrderViewModel extends ChangeNotifier {
       return true;
     } catch (e) {
       isLoading = false;
-      errorMessage = 'Gagal mengirim ulasan: ${e.toString()}';
       notifyListeners();
+      onError?.call('Gagal mengirim ulasan: ${e.toString()}');
       return false;
     }
   }
 
-  Future<void> fetchReviewsForOrder(String orderId) async {
+  Future<void> fetchReviewsForOrder(
+    String orderId, {
+    Function(String)? onError,
+  }) async {
     isLoading = true;
-    errorMessage = null;
     notifyListeners();
 
     try {
       orderReviews = await _service.fetchReviewsByOrder(orderId);
     } catch (e) {
-      errorMessage = 'Gagal memuat ulasan: ${e.toString()}';
+      onError?.call('Gagal memuat ulasan: ${e.toString()}');
     } finally {
       isLoading = false;
       notifyListeners();

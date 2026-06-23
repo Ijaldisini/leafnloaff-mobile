@@ -12,7 +12,9 @@ class EditProfileService {
 
       return _supabase.storage.from('profile_images').getPublicUrl(fileName);
     } catch (e) {
-      throw Exception('Gagal mengupload gambar profil: $e');
+      throw Exception(
+        'Gagal menyimpan foto profil. Pastikan koneksi internet Anda lancar dan coba lagi.',
+      );
     }
   }
 
@@ -24,7 +26,10 @@ class EditProfileService {
   }) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) throw Exception("User tidak sedang login");
+      if (userId == null)
+        throw Exception(
+          "Sesi Anda telah berakhir, silakan login kembali terlebih dahulu.",
+        );
 
       final updateData = {
         'full_name': fullName,
@@ -38,7 +43,15 @@ class EditProfileService {
 
       await _supabase.from('profiles').update(updateData).eq('id', userId);
     } catch (e) {
-      throw Exception('Gagal mengupdate profil: $e');
+      if (e.toString().contains('duplicate key') ||
+          e.toString().contains('unique constraint')) {
+        throw Exception(
+          'Username atau nomor telepon tersebut sudah digunakan. Silakan gunakan yang lain.',
+        );
+      }
+      throw Exception(
+        'Data profil gagal diperbarui. Silakan coba beberapa saat lagi.',
+      );
     }
   }
 
@@ -46,7 +59,9 @@ class EditProfileService {
     try {
       await _supabase.auth.updateUser(UserAttributes(password: newPassword));
     } catch (e) {
-      throw Exception('Gagal mengupdate password: $e');
+      throw Exception(
+        'Gagal mengubah password. Pastikan format password Anda valid dan koneksi stabil.',
+      );
     }
   }
 }

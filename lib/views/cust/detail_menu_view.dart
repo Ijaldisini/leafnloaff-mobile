@@ -110,7 +110,6 @@ class _DetailMenuViewState extends State<DetailMenuView>
               opacity: _fadeAnim,
               child: SlideTransition(
                 position: _slideAnim,
-                // ✅ WRAP DENGAN REFRESH INDICATOR
                 child: RefreshIndicator(
                   color: const Color(0xFFCA748D),
                   backgroundColor: Colors.white,
@@ -239,7 +238,12 @@ class _DetailMenuViewState extends State<DetailMenuView>
                               const SizedBox(height: 16),
 
                               Padding(
-                                padding: const EdgeInsets.fromLTRB(26, 0, 26, 0),
+                                padding: const EdgeInsets.fromLTRB(
+                                  26,
+                                  0,
+                                  26,
+                                  0,
+                                ),
                                 child: Container(
                                   width: double.infinity,
                                   decoration: ShapeDecoration(
@@ -258,7 +262,8 @@ class _DetailMenuViewState extends State<DetailMenuView>
                                     ],
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Padding(
                                         padding: const EdgeInsets.fromLTRB(
@@ -674,9 +679,62 @@ class _DetailMenuViewState extends State<DetailMenuView>
     );
   }
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _addToCart() async {
     try {
-      final success = await _viewModel.addToCart(widget.productId);
+      final success = await _viewModel.addToCart(
+        widget.productId,
+        onError: _showErrorDialog,
+      );
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -701,22 +759,7 @@ class _DetailMenuViewState extends State<DetailMenuView>
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Gagal menambahkan: $e',
-              style: const TextStyle(fontFamily: 'Poppins'),
-            ),
-            backgroundColor: const Color(0xFFC23437),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          ),
-        );
-      }
+      _showErrorDialog(e.toString());
     }
   }
 }

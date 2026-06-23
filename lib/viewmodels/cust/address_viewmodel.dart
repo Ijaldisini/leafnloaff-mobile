@@ -9,18 +9,16 @@ class AddressViewModel extends ChangeNotifier {
   AddressViewModel({required AddressService service}) : _service = service;
 
   bool isLoading = false;
-  String? errorMessage;
   List<AddressModel> addresses = [];
 
-  Future<void> fetchAddresses() async {
+  Future<void> fetchAddresses({Function(String)? onError}) async {
     isLoading = true;
-    errorMessage = null;
     notifyListeners();
 
     try {
       addresses = await _service.fetchUserAddresses();
     } catch (e) {
-      errorMessage = e.toString();
+      onError?.call(e.toString());
     } finally {
       isLoading = false;
       notifyListeners();
@@ -44,18 +42,17 @@ class AddressViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> deleteAddress(String id) async {
+  Future<void> deleteAddress(String id, {Function(String)? onError}) async {
     isLoading = true;
-    errorMessage = null;
     notifyListeners();
 
     try {
       await _service.deleteAddress(id);
-      await fetchAddresses();
+      await fetchAddresses(onError: onError);
     } catch (e) {
-      errorMessage = e.toString();
       isLoading = false;
       notifyListeners();
+      onError?.call(e.toString());
     }
   }
 }

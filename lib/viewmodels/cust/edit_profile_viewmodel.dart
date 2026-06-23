@@ -49,14 +49,12 @@ class EditProfileViewModel extends ChangeNotifier {
   }
 
   Future<UserModel?> saveProfile(
-    BuildContext context,
-    UserModel currentUser,
-  ) async {
+    UserModel currentUser, {
+    Function(String)? onError,
+  }) async {
     if (nameController.text.trim().isEmpty ||
         usernameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nama dan Username tidak boleh kosong!')),
-      );
+      onError?.call('Nama dan Username tidak boleh kosong!');
       return null;
     }
 
@@ -96,11 +94,7 @@ class EditProfileViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
-        );
-      }
+      onError?.call(e.toString().replaceAll('Exception: ', ''));
       return null;
     }
   }

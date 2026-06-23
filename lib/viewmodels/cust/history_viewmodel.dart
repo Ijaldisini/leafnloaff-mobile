@@ -9,20 +9,17 @@ class HistoryViewModel extends ChangeNotifier {
   HistoryViewModel({required HistoryService service}) : _service = service;
 
   bool isLoading = false;
-  String? errorMessage;
-
   Map<String, List<OrderHistoryModel>> groupedOrders = {};
 
-  Future<void> fetchHistory() async {
+  Future<void> fetchHistory({Function(String)? onError}) async {
     isLoading = true;
-    errorMessage = null;
     notifyListeners();
 
     try {
       final orders = await _service.fetchUserHistory();
       _groupOrdersByDate(orders);
     } catch (e) {
-      errorMessage = e.toString();
+      onError?.call(e.toString());
     } finally {
       isLoading = false;
       notifyListeners();
@@ -55,19 +52,6 @@ class HistoryViewModel extends ChangeNotifier {
         groupedOrders[dateKey] = [];
       }
       groupedOrders[dateKey]!.add(order);
-    }
-  }
-
-  double getProgress(String status) {
-    switch (status) {
-      case 'Diproses':
-        return 0.33;
-      case 'Dikirim':
-        return 0.66;
-      case 'Selesai':
-        return 1.0;
-      default:
-        return 0.0;
     }
   }
 }

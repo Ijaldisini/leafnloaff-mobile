@@ -10,27 +10,12 @@ class LoginViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  String? _errorMessage;
-  String? get errorMessage => _errorMessage;
-
-  void _setError(String message) {
-    _errorMessage = message;
-    notifyListeners();
-  }
-
-  void clearError() {
-    _errorMessage = null;
-    notifyListeners();
-  }
-
-  Future<UserModel?> login() async {
+  Future<UserModel?> login({Function(String)? onError}) async {
     final email = emailController.text.trim();
     final password = passwordController.text;
 
-    clearError();
-
     if (email.isEmpty || password.isEmpty) {
-      _setError('Email dan Password tidak boleh kosong');
+      onError?.call('Email dan Password tidak boleh kosong');
       return null;
     }
 
@@ -41,7 +26,7 @@ class LoginViewModel extends ChangeNotifier {
       final UserModel loggedInUser = await _authService.login(email, password);
       return loggedInUser;
     } catch (e) {
-      _setError(e.toString().replaceAll('Exception: ', ''));
+      onError?.call(e.toString().replaceAll('Exception: ', ''));
       return null;
     } finally {
       _isLoading = false;

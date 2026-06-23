@@ -448,7 +448,7 @@ class _AdminMenuManagementViewState extends State<AdminMenuManagementView>
                       decoration: ShapeDecoration(
                         image: DecorationImage(
                           image: NetworkImage(
-                            menu.imageUrl ?? 'https://placehold.co/113x100',
+                            menu.imageUrl ?? 'https://placehold.co/113x100.png',
                           ),
                           fit: BoxFit.cover,
                         ),

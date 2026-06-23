@@ -18,7 +18,6 @@ class CheckoutViewModel extends ChangeNotifier {
 
   bool isLoading = false;
   bool isPlacingOrder = false;
-  String? errorMessage;
 
   String shippingMethod = 'Delivery';
   String paymentMethod = 'COD';
@@ -61,7 +60,10 @@ class CheckoutViewModel extends ChangeNotifier {
     'Permata Virtual Account': 'permata',
   };
 
-  Future<void> initCheckoutData({VoucherModel? initialVoucher}) async {
+  Future<void> initCheckoutData({
+    VoucherModel? initialVoucher,
+    Function(String)? onError,
+  }) async {
     isLoading = true;
     notifyListeners();
 
@@ -69,7 +71,6 @@ class CheckoutViewModel extends ChangeNotifier {
       deliveryAddress = await _service.fetchDefaultAddress();
 
       final cartVM = CartViewModel();
-      await cartVM.loadCartData();
 
       selectedCartItems = cartVM.cartItems
           .where((item) => cartVM.selectedItemIds.contains(item.id))
@@ -80,7 +81,7 @@ class CheckoutViewModel extends ChangeNotifier {
       _calculateSummary();
       _calculateDistance();
     } catch (e) {
-      errorMessage = "Gagal memuat data checkout: $e";
+      onError?.call("Gagal memuat data checkout: $e");
     } finally {
       isLoading = false;
       notifyListeners();
@@ -180,28 +181,24 @@ class CheckoutViewModel extends ChangeNotifier {
     _calculateSummary();
   }
 
-  Future<Map<String, dynamic>?> placeOrder() async {
+  Future<Map<String, dynamic>?> placeOrder({Function(String)? onError}) async {
     if (shippingMethod == 'Delivery' && deliveryAddress == null) {
-      errorMessage = 'Silakan pilih alamat pengiriman';
-      notifyListeners();
+      onError?.call('Silakan pilih alamat pengiriman');
       return null;
     }
 
     if ((paymentMethod == 'Transfer Bank' || paymentMethod == 'QRIS Statis') &&
         paymentProofFile == null) {
-      errorMessage = 'Silakan unggah bukti pembayaran terlebih dahulu';
-      notifyListeners();
+      onError?.call('Silakan unggah bukti pembayaran terlebih dahulu');
       return null;
     }
 
     if (paymentMethod == 'Virtual Account Bank' && selectedBank == null) {
-      errorMessage = 'Silakan pilih bank untuk Virtual Account';
-      notifyListeners();
+      onError?.call('Silakan pilih bank untuk Virtual Account');
       return null;
     }
 
     isPlacingOrder = true;
-    errorMessage = null;
     notifyListeners();
 
     try {
@@ -271,7 +268,7 @@ class CheckoutViewModel extends ChangeNotifier {
 
       return {'orderId': orderId};
     } catch (e) {
-      errorMessage = e.toString();
+      onError?.call(e.toString());
       return null;
     } finally {
       isPlacingOrder = false;

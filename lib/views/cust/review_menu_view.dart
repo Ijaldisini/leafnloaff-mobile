@@ -47,6 +47,56 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
     _animController.forward();
   }
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _refreshReviews() async {
     await _viewModel.fetchReviews(widget.menu.id);
     await Future.delayed(const Duration(milliseconds: 300));
@@ -123,11 +173,13 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                             const SizedBox(height: 16),
 
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
                               child: Row(
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.only(left: 16.0), 
+                                    padding: const EdgeInsets.only(left: 16.0),
                                     child: GestureDetector(
                                       onTap: () => Navigator.pop(context),
                                       child: SvgPicture.asset(
@@ -135,7 +187,7 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                                         width: 24,
                                         height: 24,
                                         colorFilter: const ColorFilter.mode(
-                                          Colors.white,  
+                                          Colors.white,
                                           BlendMode.srcIn,
                                         ),
                                       ),
@@ -170,7 +222,9 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                             const SizedBox(height: 32),
 
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 26),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 26,
+                              ),
                               child: Stack(
                                 children: [
                                   ClipRRect(
@@ -270,7 +324,8 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
                                       separatorBuilder: (_, __) =>
                                           const SizedBox(height: 12),
                                       itemBuilder: (context, index) {
-                                        final review = _viewModel.reviews[index];
+                                        final review =
+                                            _viewModel.reviews[index];
                                         return _buildReviewCard(
                                           userName:
                                               review.userName ?? 'Anonymous',
@@ -570,7 +625,10 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
 
   void _addToCart() async {
     try {
-      final success = await _viewModel.addToCart(widget.menu.id);
+      final success = await _viewModel.addToCart(
+        widget.menu.id,
+        onError: _showErrorDialog,
+      );
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -592,25 +650,9 @@ class _ReviewMenuViewState extends State<ReviewMenuView>
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           ),
         );
-
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Gagal: ${e.toString()}',
-              style: const TextStyle(fontFamily: 'Poppins'),
-            ),
-            backgroundColor: const Color(0xFFC23437),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          ),
-        );
-      }
+      _showErrorDialog(e.toString());
     }
   }
 }

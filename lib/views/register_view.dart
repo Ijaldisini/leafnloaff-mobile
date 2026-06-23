@@ -41,27 +41,74 @@ class _RegisterViewState extends State<RegisterView>
     super.dispose();
   }
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _handleRegister() async {
-    final newUser = await _viewModel.register();
+    final newUser = await _viewModel.register(onError: _showErrorDialog);
 
     if (!mounted) return;
 
     if (newUser != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Pendaftaran berhasil! Silakan periksa email Anda.'),
+          content: Text(
+            'Pendaftaran berhasil! Silakan periksa email Anda.',
+            style: TextStyle(fontFamily: 'Poppins'),
+          ),
+          backgroundColor: Color(0xFF426E55),
         ),
       );
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => RegisterOtpView(user: newUser)),
-      );
-    } else if (_viewModel.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_viewModel.errorMessage!),
-          backgroundColor: Colors.red,
-        ),
       );
     }
   }
@@ -141,10 +188,6 @@ class _RegisterViewState extends State<RegisterView>
                               controller: _viewModel.passwordController,
                               isPassword: true,
                             ),
-                            const SizedBox(height: 12),
-                            if (_viewModel.errorMessage != null &&
-                                _viewModel.errorMessage!.isNotEmpty)
-                              _buildErrorBox(_viewModel.errorMessage!),
                             const Spacer(),
                             const SizedBox(height: 28),
                             Center(child: _buildRegisterButton()),
@@ -222,8 +265,8 @@ class _RegisterViewState extends State<RegisterView>
   Widget _buildLogo() {
     return Image.asset(
       'assets/images/logo.png',
-      width: 200,  
-      height: 200, 
+      width: 200,
+      height: 200,
       fit: BoxFit.contain,
     );
   }
@@ -296,34 +339,6 @@ class _RegisterViewState extends State<RegisterView>
               ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildErrorBox(String message) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE76F51).withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE76F51).withOpacity(0.5)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline, color: Color(0xFFEED5DB), size: 16),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                color: Color(0xFFEED5DB),
-                fontSize: 12,
-                fontFamily: 'Poppins',
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

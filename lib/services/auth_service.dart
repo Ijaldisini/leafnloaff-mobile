@@ -67,12 +67,25 @@ class AuthService {
         return userModel;
       }
 
-      throw Exception('User tidak ditemukan');
+      throw Exception(
+        'Akun tidak ditemukan. Silakan periksa kembali email Anda.',
+      );
+    } on AuthException catch (e) {
+      if (e.message.contains('Invalid login credentials')) {
+        throw Exception('Email atau password yang Anda masukkan salah.');
+      } else if (e.message.contains('Email not confirmed')) {
+        throw Exception(
+          'Email Anda belum diverifikasi. Silakan cek kotak masuk email Anda.',
+        );
+      }
+      throw Exception(
+        'Gagal masuk. Silakan periksa koneksi internet Anda dan coba lagi.',
+      );
     } catch (e) {
       if (e.toString().contains('Akun telah terhapus')) {
         throw Exception('Akun telah terhapus');
       }
-      throw Exception('Gagal login: ${e.toString()}');
+      throw Exception('Sistem sedang sibuk. Silakan coba beberapa saat lagi.');
     }
   }
 

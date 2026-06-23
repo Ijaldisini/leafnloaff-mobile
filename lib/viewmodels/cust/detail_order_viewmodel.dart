@@ -10,8 +10,6 @@ class DetailOrderViewModel extends ChangeNotifier {
   final MidtransService _midtransService = MidtransService();
 
   bool isLoading = true;
-  String? errorMessage;
-
   OrderDetailModel? orderDetail;
   bool isReviewed = false;
   bool _isDisposed = false;
@@ -25,9 +23,8 @@ class DetailOrderViewModel extends ChangeNotifier {
   Timer? _pollingTimer;
   Duration remainingTime = Duration.zero;
 
-  Future<void> fetchOrder(String orderId) async {
+  Future<void> fetchOrder(String orderId, {Function(String)? onError}) async {
     isLoading = true;
-    errorMessage = null;
     _safeNotifyListeners();
 
     try {
@@ -49,22 +46,21 @@ class DetailOrderViewModel extends ChangeNotifier {
 
         if (orderDetail!.status == 'Menunggu Pembayaran') {
           _startCountdown();
-          _startPollingPaymentStatus(orderId);
+          _startPollingPaymentStatus(orderId, onError: onError);
         }
       } else {
-        errorMessage = "Data pesanan tidak ditemukan";
+        onError?.call("Data pesanan tidak ditemukan");
       }
     } catch (e) {
-      errorMessage = "Gagal memuat detail: ${e.toString()}";
+      onError?.call("Gagal memuat detail: ${e.toString()}");
     } finally {
       isLoading = false;
       _safeNotifyListeners();
     }
   }
 
-  void _startPollingPaymentStatus(String orderId) {
+  void _startPollingPaymentStatus(String orderId, {Function(String)? onError}) {
     _pollingTimer?.cancel();
-
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       if (_isDisposed) {
         timer.cancel();
@@ -78,12 +74,12 @@ class DetailOrderViewModel extends ChangeNotifier {
             transactionStatus == 'capture') {
           _stopTimers();
           await _service.updateOrderStatus(orderId, 'Diproses');
-          await fetchOrder(orderId);
+          await fetchOrder(orderId, onError: onError);
         } else if (transactionStatus == 'expire' ||
             transactionStatus == 'cancel') {
           _stopTimers();
           await _service.updateOrderStatus(orderId, 'Dibatalkan');
-          await fetchOrder(orderId);
+          await fetchOrder(orderId, onError: onError);
         }
       } catch (e) {
         debugPrint("Polling status error: $e");
@@ -109,7 +105,6 @@ class DetailOrderViewModel extends ChangeNotifier {
     final DateTime expiryTime = orderDetail!.createdAt.add(
       const Duration(hours: 1),
     );
-
     _updateRemainingTime(expiryTime);
 
     if (remainingTime.inSeconds > 0) {
@@ -145,32 +140,34 @@ class DetailOrderViewModel extends ChangeNotifier {
     return "$hours : $minutes : $seconds";
   }
 
-  Future<bool> cancelOrder() async {
+  Future<bool> cancelOrder({Function(String)? onError}) async {
     if (orderDetail == null) return false;
     isLoading = true;
     _safeNotifyListeners();
     try {
       await _service.updateOrderStatus(orderDetail!.id, 'Dibatalkan');
-      await fetchOrder(orderDetail!.id);
+      await fetchOrder(orderDetail!.id, onError: onError);
       return true;
     } catch (e) {
       isLoading = false;
       _safeNotifyListeners();
+      onError?.call("Gagal membatalkan pesanan: $e");
       return false;
     }
   }
 
-  Future<bool> receiveOrder() async {
+  Future<bool> receiveOrder({Function(String)? onError}) async {
     if (orderDetail == null) return false;
     isLoading = true;
     _safeNotifyListeners();
     try {
       await _service.updateOrderStatus(orderDetail!.id, 'Selesai');
-      await fetchOrder(orderDetail!.id);
+      await fetchOrder(orderDetail!.id, onError: onError);
       return true;
     } catch (e) {
       isLoading = false;
       _safeNotifyListeners();
+      onError?.call("Gagal mengubah status: $e");
       return false;
     }
   }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../viewmodels/cust/address_viewmodel.dart';
 import '../../services/cust/address_service.dart';
 import '../../models/address_model.dart';
-import 'package:flutter_svg/flutter_svg.dart'; 
+import 'package:flutter_svg/flutter_svg.dart';
 import 'form_address_view.dart';
 
 class AddressView extends StatefulWidget {
@@ -21,7 +21,7 @@ class _AddressViewState extends State<AddressView> {
     _viewModel = AddressViewModel(service: AddressService());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel.fetchAddresses();
+      _viewModel.fetchAddresses(onError: _showErrorDialog);
     });
   }
 
@@ -30,8 +30,65 @@ class _AddressViewState extends State<AddressView> {
     super.dispose();
   }
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Terjadi Kesalahan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100),
+                ),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _refreshAddresses() async {
-    await _viewModel.fetchAddresses();
+    await _viewModel.fetchAddresses(onError: _showErrorDialog);
     await Future.delayed(const Duration(milliseconds: 300));
   }
 
@@ -44,7 +101,7 @@ class _AddressViewState extends State<AddressView> {
     );
 
     if (shouldRefresh == true) {
-      _viewModel.fetchAddresses();
+      _viewModel.fetchAddresses(onError: _showErrorDialog);
     }
   }
 
@@ -127,14 +184,7 @@ class _AddressViewState extends State<AddressView> {
                           child: CircularProgressIndicator(color: Colors.white),
                         );
                       }
-                      if (_viewModel.errorMessage != null) {
-                        return Center(
-                          child: Text(
-                            _viewModel.errorMessage!,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        );
-                      }
+
                       if (_viewModel.addresses.isEmpty) {
                         return const Center(
                           child: Text(
@@ -226,8 +276,8 @@ class _AddressViewState extends State<AddressView> {
                           Shadow(
                             offset: Offset(2, 2),
                             blurRadius: 2,
-                            color: const Color(0x40000000), 
-                          )
+                            color: const Color(0x40000000),
+                          ),
                         ],
                       ),
                     ),
@@ -424,7 +474,7 @@ class _AddressViewState extends State<AddressView> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(dialogContext);
-                _viewModel.deleteAddress(addressId);
+                _viewModel.deleteAddress(addressId, onError: _showErrorDialog);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFC23437),

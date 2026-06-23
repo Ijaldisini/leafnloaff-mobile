@@ -42,14 +42,15 @@ class ReviewMenuViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> addToCart(String productId) async {
+  Future<bool> addToCart(String productId, {Function(String)? onError}) async {
     _isAddingToCart = true;
     safeNotifyListeners();
 
     try {
       final userId = _service.getCurrentUserId();
       if (userId == null) {
-        throw Exception("Sesi telah habis, silakan login ulang.");
+        onError?.call("Sesi telah habis, silakan login ulang.");
+        return false;
       }
 
       await _service.addToCart(
@@ -64,7 +65,8 @@ class ReviewMenuViewModel extends ChangeNotifier {
     } catch (e) {
       _isAddingToCart = false;
       safeNotifyListeners();
-      throw Exception(e.toString().replaceAll("Exception: ", ""));
+      onError?.call(e.toString().replaceAll("Exception: ", ""));
+      return false;
     }
   }
 }

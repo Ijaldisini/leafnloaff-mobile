@@ -39,12 +39,70 @@ class _FormAddressViewState extends State<FormAddressView> {
     super.dispose();
   }
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100),
+                ),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEditMode = widget.existingAddress != null;
 
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
+      resizeToAvoidBottomInset: false,
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
@@ -122,26 +180,18 @@ class _FormAddressViewState extends State<FormAddressView> {
                         backgroundColor: Colors.white,
                         onRefresh: _refreshData,
                         child: ListView(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 25.0,
-                            vertical: 10.0,
+                          padding: EdgeInsets.only(
+                            left: 25.0,
+                            right: 25.0,
+                            top: 10.0,
+                            bottom:
+                                120.0 +
+                                MediaQuery.of(context).viewInsets.bottom,
                           ),
                           physics: const AlwaysScrollableScrollPhysics(
                             parent: BouncingScrollPhysics(),
                           ),
                           children: [
-                            if (_viewModel.errorMessage != null)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: Text(
-                                  _viewModel.errorMessage!,
-                                  style: const TextStyle(
-                                    color: Colors.redAccent,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-
                             _buildLabel("Recipient's Name"),
                             _buildTextField(
                               controller: _viewModel.nameController,
@@ -169,7 +219,9 @@ class _FormAddressViewState extends State<FormAddressView> {
                               child: GestureDetector(
                                 onTap: _viewModel.isLoading
                                     ? null
-                                    : () => _viewModel.fetchCurrentLocation(),
+                                    : () => _viewModel.fetchCurrentLocation(
+                                        onError: _showErrorDialog,
+                                      ),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 20,
@@ -278,9 +330,6 @@ class _FormAddressViewState extends State<FormAddressView> {
                                 ),
                               ),
                             ),
-                            const SizedBox(
-                              height: 100,
-                            ),
                           ],
                         ),
                       ),
@@ -327,16 +376,23 @@ class _FormAddressViewState extends State<FormAddressView> {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      
+
                       Expanded(
                         child: GestureDetector(
                           onTap: _viewModel.isSaving
                               ? null
                               : () async {
-                                  final success = await _viewModel.saveOrUpdateAddress();
+                                  final success = await _viewModel
+                                      .saveOrUpdateAddress(
+                                        onError: _showErrorDialog,
+                                      );
                                   if (success && context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Alamat berhasil disimpan!')),
+                                      const SnackBar(
+                                        content: Text(
+                                          'Alamat berhasil disimpan!',
+                                        ),
+                                      ),
                                     );
                                     Navigator.pop(context, true);
                                   }
@@ -361,7 +417,10 @@ class _FormAddressViewState extends State<FormAddressView> {
                                 ? const SizedBox(
                                     width: 20,
                                     height: 20,
-                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
                                   )
                                 : const Text(
                                     'Save',

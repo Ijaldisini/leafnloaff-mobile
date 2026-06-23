@@ -14,27 +14,13 @@ class RegisterOtpViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  String? _errorMessage;
-  String? get errorMessage => _errorMessage;
-
   String get otpCode => otpControllers.map((c) => c.text).join();
 
-  void _setError(String message) {
-    _errorMessage = message;
-    notifyListeners();
-  }
-
-  void clearError() {
-    _errorMessage = null;
-    notifyListeners();
-  }
-
-  Future<bool> verifyOtp(UserModel user) async {
+  Future<bool> verifyOtp(UserModel user, {Function(String)? onError}) async {
     final code = otpCode;
-    clearError();
 
     if (code.length < 8) {
-      _setError('Masukkan 8 digit kode OTP');
+      onError?.call('Masukkan 8 digit kode OTP yang dikirim ke email Anda.');
       return false;
     }
 
@@ -45,7 +31,7 @@ class RegisterOtpViewModel extends ChangeNotifier {
       await _authService.verifyEmailOtp(user.email, code);
       return true;
     } catch (e) {
-      _setError(e.toString().replaceAll('Exception: ', ''));
+      onError?.call(e.toString().replaceAll('Exception: ', ''));
       return false;
     } finally {
       _isLoading = false;

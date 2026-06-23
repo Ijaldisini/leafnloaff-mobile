@@ -22,7 +22,7 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   late final HomeViewModel _viewModel;
   final TextEditingController _searchController = TextEditingController();
-  
+
   bool _isInitialLoad = true;
 
   @override
@@ -53,6 +53,56 @@ class _HomeViewState extends State<HomeView> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -109,7 +159,8 @@ class _HomeViewState extends State<HomeView> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Your Location',
@@ -202,10 +253,11 @@ class _HomeViewState extends State<HomeView> {
                                               'assets/images/Search.svg',
                                               width: 16,
                                               height: 16,
-                                              colorFilter: const ColorFilter.mode(
-                                                Colors.white,
-                                                BlendMode.srcIn,
-                                              ),
+                                              colorFilter:
+                                                  const ColorFilter.mode(
+                                                    Colors.white,
+                                                    BlendMode.srcIn,
+                                                  ),
                                             ),
                                           ),
                                         ),
@@ -269,14 +321,8 @@ class _HomeViewState extends State<HomeView> {
                                 final cartVM = CartViewModel();
 
                                 if (cartVM.selectedItemIds.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Silahkan untuk memilih menu untuk dibeli terlebih dahulu',
-                                        style: TextStyle(fontFamily: 'Poppins'),
-                                      ),
-                                      backgroundColor: Colors.orange,
-                                    ),
+                                  _showErrorDialog(
+                                    'Silakan pilih menu untuk dibeli terlebih dahulu sebelum menggunakan Voucher!',
                                   );
                                   return;
                                 }
@@ -287,8 +333,9 @@ class _HomeViewState extends State<HomeView> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        CheckoutView(initialVoucher: voucherData),
+                                    builder: (context) => CheckoutView(
+                                      initialVoucher: voucherData,
+                                    ),
                                   ),
                                 );
                               },
@@ -299,7 +346,9 @@ class _HomeViewState extends State<HomeView> {
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.25),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.25,
+                                      ),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -346,7 +395,9 @@ class _HomeViewState extends State<HomeView> {
                                   child: GestureDetector(
                                     onTap: () => _viewModel.selectCategory(cat),
                                     child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 200),
+                                      duration: const Duration(
+                                        milliseconds: 200,
+                                      ),
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 16,
                                         vertical: 6,

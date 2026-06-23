@@ -46,10 +46,7 @@ class _CustomerMainViewState extends State<CustomerMainView> {
           backgroundColor: const Color(0xFF3D5A4A),
           resizeToAvoidBottomInset: false,
           extendBody: true,
-          body: IndexedStack(
-            index: _viewModel.selectedIndex,
-            children: _pages,
-          ),
+          body: IndexedStack(index: _viewModel.selectedIndex, children: _pages),
           bottomNavigationBar: Stack(
             clipBehavior: Clip.none,
             alignment: Alignment.bottomCenter,
@@ -64,15 +61,12 @@ class _CustomerMainViewState extends State<CustomerMainView> {
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
-                      colors: [
-                        Color(0xFF3D5A4A),
-                        Color(0x003D5A4A),
-                      ],
+                      colors: [Color(0xFF3D5A4A), Color(0x003D5A4A)],
                     ),
                   ),
                 ),
               ),
-              
+
               SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -80,6 +74,7 @@ class _CustomerMainViewState extends State<CustomerMainView> {
                     vertical: 12,
                   ),
                   child: Container(
+                    width: double.infinity,
                     height: 58,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: BoxDecoration(
@@ -125,7 +120,7 @@ class _CustomerMainViewState extends State<CustomerMainView> {
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
         padding: EdgeInsets.symmetric(
-          horizontal: isActive ? 16 : 12,
+          horizontal: isActive ? 16 : 8,
           vertical: 10,
         ),
         decoration: BoxDecoration(
@@ -142,13 +137,16 @@ class _CustomerMainViewState extends State<CustomerMainView> {
             ),
             if (isActive) ...[
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Color(0xFFCA748D),
-                  fontSize: 18,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w700,
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFCA748D),
+                    fontSize: 16,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],

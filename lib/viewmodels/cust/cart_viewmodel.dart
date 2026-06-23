@@ -10,7 +10,6 @@ class CartViewModel extends ChangeNotifier {
   final CartService _service = CartService();
 
   bool isLoading = true;
-  String? errorMessage;
 
   List<CartItemModel> cartItems = [];
   Set<String> selectedItemIds = {};
@@ -19,13 +18,13 @@ class CartViewModel extends ChangeNotifier {
   bool _isProcessing = false;
   bool get isProcessing => _isProcessing;
 
-  Future<void> loadCartData() async {
+  bool _isFirstLoad = true;
+
+  Future<void> loadCartData({Function(String)? onError}) async {
     if (_isProcessing) return;
 
     isLoading = true;
-    errorMessage = null;
     _isProcessing = true;
-
     notifyListeners();
 
     try {
@@ -40,9 +39,15 @@ class CartViewModel extends ChangeNotifier {
 
       cartItems = results[1] as List<CartItemModel>;
 
-      selectedItemIds = cartItems.map((e) => e.id).toSet();
+      if (_isFirstLoad) {
+        selectedItemIds = cartItems.map((e) => e.id).toSet();
+        _isFirstLoad = false;
+      } else {
+        final currentCartIds = cartItems.map((e) => e.id).toSet();
+        selectedItemIds.retainAll(currentCartIds);
+      }
     } catch (e) {
-      errorMessage = 'Gagal memuat keranjang: $e';
+      onError?.call('Gagal memuat keranjang: $e');
     } finally {
       isLoading = false;
       _isProcessing = false;
@@ -62,12 +67,8 @@ class CartViewModel extends ChangeNotifier {
   Future<void> incrementQuantity(String cartId, int currentQty) async {
     _service
         .updateQuantity(cartId, currentQty + 1)
-        .then((_) {
-          loadCartData();
-        })
-        .catchError((e) {
-          debugPrint("Gagal tambah quantity: $e");
-        });
+        .then((_) => loadCartData())
+        .catchError((e) => debugPrint("Gagal tambah quantity: $e"));
   }
 
   Future<void> decrementQuantity(String cartId, int currentQty) async {
@@ -77,13 +78,13 @@ class CartViewModel extends ChangeNotifier {
         loadCartData();
       });
     } else {
-      _service.updateQuantity(cartId, currentQty - 1).then((_) {
-        loadCartData();
-      });
+      _service
+          .updateQuantity(cartId, currentQty - 1)
+          .then((_) => loadCartData());
     }
   }
 
-  Future<void> deleteSelected() async {
+  Future<void> deleteSelected({Function(String)? onError}) async {
     if (selectedItemIds.isEmpty) return;
 
     isLoading = true;
@@ -94,9 +95,9 @@ class CartViewModel extends ChangeNotifier {
       selectedItemIds.clear();
       await loadCartData();
     } catch (e) {
-      errorMessage = 'Gagal menghapus item: $e';
       isLoading = false;
       notifyListeners();
+      onError?.call('Gagal menghapus item: $e');
     }
   }
 
@@ -109,25 +110,22 @@ class CartViewModel extends ChangeNotifier {
     }
   }
 
-  Future<String?> validateStockBeforeCheckout() async {
+  Future<String?> validateStockBeforeCheckout({
+    Function(String)? onError,
+  }) async {
     if (_isProcessing) return "Sedang memproses, mohon tunggu sebentar.";
 
     _isProcessing = true;
-
     await Future.delayed(const Duration(milliseconds: 100));
 
     try {
       final itemsToCheck = cartItems
           .where((item) => selectedItemIds.contains(item.id))
           .toList();
-
       await _service.checkStock(itemsToCheck);
       return null;
     } catch (e) {
-      return e.toString().replaceAll(
-        'Exception: ',
-        '',
-      );
+      return e.toString().replaceAll('Exception: ', '');
     } finally {
       _isProcessing = false;
     }

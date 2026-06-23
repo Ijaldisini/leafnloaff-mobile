@@ -14,7 +14,6 @@ class HistoryView extends StatefulWidget {
 
 class _HistoryViewState extends State<HistoryView> {
   late final HistoryViewModel _viewModel;
-  
   bool _isInitialLoad = true;
 
   @override
@@ -23,7 +22,7 @@ class _HistoryViewState extends State<HistoryView> {
     _viewModel = HistoryViewModel(service: HistoryService());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel.fetchHistory().then((_) {
+      _viewModel.fetchHistory(onError: _showErrorDialog).then((_) {
         if (mounted) {
           setState(() {
             _isInitialLoad = false;
@@ -33,8 +32,58 @@ class _HistoryViewState extends State<HistoryView> {
     });
   }
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _refreshHistory() async {
-    await _viewModel.fetchHistory();
+    await _viewModel.fetchHistory(onError: _showErrorDialog);
     await Future.delayed(const Duration(milliseconds: 300));
   }
 
@@ -46,6 +95,8 @@ class _HistoryViewState extends State<HistoryView> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
       body: Stack(
@@ -54,7 +105,7 @@ class _HistoryViewState extends State<HistoryView> {
             left: -17,
             top: -30,
             child: Container(
-              width: 422,
+              width: screenWidth + 34,
               height: 289,
               decoration: const BoxDecoration(color: Color(0xFFD699AB)),
             ),
@@ -63,7 +114,7 @@ class _HistoryViewState extends State<HistoryView> {
             left: -17,
             top: 147,
             child: Container(
-              width: 422,
+              width: screenWidth + 34,
               height: 114,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -123,14 +174,6 @@ class _HistoryViewState extends State<HistoryView> {
                           child: CircularProgressIndicator(color: Colors.white),
                         );
                       }
-                      if (_viewModel.errorMessage != null) {
-                        return Center(
-                          child: Text(
-                            _viewModel.errorMessage!,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        );
-                      }
                       if (_viewModel.groupedOrders.isEmpty) {
                         return const Center(
                           child: Text(
@@ -176,7 +219,9 @@ class _HistoryViewState extends State<HistoryView> {
                                     ),
                                   ),
                                 ),
-                                ...orders.map((order) => _buildOrderCard(order)),
+                                ...orders.map(
+                                  (order) => _buildOrderCard(order),
+                                ),
                               ],
                             );
                           },
@@ -201,293 +246,225 @@ class _HistoryViewState extends State<HistoryView> {
       decimalDigits: 0,
     ).format(order.totalPrice);
 
-    int getCurrentStep() {
-      final s = order.status.toLowerCase();
-      if (s.contains('tunggu') ||
-          s.contains('bayar') ||
-          s.contains('masuk') ||
-          s.contains('konfirmasi')) {
-        return 0;
-      }
-      if (s.contains('proses') || s.contains('siap')) return 1;
-      if (s.contains('kirim') || s.contains('jalan') || s.contains('otw')) {
-        return 2;
-      }
-      if (s.contains('selesai') || s.contains('delivered')) return 3;
-      return 0;
-    }
-
-    final currentStep = getCurrentStep();
-
-    double getBarWidth() {
-      switch (currentStep) {
-        case 0:
-          return 0.0;
-        case 1:
-          return 102.0;
-        case 2:
-          return 205.0;
-        case 3:
-          return 308.0;
-        default:
-          return 0.0;
-      }
-    }
+    int currentStep = 0;
+    final s = order.status.toLowerCase();
+    if (s.contains('tunggu') ||
+        s.contains('bayar') ||
+        s.contains('masuk') ||
+        s.contains('konfirmasi'))
+      currentStep = 0;
+    else if (s.contains('proses') || s.contains('siap'))
+      currentStep = 1;
+    else if (s.contains('kirim') || s.contains('jalan') || s.contains('otw'))
+      currentStep = 2;
+    else if (s.contains('selesai') || s.contains('delivered'))
+      currentStep = 3;
 
     return Container(
+      width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 4)),
+        ],
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 340,
-            height: 165,
-            child: Stack(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Order #${order.id.substring(0, 8).toUpperCase()}',
+                style: const TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontSize: 16,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                priceFormatted,
+                style: const TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontSize: 16,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text.rich(
+            TextSpan(
               children: [
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  child: Container(
-                    width: 340,
-                    height: 165,
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFFFDFDFD),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.69),
-                      ),
-                    ),
+                const TextSpan(
+                  text: 'Product: ',
+                  style: TextStyle(
+                    color: Color(0xFF51725F),
+                    fontSize: 13,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                Positioned(
-                  left: 14,
-                  top: 135,
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              DetailOrderView(orderId: order.id),
-                        ),
-                      ).then((_) {
-                        _viewModel.fetchHistory();
-                      });
-                    },
-                    child: Container(
-                      width: 98,
-                      height: 20,
-                      decoration: ShapeDecoration(
-                        color: isFinished
-                            ? const Color(0xFF333333)
-                            : const Color(0xFFEED5DB),
-                        shape: RoundedRectangleBorder(
-                          side: isFinished
-                              ? BorderSide.none
-                              : BorderSide(
-                                  width: 1,
-                                  color: const Color(0xFFCA748D),
-                                ),
-                          borderRadius: BorderRadius.circular(55.60),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          isFinished ? 'Write a Review' : 'See Detail',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: isFinished
-                                ? const Color(0xFFFBFBFB)
-                                : const Color(0xFFCA748D),
-                            fontSize: 10.59,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w700,
-                            height: 1.10,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                Positioned(
-                  left: 18,
-                  top: 102,
-                  child: Container(
-                    width: 308,
-                    height: 6,
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFF848484),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(7500.95),
-                      ),
-                    ),
-                  ),
-                ),
-
-                Positioned(
-                  left: 18,
-                  top: 102,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                    width: getBarWidth(),
-                    height: 6,
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFFCA748D),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(7500.95),
-                      ),
-                    ),
-                  ),
-                ),
-
-                Positioned(
-                  left: 18,
-                  top: 111,
-                  child: Text(
-                    'Preparing',
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      color: currentStep >= 1
-                          ? const Color(0xFF2D4839)
-                          : Colors.grey,
-                      fontSize: 12,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w700,
-                      height: 1.10,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 135,
-                  top: 111,
-                  child: Text(
-                    'On The Way',
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      color: currentStep >= 2
-                          ? const Color(0xFF2D4839)
-                          : Colors.grey,
-                      fontSize: 12,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w700,
-                      height: 1.10,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 267,
-                  top: 111,
-                  child: Text(
-                    'Delivered',
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      color: currentStep >= 3
-                          ? const Color(0xFF2D4839)
-                          : Colors.grey,
-                      fontSize: 12,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w700,
-                      height: 1.10,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 14,
-                  top: 13,
-                  child: Text(
-                    'Order #${order.id.substring(0, 8).toUpperCase()}',
-                    style: TextStyle(
-                      color: const Color(0xFF2D4839),
-                      fontSize: 16,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w700,
-                      height: 1.10,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 253,
-                  top: 13,
-                  child: Text(
-                    priceFormatted,
-                    style: TextStyle(
-                      color: const Color(0xFF2D4839),
-                      fontSize: 16,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w700,
-                      height: 1.10,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 14,
-                  top: 34,
-                  child: SizedBox(
-                    width: 222,
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Product: ',
-                            style: TextStyle(
-                              color: const Color(0xFF51725F),
-                              fontSize: 13,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w700,
-                              height: 1.10,
-                            ),
-                          ),
-                          TextSpan(
-                            text: order.productNames,
-                            style: TextStyle(
-                              color: const Color(0xFF51725F),
-                              fontSize: 13,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500,
-                              height: 1.10,
-                            ),
-                          ),
-                        ],
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 14,
-                  top: 67,
-                  child: SizedBox(
-                    width: 222,
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Qty:',
-                            style: TextStyle(
-                              color: const Color(0xFF51725F),
-                              fontSize: 13,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w700,
-                              height: 1.10,
-                            ),
-                          ),
-                          TextSpan(
-                            text: ' ${order.totalQuantity}',
-                            style: TextStyle(
-                              color: const Color(0xFF51725F),
-                              fontSize: 13,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500,
-                              height: 1.10,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                TextSpan(
+                  text: order.productNames,
+                  style: const TextStyle(
+                    color: Color(0xFF51725F),
+                    fontSize: 13,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 6),
+          Text.rich(
+            TextSpan(
+              children: [
+                const TextSpan(
+                  text: 'Qty: ',
+                  style: TextStyle(
+                    color: Color(0xFF51725F),
+                    fontSize: 13,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                TextSpan(
+                  text: '${order.totalQuantity}',
+                  style: const TextStyle(
+                    color: Color(0xFF51725F),
+                    fontSize: 13,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final maxWidth = constraints.maxWidth;
+              final stepWidth = maxWidth / 3;
+              double progressWidth = 0;
+              if (currentStep == 1) progressWidth = stepWidth;
+              if (currentStep == 2) progressWidth = stepWidth * 2;
+              if (currentStep >= 3) progressWidth = maxWidth;
+
+              return Column(
+                children: [
+                  Stack(
+                    children: [
+                      Container(
+                        height: 6,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF848484),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeInOut,
+                        height: 6,
+                        width: progressWidth,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFCA748D),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Preparing',
+                        style: TextStyle(
+                          color: currentStep >= 1
+                              ? const Color(0xFF2D4839)
+                              : Colors.grey,
+                          fontSize: 11,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        'On The Way',
+                        style: TextStyle(
+                          color: currentStep >= 2
+                              ? const Color(0xFF2D4839)
+                              : Colors.grey,
+                          fontSize: 11,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        'Delivered',
+                        style: TextStyle(
+                          color: currentStep >= 3
+                              ? const Color(0xFF2D4839)
+                              : Colors.grey,
+                          fontSize: 11,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailOrderView(orderId: order.id),
+                ),
+              ).then((_) => _viewModel.fetchHistory(onError: _showErrorDialog));
+            },
+            child: Container(
+              width: 120,
+              height: 28,
+              decoration: ShapeDecoration(
+                color: isFinished
+                    ? const Color(0xFF333333)
+                    : const Color(0xFFEED5DB),
+                shape: RoundedRectangleBorder(
+                  side: isFinished
+                      ? BorderSide.none
+                      : const BorderSide(width: 1, color: Color(0xFFCA748D)),
+                  borderRadius: BorderRadius.circular(55.60),
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  isFinished ? 'Write a Review' : 'See Detail',
+                  style: TextStyle(
+                    color: isFinished
+                        ? const Color(0xFFFBFBFB)
+                        : const Color(0xFFCA748D),
+                    fontSize: 11,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
             ),
           ),
         ],

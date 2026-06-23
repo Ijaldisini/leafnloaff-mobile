@@ -28,6 +28,56 @@ class _ProfileViewState extends State<ProfileView> {
     _viewModel = ProfileViewModel(service: ProfileService());
   }
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _refreshData() async {
     await Future.delayed(const Duration(milliseconds: 500));
   }
@@ -116,14 +166,17 @@ class _ProfileViewState extends State<ProfileView> {
                                       Shadow(
                                         offset: const Offset(1, 1),
                                         blurRadius: 3,
-                                        color: Colors.black.withValues(alpha: 0.25),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.25,
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  _currentUser.phoneNumber ?? _currentUser.email,
+                                  _currentUser.phoneNumber ??
+                                      _currentUser.email,
                                   style: const TextStyle(
                                     color: Colors.white70,
                                     fontSize: 14,
@@ -276,8 +329,7 @@ class _ProfileViewState extends State<ProfileView> {
                         );
                       },
                     ),
-                    
-                    // ✅ Tambahan spacing bawah agar bisa di-scroll
+
                     const SizedBox(height: 120),
                   ],
                 ),
@@ -432,15 +484,10 @@ class _ProfileViewState extends State<ProfileView> {
         (route) => false,
       );
     } else if (!success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gagal logout. Silakan coba lagi.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showErrorDialog('Gagal logout. Silakan coba lagi.');
     }
   }
-  
+
   void _showDeleteAccountConfirmation(BuildContext context) {
     showDialog(
       context: context,
@@ -531,12 +578,7 @@ class _ProfileViewState extends State<ProfileView> {
         (route) => false,
       );
     } else if (!success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gagal menghapus akun. Pastikan koneksi stabil.'),
-          backgroundColor: Color(0xFFC23437),
-        ),
-      );
+      _showErrorDialog('Gagal menghapus akun. Pastikan koneksi stabil.');
     }
   }
 }

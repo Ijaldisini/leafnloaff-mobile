@@ -148,24 +148,27 @@ class _WelcomeViewState extends State<WelcomeView>
                     opacity: _fadeAnim,
                     child: SlideTransition(
                       position: _slideAnim,
-                      child: SizedBox(
-                        width: screenWidth * 0.65,
-                        child: Text(
-                          slide['text']!,
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            color: const Color(0xFFFDFDFD),
-                            fontSize: screenWidth * 0.1,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w700,
-                            height: 1.10,
-                            shadows: [
-                              Shadow(
-                                offset: const Offset(6, 6),
-                                blurRadius: 4,
-                                color: Colors.black.withValues(alpha: 0.5),
-                              ),
-                            ],
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 20.0),
+                        child: SizedBox(
+                          width: screenWidth * 0.65,
+                          child: Text(
+                            slide['text']!,
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                              color: const Color(0xFFFDFDFD),
+                              fontSize: screenWidth * 0.1,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w700,
+                              height: 1.10,
+                              shadows: [
+                                Shadow(
+                                  offset: const Offset(4, 4),
+                                  blurRadius: 4,
+                                  color: Colors.black.withValues(alpha: 0.5),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -183,13 +186,13 @@ class _WelcomeViewState extends State<WelcomeView>
                       final isActive = i == idx;
                       return AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 1.4),
-                        width: 7,
-                        height: 7,
+                        margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                        width: isActive ? 10 : 7,
+                        height: isActive ? 10 : 7,
                         decoration: BoxDecoration(
                           color: isActive
-                              ? const Color(0xFF1C3628)
-                              : const Color(0xFF3D5A4A),
+                              ? const Color(0xFFD699AB)
+                              : Colors.white54,
                           shape: BoxShape.circle,
                         ),
                       );
@@ -199,12 +202,12 @@ class _WelcomeViewState extends State<WelcomeView>
 
                 Positioned(
                   bottom: screenHeight * 0.05,
-                  left: 16,
-                  right: 16,
+                  left: 20,
+                  right: 20,
                   child: GestureDetector(
                     onTap: _handleNext,
                     child: Container(
-                      height: 48,
+                      height: 50,
                       decoration: ShapeDecoration(
                         gradient: const LinearGradient(
                           begin: Alignment.topCenter,
@@ -280,13 +283,13 @@ class _WelcomeViewState extends State<WelcomeView>
       textAlign: TextAlign.right,
       style: TextStyle(
         color: const Color(0xFFFDFDFD),
-        fontSize: screenWidth * 0.18,
+        fontSize: screenWidth * 0.16,
         fontFamily: 'Poppins',
         fontWeight: FontWeight.w800,
         height: 1.1,
         shadows: [
           Shadow(
-            offset: const Offset(6, 6),
+            offset: const Offset(4, 4),
             blurRadius: 4,
             color: Colors.black.withValues(alpha: 0.5),
           ),

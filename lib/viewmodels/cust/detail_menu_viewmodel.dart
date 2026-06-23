@@ -60,14 +60,15 @@ class DetailMenuViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> addToCart(String productId) async {
+  Future<bool> addToCart(String productId, {Function(String)? onError}) async {
     _isAddingToCart = true;
     notifyListeners();
 
     try {
       final userId = _service.getCurrentUserId();
       if (userId == null) {
-        throw Exception("Sesi telah habis, silakan login ulang.");
+        onError?.call("Sesi telah habis, silakan login ulang.");
+        return false;
       }
 
       await _service.addToCart(
@@ -75,16 +76,16 @@ class DetailMenuViewModel extends ChangeNotifier {
         productId: productId,
         quantity: 1,
       );
-
       CartViewModel().loadCartData();
-      
+
       _isAddingToCart = false;
       notifyListeners();
       return true;
     } catch (e) {
       _isAddingToCart = false;
       notifyListeners();
-      throw Exception(e.toString().replaceAll("Exception: ", ""));
+      onError?.call(e.toString().replaceAll("Exception: ", ""));
+      return false;
     }
   }
 }

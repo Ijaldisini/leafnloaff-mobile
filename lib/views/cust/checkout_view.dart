@@ -19,25 +19,90 @@ class CheckoutView extends StatefulWidget {
 
 class _CheckoutViewState extends State<CheckoutView> {
   final CheckoutViewModel _viewModel = CheckoutViewModel();
-  
+
   bool _isInitialLoad = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel.initCheckoutData(initialVoucher: widget.initialVoucher).then((_) {
-        if (mounted) {
-          setState(() {
-            _isInitialLoad = false;
+      _viewModel
+          .initCheckoutData(
+            initialVoucher: widget.initialVoucher,
+            onError: _showErrorDialog,
+          )
+          .then((_) {
+            if (mounted) {
+              setState(() {
+                _isInitialLoad = false;
+              });
+            }
           });
-        }
-      });
     });
   }
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100),
+                ),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _refreshCheckout() async {
-    await _viewModel.initCheckoutData(initialVoucher: widget.initialVoucher);
+    await _viewModel.initCheckoutData(
+      initialVoucher: widget.initialVoucher,
+      onError: _showErrorDialog,
+    );
     await Future.delayed(const Duration(milliseconds: 300));
   }
 
@@ -151,17 +216,6 @@ class _CheckoutViewState extends State<CheckoutView> {
                             parent: BouncingScrollPhysics(),
                           ),
                           children: [
-                            if (_viewModel.errorMessage != null)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 15),
-                                child: Text(
-                                  _viewModel.errorMessage!,
-                                  style: const TextStyle(
-                                    color: Colors.redAccent,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
                             _buildShippingOption(),
                             const SizedBox(height: 20),
                             _buildPaymentMethod(),
@@ -255,8 +309,9 @@ class _CheckoutViewState extends State<CheckoutView> {
                             onTap: _viewModel.isPlacingOrder
                                 ? null
                                 : () async {
-                                    final result = await _viewModel
-                                        .placeOrder();
+                                    final result = await _viewModel.placeOrder(
+                                      onError: _showErrorDialog,
+                                    );
 
                                     if (result != null && context.mounted) {
                                       ScaffoldMessenger.of(
@@ -275,25 +330,6 @@ class _CheckoutViewState extends State<CheckoutView> {
                                           builder: (context) => DetailOrderView(
                                             orderId: result['orderId'],
                                           ),
-                                        ),
-                                      );
-                                    } else if (result == null &&
-                                        context.mounted &&
-                                        _viewModel.errorMessage != null) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            _viewModel.errorMessage!,
-                                            style: const TextStyle(
-                                              fontFamily: 'Poppins',
-                                            ),
-                                          ),
-                                          backgroundColor: const Color(
-                                            0xFFC23437,
-                                          ),
-                                          behavior: SnackBarBehavior.floating,
                                         ),
                                       );
                                     }
@@ -355,77 +391,87 @@ class _CheckoutViewState extends State<CheckoutView> {
   }
 
   Widget _buildItemCard(CartItemModel item) {
+    final String displayNotes =
+        (item.notes == null ||
+            item.notes!.trim().isEmpty ||
+            item.notes == 'null')
+        ? '-'
+        : item.notes!;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
-      height: 100,
       decoration: BoxDecoration(
         color: const Color(0xFFFDFDFD),
         borderRadius: BorderRadius.circular(16.69),
       ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16.69),
-              bottomLeft: Radius.circular(16.69),
-            ),
-            child: Image.network(
-              item.menuImageUrl ?? 'https://placehold.co/113x100',
-              width: 110,
-              height: 100,
-              fit: BoxFit.cover,
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.menuName,
-                    style: const TextStyle(
-                      color: Color(0xFF2D4839),
-                      fontSize: 16,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  Text(
-                    'Notes: ${item.notes ?? '-'}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFF51725F),
-                      fontSize: 10,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    'Qty: ${item.quantity}',
-                    style: const TextStyle(
-                      color: Color(0xFF51725F),
-                      fontSize: 10,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    _formatCurrency(item.menuPrice),
-                    style: const TextStyle(
-                      color: Color(0xFF2D4839),
-                      fontSize: 16,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment:
+              CrossAxisAlignment.stretch,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16.69),
+                bottomLeft: Radius.circular(16.69),
+              ),
+              child: Image.network(
+                item.menuImageUrl ?? 'https://placehold.co/113x100.png',
+                width: 110,
+                fit: BoxFit.cover,
               ),
             ),
-          ),
-        ],
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment
+                      .center,
+                  children: [
+                    Text(
+                      item.menuName,
+                      style: const TextStyle(
+                        color: Color(0xFF2D4839),
+                        fontSize: 16,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Notes: $displayNotes',
+                      style: const TextStyle(
+                        color: Color(0xFF51725F),
+                        fontSize: 10,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      'Qty: ${item.quantity}',
+                      style: const TextStyle(
+                        color: Color(0xFF51725F),
+                        fontSize: 10,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _formatCurrency(item.menuPrice),
+                      style: const TextStyle(
+                        color: Color(0xFF2D4839),
+                        fontSize: 16,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -597,29 +643,29 @@ class _CheckoutViewState extends State<CheckoutView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-            Row(
-              children: [
-                SvgPicture.asset(
-                  'assets/images/uang.svg',
-                  width: 22,
-                  height: 22,
-                  colorFilter: const ColorFilter.mode(
-                    Color(0xFF2D4839),
-                    BlendMode.srcIn,
-                  ),
+          Row(
+            children: [
+              SvgPicture.asset(
+                'assets/images/uang.svg',
+                width: 22,
+                height: 22,
+                colorFilter: const ColorFilter.mode(
+                  Color(0xFF2D4839),
+                  BlendMode.srcIn,
                 ),
-                const SizedBox(width: 10),
-                const Text(
-                  'Payment Method',
-                  style: TextStyle(
-                    color: Color(0xFF2D4839),
-                    fontSize: 20,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w800,
-                  ),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Payment Method',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontSize: 20,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
           const SizedBox(height: 15),
           _buildPaymentSelectableBox('Cash On Delivery', 'COD'),
           const SizedBox(height: 10),

@@ -42,14 +42,111 @@ class _LoginViewState extends State<LoginView>
     super.dispose();
   }
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+
+    if (message.contains('Akun telah terhapus')) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: Colors.red),
+                SizedBox(width: 8),
+                Text(
+                  'Peringatan',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            content: const Text(
+              'Akun Anda telah terhapus dan tidak dapat digunakan untuk login kembali.',
+              style: TextStyle(fontFamily: 'Poppins'),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text(
+                  'Tutup',
+                  style: TextStyle(
+                    color: Color(0xFFCA748D),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _handleLogin() async {
-    final user = await _viewModel.login();
+    final user = await _viewModel.login(onError: _showErrorDialog);
 
     if (!mounted) return;
 
     if (user != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Selamat datang, ${user.fullName}!')),
+        SnackBar(
+          content: Text('Selamat datang, ${user.fullName}!'),
+          backgroundColor: const Color(0xFF426E55),
+        ),
       );
       if (user.role == 'admin') {
         Navigator.pushAndRemoveUntil(
@@ -62,55 +159,6 @@ class _LoginViewState extends State<LoginView>
           context,
           MaterialPageRoute(builder: (context) => CustomerMainView(user: user)),
           (route) => false,
-        );
-      }
-    } else if (_viewModel.errorMessage != null) {
-      if (_viewModel.errorMessage!.contains('Akun telah terhapus')) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              title: const Row(
-                children: [
-                  Icon(Icons.warning_amber_rounded, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text(
-                    'Peringatan',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              content: const Text(
-                'Akun Anda telah terhapus dan tidak dapat digunakan untuk login kembali.',
-                style: TextStyle(fontFamily: 'Poppins'),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    'Tutup',
-                    style: TextStyle(
-                      color: Color(0xFFCA748D),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_viewModel.errorMessage!),
-            backgroundColor: Colors.red,
-          ),
         );
       }
     }
@@ -174,10 +222,6 @@ class _LoginViewState extends State<LoginView>
                               hint: '',
                               isPassword: true,
                             ),
-                            const SizedBox(height: 12),
-                            if (_viewModel.errorMessage != null &&
-                                _viewModel.errorMessage!.isNotEmpty)
-                              _buildErrorBox(_viewModel.errorMessage!),
                             const Spacer(),
                             const SizedBox(height: 36),
                             Center(child: _buildLoginButton()),
@@ -338,34 +382,6 @@ class _LoginViewState extends State<LoginView>
               ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildErrorBox(String message) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFCA748D).withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFCA748D).withOpacity(0.5)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline, color: Color(0xFFEED5DB), size: 16),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                color: Color(0xFFEED5DB),
-                fontSize: 12,
-                fontFamily: 'Poppins',
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

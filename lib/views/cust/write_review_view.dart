@@ -52,6 +52,56 @@ class _WriteReviewViewState extends State<WriteReviewView> {
     super.dispose();
   }
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   bool _isVideo(File file) {
     final ext = file.path.split('.').last.toLowerCase();
     return ['mp4', 'mov', 'avi', 'mkv'].contains(ext);
@@ -76,6 +126,7 @@ class _WriteReviewViewState extends State<WriteReviewView> {
     final isSuccess = await _viewModel.submitAllReviews(
       widget.orderId,
       reviewsData,
+      onError: _showErrorDialog,
     );
 
     if (!mounted) return;
@@ -83,190 +134,183 @@ class _WriteReviewViewState extends State<WriteReviewView> {
     if (isSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Terima kasih, ulasan berhasil dikirim!'),
+          content: Text(
+            'Terima kasih, ulasan berhasil dikirim!',
+            style: TextStyle(fontFamily: 'Poppins'),
+          ),
           backgroundColor: Color(0xFF426E55),
         ),
       );
       Navigator.pop(context, true);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_viewModel.errorMessage ?? 'Terjadi kesalahan'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
-@override
-Widget build(BuildContext context) {
-  final screenWidth = MediaQuery.of(context).size.width;
-  
-  return Scaffold(
-    backgroundColor: const Color(0xFF3D5A4A),
-    resizeToAvoidBottomInset: false,
-    body: ListenableBuilder(
-      listenable: _viewModel,
-      builder: (context, child) {
-        return Stack(
-          children: [
-            Positioned(
-              left: -17,
-              top: -30,
-              child: Container(
-                width: screenWidth + 34,  
-                height: 289,  
-                decoration: const BoxDecoration(
-                  color: Color.fromARGB(255, 214, 153, 171), 
-                ),
-              ),
-            ),
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
 
-            Positioned(
-              left: -17,
-              top: 147,
-              child: Container(
-                width: screenWidth + 34,
-                height: 114,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0x003D5A4A), Color(0xFF3D5A4A)],
+    return Scaffold(
+      backgroundColor: const Color(0xFF3D5A4A),
+      resizeToAvoidBottomInset: false,
+      body: ListenableBuilder(
+        listenable: _viewModel,
+        builder: (context, child) {
+          return Stack(
+            children: [
+              Positioned(
+                left: -17,
+                top: -30,
+                child: Container(
+                  width: screenWidth + 34,
+                  height: 289,
+                  decoration: const BoxDecoration(
+                    color: Color.fromARGB(255, 214, 153, 171),
                   ),
                 ),
               ),
-            ),
 
-            SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 15.0,
-                      vertical: 20.0,
+              Positioned(
+                left: -17,
+                top: 147,
+                child: Container(
+                  width: screenWidth + 34,
+                  height: 114,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0x003D5A4A), Color(0xFF3D5A4A)],
                     ),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: SvgPicture.asset(
-                              'assets/images/back.svg',
-                              width: 24,
-                              height: 24,
-                              colorFilter: const ColorFilter.mode(
-                                Colors.white,
-                                BlendMode.srcIn,
+                  ),
+                ),
+              ),
+
+              SafeArea(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 15.0,
+                        vertical: 20.0,
+                      ),
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: SvgPicture.asset(
+                                'assets/images/back.svg',
+                                width: 24,
+                                height: 24,
+                                colorFilter: const ColorFilter.mode(
+                                  Colors.white,
+                                  BlendMode.srcIn,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const Expanded(
-                          child: Text(
-                            'Write Review',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w800,
-                              shadows: [
-                                Shadow(
-                                  offset: Offset(1, 1),
-                                  blurRadius: 2,
-                                  color: Colors.black26,
-                                ),
-                              ],
+                          const Expanded(
+                            child: Text(
+                              'Write Review',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w800,
+                                shadows: [
+                                  Shadow(
+                                    offset: Offset(1, 1),
+                                    blurRadius: 2,
+                                    color: Colors.black26,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 48),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: RefreshIndicator(
-                      color: const Color(0xFFCA748D),
-                      backgroundColor: Colors.white,
-                      onRefresh: _refreshData,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.only(
-                          left: 20,
-                          right: 20,
-                          top: 10,
-                          bottom: 120, 
-                        ),
-                        physics: const AlwaysScrollableScrollPhysics(
-                          parent: BouncingScrollPhysics(),
-                        ),
-                        itemCount: widget.orderItems.length,
-                        itemBuilder: (context, index) {
-                          final item = widget.orderItems[index];
-                          return _buildReviewCard(index, item);
-                        },
+                          const SizedBox(width: 48),
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: RefreshIndicator(
+                        color: const Color(0xFFCA748D),
+                        backgroundColor: Colors.white,
+                        onRefresh: _refreshData,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.only(
+                            left: 20,
+                            right: 20,
+                            top: 10,
+                            bottom: 120,
+                          ),
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          itemCount: widget.orderItems.length,
+                          itemBuilder: (context, index) {
+                            final item = widget.orderItems[index];
+                            return _buildReviewCard(index, item);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 30), 
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0x003D5A4A),
-                      Color(0xFF3D5A4A),
-                    ],
-                  ),
-                ),
-                child: SafeArea(
-                  top: false,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFD699AB),
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0x003D5A4A), Color(0xFF3D5A4A)],
                     ),
-                    onPressed: _viewModel.isLoading ? null : _submitReview,
-                    child: _viewModel.isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFD699AB),
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      onPressed: _viewModel.isLoading ? null : _submitReview,
+                      child: _viewModel.isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'Submit All Reviews',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
-                          )
-                        : const Text(
-                            'Submit All Reviews',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
-        );
-      },
-    ),
-  );
-}
+            ],
+          );
+        },
+      ),
+    );
+  }
 
   Widget _buildReviewCard(int index, OrderItemModel item) {
     final mediaList = selectedMedia[index] ?? [];
@@ -394,7 +438,7 @@ Widget build(BuildContext context) {
               controller: reviewControllers[index],
               maxLines: 4,
               style: const TextStyle(
-                color: Color(0xFF2D4839), 
+                color: Color(0xFF2D4839),
                 fontSize: 12,
                 fontFamily: 'Poppins',
               ),
@@ -403,7 +447,7 @@ Widget build(BuildContext context) {
                 contentPadding: EdgeInsets.all(12),
                 hintText: 'Tulis ulasanmu di sini...',
                 hintStyle: TextStyle(
-                  fontSize: 12, 
+                  fontSize: 12,
                   fontFamily: 'Poppins',
                   color: Color(0xFF9E9E9E),
                 ),
@@ -537,7 +581,10 @@ Widget build(BuildContext context) {
             children: [
               ListTile(
                 leading: const Icon(Icons.camera_alt),
-                title: const Text('Ambil Foto'),
+                title: const Text(
+                  'Ambil Foto',
+                  style: TextStyle(fontFamily: 'Poppins'),
+                ),
                 onTap: () async {
                   Navigator.pop(context);
                   final file = await _imagePicker.pickFromCamera();
@@ -548,7 +595,10 @@ Widget build(BuildContext context) {
               ),
               ListTile(
                 leading: const Icon(Icons.videocam),
-                title: const Text('Ambil Video'),
+                title: const Text(
+                  'Ambil Video',
+                  style: TextStyle(fontFamily: 'Poppins'),
+                ),
                 onTap: () async {
                   Navigator.pop(context);
                   final file = await _imagePicker.pickVideoFromCamera();

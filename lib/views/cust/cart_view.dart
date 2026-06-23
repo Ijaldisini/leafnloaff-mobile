@@ -18,7 +18,9 @@ class _CartViewState extends State<CartView> {
   @override
   void initState() {
     super.initState();
-    _viewModel.loadCartData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _viewModel.loadCartData(onError: _showErrorDialog);
+    });
   }
 
   @override
@@ -26,8 +28,65 @@ class _CartViewState extends State<CartView> {
     super.dispose();
   }
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100),
+                ),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _refreshCart() async {
-    await _viewModel.loadCartData();
+    await _viewModel.loadCartData(onError: _showErrorDialog);
     await Future.delayed(const Duration(milliseconds: 300));
   }
 
@@ -41,6 +100,8 @@ class _CartViewState extends State<CartView> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
       body: Stack(
@@ -49,7 +110,7 @@ class _CartViewState extends State<CartView> {
             left: -17,
             top: -30,
             child: Container(
-              width: 422,
+              width: screenWidth + 34,
               height: 289,
               decoration: const BoxDecoration(color: Color(0xFFD699AB)),
             ),
@@ -58,7 +119,7 @@ class _CartViewState extends State<CartView> {
             left: -17,
             top: 147,
             child: Container(
-              width: 422,
+              width: screenWidth + 34,
               height: 114,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -87,7 +148,7 @@ class _CartViewState extends State<CartView> {
                             Row(
                               children: [
                                 SvgPicture.asset(
-                                  'assets/images/locations.svg',  
+                                  'assets/images/locations.svg',
                                   width: 25,
                                   height: 25,
                                   colorFilter: const ColorFilter.mode(
@@ -139,13 +200,12 @@ class _CartViewState extends State<CartView> {
                       ListenableBuilder(
                         listenable: _viewModel,
                         builder: (context, _) {
-                          if (_viewModel.selectedItemIds.isEmpty) {
+                          if (_viewModel.selectedItemIds.isEmpty)
                             return const SizedBox.shrink();
-                          }
                           return GestureDetector(
                             onTap: () => _showDeleteConfirmation(),
                             child: SvgPicture.asset(
-                              'assets/images/sampah.svg',  
+                              'assets/images/sampah.svg',
                               width: 20,
                               height: 20,
                               colorFilter: const ColorFilter.mode(
@@ -169,14 +229,6 @@ class _CartViewState extends State<CartView> {
                           child: CircularProgressIndicator(color: Colors.white),
                         );
                       }
-                      if (_viewModel.errorMessage != null) {
-                        return Center(
-                          child: Text(
-                            _viewModel.errorMessage!,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        );
-                      }
                       if (_viewModel.cartItems.isEmpty) {
                         return Center(
                           child: Column(
@@ -195,15 +247,6 @@ class _CartViewState extends State<CartView> {
                                   fontSize: 20,
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Tambahkan menu favoritmu sekarang!',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.6),
-                                  fontSize: 16,
-                                  fontFamily: 'Poppins',
                                 ),
                               ),
                             ],
@@ -292,43 +335,16 @@ class _CartViewState extends State<CartView> {
                               ),
                             ),
                           ),
-
                           GestureDetector(
                             onTap: _viewModel.selectedItemIds.isEmpty
                                 ? null
                                 : () async {
                                     final errorMsg = await _viewModel
-                                        .validateStockBeforeCheckout();
-
-                                    if (errorMsg != null) {
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              errorMsg,
-                                              style: const TextStyle(
-                                                fontFamily: 'Poppins',
-                                              ),
-                                            ),
-                                            backgroundColor: const Color(
-                                              0xFFC23437,
-                                            ),
-                                            behavior: SnackBarBehavior.floating,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            margin: const EdgeInsets.fromLTRB(
-                                              16,
-                                              0,
-                                              16,
-                                              16,
-                                            ),
-                                          ),
+                                        .validateStockBeforeCheckout(
+                                          onError: _showErrorDialog,
                                         );
-                                      }
+                                    if (errorMsg != null) {
+                                      _showErrorDialog(errorMsg);
                                     } else {
                                       if (context.mounted) {
                                         Navigator.push(
@@ -337,9 +353,11 @@ class _CartViewState extends State<CartView> {
                                             builder: (context) =>
                                                 const CheckoutView(),
                                           ),
-                                        ).then((_) {
-                                          _viewModel.loadCartData();
-                                        });
+                                        ).then(
+                                          (_) => _viewModel.loadCartData(
+                                            onError: _showErrorDialog,
+                                          ),
+                                        );
                                       }
                                     }
                                   },
@@ -392,7 +410,6 @@ class _CartViewState extends State<CartView> {
 
   Widget _buildCartItem(CartItemModel item) {
     final isSelected = _viewModel.selectedItemIds.contains(item.id);
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       height: 125,
@@ -413,16 +430,10 @@ class _CartViewState extends State<CartView> {
                   bottomLeft: Radius.circular(16.69),
                 ),
                 child: Image.network(
-                  item.menuImageUrl ?? 'https://placehold.co/113x100',
+                  item.menuImageUrl ?? 'https://placehold.co/113x100.png',
                   width: 110,
                   height: 125,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 110,
-                    height: 125,
-                    color: Colors.grey.shade300,
-                    child: const Icon(Icons.fastfood, color: Colors.grey),
-                  ),
                 ),
               ),
               Positioned(
@@ -451,7 +462,6 @@ class _CartViewState extends State<CartView> {
               ),
             ],
           ),
-
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(
@@ -484,7 +494,7 @@ class _CartViewState extends State<CartView> {
                         onTap: () =>
                             _showEditNotesDialog(item.id, item.notes ?? ''),
                         child: SvgPicture.asset(
-                          'assets/images/Pencil.svg',  
+                          'assets/images/Pencil.svg',
                           width: 18,
                           height: 18,
                           colorFilter: const ColorFilter.mode(
@@ -495,9 +505,7 @@ class _CartViewState extends State<CartView> {
                       ),
                     ],
                   ),
-                  
                   const SizedBox(height: 2),
-                  
                   Expanded(
                     child: Text.rich(
                       TextSpan(
@@ -528,7 +536,6 @@ class _CartViewState extends State<CartView> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -545,7 +552,6 @@ class _CartViewState extends State<CartView> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -642,7 +648,7 @@ class _CartViewState extends State<CartView> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(dialogContext);
-                _viewModel.deleteSelected();
+                _viewModel.deleteSelected(onError: _showErrorDialog);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFC23437),

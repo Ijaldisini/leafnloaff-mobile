@@ -6,26 +6,27 @@ class SelectVoucherViewModel extends ChangeNotifier {
   final CustVoucherService _service = CustVoucherService();
 
   bool isLoading = false;
-  String? errorMessage;
 
   List<VoucherModel> vouchers = [];
   VoucherModel? selectedVoucher;
 
-  void initVoucherData(VoucherModel? initialVoucher) {
+  void initVoucherData(
+    VoucherModel? initialVoucher, {
+    Function(String)? onError,
+  }) {
     selectedVoucher = initialVoucher;
-    fetchVouchers();
+    fetchVouchers(onError: onError);
   }
 
-  Future<void> fetchVouchers() async {
+  Future<void> fetchVouchers({Function(String)? onError}) async {
     isLoading = true;
-    errorMessage = null;
     notifyListeners();
 
     try {
       vouchers = await _service.fetchActiveVouchers();
     } catch (e) {
-      errorMessage = "Gagal memuat voucher: $e";
-      debugPrint(errorMessage);
+      debugPrint("Gagal memuat voucher: $e");
+      onError?.call("Gagal memuat voucher: $e");
     } finally {
       isLoading = false;
       notifyListeners();

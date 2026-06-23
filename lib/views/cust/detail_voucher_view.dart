@@ -16,6 +16,7 @@ class DetailVoucherView extends StatelessWidget {
   Widget build(BuildContext context) {
     final expiryText =
         'Expires on ${DateFormat('MMM dd, yyyy').format(voucher.expiresAt)}';
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: const Color(0xFF3D5A4A),
@@ -25,7 +26,7 @@ class DetailVoucherView extends StatelessWidget {
             left: -17,
             top: -30,
             child: Container(
-              width: MediaQuery.of(context).size.width + 34,
+              width: screenWidth + 34,
               height: 289,
               decoration: const BoxDecoration(color: Color(0xFFD699AB)),
             ),
@@ -34,7 +35,7 @@ class DetailVoucherView extends StatelessWidget {
             left: -17,
             top: 147,
             child: Container(
-              width: MediaQuery.of(context).size.width + 34,
+              width: screenWidth + 34,
               height: 114,
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -56,7 +57,7 @@ class DetailVoucherView extends StatelessWidget {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
-                          padding: const EdgeInsets.only(left: 25.0), 
+                          padding: const EdgeInsets.only(left: 25.0),
                           child: GestureDetector(
                             onTap: () => Navigator.pop(context),
                             child: SvgPicture.asset(

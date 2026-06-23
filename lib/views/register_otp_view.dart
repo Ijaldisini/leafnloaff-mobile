@@ -16,13 +16,72 @@ class RegisterOtpView extends StatefulWidget {
 class _RegisterOtpViewState extends State<RegisterOtpView> {
   final RegisterOtpViewModel _viewModel = RegisterOtpViewModel();
 
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Color(0xFFC23437)),
+              SizedBox(width: 10),
+              Text(
+                'Peringatan',
+                style: TextStyle(
+                  color: Color(0xFF2D4839),
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFF51725F),
+              fontFamily: 'Poppins',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC23437),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _handleVerify() async {
-    final success = await _viewModel.verifyOtp(widget.user);
+    final success = await _viewModel.verifyOtp(
+      widget.user,
+      onError: _showErrorDialog,
+    );
     if (!mounted) return;
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Verifikasi Email Berhasil!')),
+        const SnackBar(
+          content: Text(
+            'Verifikasi Email Berhasil!',
+            style: TextStyle(fontFamily: 'Poppins'),
+          ),
+          backgroundColor: Color(0xFF426E55),
+        ),
       );
       Navigator.pushAndRemoveUntil(
         context,
@@ -30,13 +89,6 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
           builder: (context) => CustomerMainView(user: widget.user),
         ),
         (route) => false,
-      );
-    } else if (_viewModel.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_viewModel.errorMessage!),
-          backgroundColor: Colors.red,
-        ),
       );
     }
   }
@@ -56,11 +108,11 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xFFFEF9C3),  
-                    Color(0xFF84A98C),  
-                    Color(0xFF52796F),  
+                    Color(0xFFFEF9C3),
+                    Color(0xFF84A98C),
+                    Color(0xFF52796F),
                   ],
-                  stops: [0.0, 0.4, 1.0], 
+                  stops: [0.0, 0.4, 1.0],
                 ),
               ),
               child: Stack(
@@ -85,7 +137,10 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                             child: Container(
                               decoration: ShapeDecoration(
                                 gradient: const LinearGradient(
-                                  colors: [Color(0xFFD699AB), Color(0xFFCA748D)],
+                                  colors: [
+                                    Color(0xFFD699AB),
+                                    Color(0xFFCA748D),
+                                  ],
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(88.35),
@@ -134,7 +189,7 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                     top: 130,
                     child: Image.asset(
                       'assets/images/logo.png',
-                      width: 200,   
+                      width: 200,
                       height: 200,
                       fit: BoxFit.contain,
                     ),
@@ -174,15 +229,16 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
                     child: SizedBox(
                       width: 226,
                       child: Opacity(
-                        opacity: 0.60,
+                        opacity: 0.80,
                         child: const Text(
-                          'Open your Google Authenticator and enter the code you received.',
+                          'Open your Email and enter the code you received.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: Color(0xFFFDFDFD),
                             fontSize: 12,
                             fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w500,
+                            fontWeight:
+                                FontWeight.w600,
                             height: 1.10,
                           ),
                         ),
@@ -252,12 +308,10 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
     return Container(
       width: 40,
       height: 40,
-      margin: const EdgeInsets.symmetric(horizontal: 2), 
+      margin: const EdgeInsets.symmetric(horizontal: 2),
       decoration: ShapeDecoration(
         color: const Color(0xFFFDFDFD),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       child: TextField(
         controller: _viewModel.otpControllers[index],
@@ -268,6 +322,12 @@ class _RegisterOtpViewState extends State<RegisterOtpView> {
           LengthLimitingTextInputFormatter(1),
           FilteringTextInputFormatter.digitsOnly,
         ],
+        style: const TextStyle(
+          color: Color(0xFF2D4839),
+          fontSize: 18,
+          fontFamily: 'Poppins',
+          fontWeight: FontWeight.w900,
+        ),
         decoration: const InputDecoration(border: InputBorder.none),
         onChanged: (value) => _viewModel.nextField(value, index),
       ),
