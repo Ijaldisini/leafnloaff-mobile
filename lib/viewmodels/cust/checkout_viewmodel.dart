@@ -41,15 +41,42 @@ class CheckoutViewModel extends ChangeNotifier {
     double lat2,
     double lon2,
   ) {
-    const p = 0.017453292519943295;
+    var p = 0.017453292519943295;
+    var c = math.cos;
     var a =
         0.5 -
-        math.cos((lat2 - lat1) * p) / 2 +
-        math.cos(lat1 * p) *
-            math.cos(lat2 * p) *
-            (1 - math.cos((lon2 - lon1) * p)) /
-            2;
+        c((lat2 - lat1) * p) / 2 +
+        c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
     return 12742 * math.asin(math.sqrt(a)) * 1000;
+  }
+
+  void updateShippingCost() {
+    if (shippingMethod != 'Delivery' || deliveryAddress == null) {
+      shippingCost = 0.0;
+      notifyListeners();
+      return;
+    }
+
+    const double univJemberLat = -8.164415;
+    const double univJemberLon = 113.716886;
+
+    double distanceInMeters = _calculateDistanceInMeters(
+      univJemberLat,
+      univJemberLon,
+      deliveryAddress!.latitude,
+      deliveryAddress!.longitude,
+    );
+
+    double distanceInKm = distanceInMeters / 1000;
+
+    if (distanceInKm <= 5.0) {
+      shippingCost = 0.0;
+    } else {
+      int extraKm = (distanceInKm - 5.0).ceil();
+      shippingCost = extraKm * 10000.0;
+    }
+
+    notifyListeners();
   }
 
   final Map<String, String> bankCodes = {
@@ -96,13 +123,12 @@ class CheckoutViewModel extends ChangeNotifier {
 
   void setShippingMethod(String method) {
     shippingMethod = method;
-    if (method == 'Pickup') {
-      shippingCost = 0;
-    } else {
-      _calculateDistance();
-    }
-    _calculateSummary();
-    notifyListeners();
+    updateShippingCost();
+  }
+
+  void setDeliveryAddress(AddressModel address) {
+    deliveryAddress = address;
+    updateShippingCost();
   }
 
   void setPaymentMethod(String method) {
@@ -167,11 +193,11 @@ class CheckoutViewModel extends ChangeNotifier {
 
       double distanceInKm = distanceInMeters / 1000;
 
-      if (distanceInKm <= 5) {
-        shippingCost = 0;
+      if (distanceInKm <= 5.0) {
+        shippingCost = 0.0;
       } else {
-        int extraKm = distanceInKm.ceil() - 5;
-        shippingCost = (extraKm * 10000).toDouble();
+        int extraKm = (distanceInKm - 5.0).ceil();
+        shippingCost = extraKm * 10000.0;
       }
     } catch (e) {
       debugPrint('Error calculating distance: $e');

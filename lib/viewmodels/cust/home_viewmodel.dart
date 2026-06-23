@@ -18,7 +18,7 @@ class HomeViewModel extends ChangeNotifier {
   bool _isLoading = true;
   bool get isLoading => _isLoading;
 
-  final List<String> _categories = ['All', 'Sandwich', 'Drink', 'Snack'];
+  final List<String> _categories = ['All', 'Makanan', 'Minuman', 'Snack'];
   List<String> get categories => _categories;
 
   String _selectedCategory = 'All';

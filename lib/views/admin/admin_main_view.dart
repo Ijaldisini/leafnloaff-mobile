@@ -27,6 +27,15 @@ class _AdminMainViewState extends State<AdminMainView> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final bool isSmallScreen = screenWidth < 430;
+    final bool isVerySmallScreen = screenWidth < 360;
+
+    final double outerPadding = isVerySmallScreen
+        ? 12.0
+        : (isSmallScreen ? 16.0 : 24.0);
+
     return ListenableBuilder(
       listenable: _viewModel,
       builder: (context, child) {
@@ -49,7 +58,7 @@ class _AdminMainViewState extends State<AdminMainView> {
                   const AdminVoucherView(),
                 ],
               ),
-              
+
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -60,10 +69,7 @@ class _AdminMainViewState extends State<AdminMainView> {
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
-                      colors: [
-                        Color(0xFF3D5A4A),
-                        Color(0x003D5A4A),
-                      ],
+                      colors: [Color(0xFF3D5A4A), Color(0x003D5A4A)],
                     ),
                   ),
                 ),
@@ -75,13 +81,15 @@ class _AdminMainViewState extends State<AdminMainView> {
                 right: 0,
                 child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: outerPadding,
                       vertical: 12,
                     ),
                     child: Container(
                       height: 58,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isVerySmallScreen ? 4 : 8,
+                      ),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           begin: Alignment.topCenter,
@@ -100,11 +108,41 @@ class _AdminMainViewState extends State<AdminMainView> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildNavItem(0, Icons.home_rounded, 'Home'),
-                          _buildNavItem(1, Icons.receipt_long_rounded, 'Order'),
-                          _buildNavItem(2, Icons.restaurant_menu_rounded, 'Menu'),
-                          _buildNavItem(3, Icons.notifications_outlined, 'Notif'),
-                          _buildNavItem(4, Icons.confirmation_number_outlined, 'Voucher'),
+                          _buildNavItem(
+                            0,
+                            Icons.home_rounded,
+                            'Home',
+                            isSmallScreen,
+                            isVerySmallScreen,
+                          ),
+                          _buildNavItem(
+                            1,
+                            Icons.receipt_long_rounded,
+                            'Order',
+                            isSmallScreen,
+                            isVerySmallScreen,
+                          ),
+                          _buildNavItem(
+                            2,
+                            Icons.restaurant_menu_rounded,
+                            'Menu',
+                            isSmallScreen,
+                            isVerySmallScreen,
+                          ),
+                          _buildNavItem(
+                            3,
+                            Icons.notifications_outlined,
+                            'Notif',
+                            isSmallScreen,
+                            isVerySmallScreen,
+                          ),
+                          _buildNavItem(
+                            4,
+                            Icons.confirmation_number_outlined,
+                            'Voucher',
+                            isSmallScreen,
+                            isVerySmallScreen,
+                          ),
                         ],
                       ),
                     ),
@@ -118,8 +156,27 @@ class _AdminMainViewState extends State<AdminMainView> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
+  Widget _buildNavItem(
+    int index,
+    IconData icon,
+    String label,
+    bool isSmallScreen,
+    bool isVerySmallScreen,
+  ) {
     final isActive = _viewModel.selectedIndex == index;
+
+    final double activePadding = isVerySmallScreen
+        ? 10.0
+        : (isSmallScreen ? 12.0 : 16.0);
+    final double inactivePadding = isVerySmallScreen
+        ? 6.0
+        : (isSmallScreen ? 8.0 : 12.0);
+    final double iconSize = isVerySmallScreen
+        ? 18.0
+        : (isSmallScreen ? 20.0 : 24.0);
+    final double textSize = isVerySmallScreen
+        ? 11.0
+        : (isSmallScreen ? 13.0 : 16.0);
 
     return GestureDetector(
       onTap: () => _viewModel.setSelectedIndex(index),
@@ -127,7 +184,7 @@ class _AdminMainViewState extends State<AdminMainView> {
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
         padding: EdgeInsets.symmetric(
-          horizontal: isActive ? 16 : 12,
+          horizontal: isActive ? activePadding : inactivePadding,
           vertical: 10,
         ),
         decoration: BoxDecoration(
@@ -140,15 +197,15 @@ class _AdminMainViewState extends State<AdminMainView> {
             Icon(
               icon,
               color: isActive ? const Color(0xFFCA748D) : Colors.white,
-              size: 24,
+              size: iconSize,
             ),
             if (isActive) ...[
-              const SizedBox(width: 6),
+              SizedBox(width: isVerySmallScreen ? 4 : 6),
               Text(
                 label,
-                style: const TextStyle(
-                  color: Color(0xFFCA748D),
-                  fontSize: 16,
+                style: TextStyle(
+                  color: const Color(0xFFCA748D),
+                  fontSize: textSize,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w700,
                 ),
