@@ -257,6 +257,8 @@ class _DetailOrderViewState extends State<DetailOrderView> {
                             const SizedBox(height: 16),
                             _buildCustomerInformation(order),
                             const SizedBox(height: 16),
+                            _buildCustomerNotes(order),
+                            const SizedBox(height: 16),
                             _buildOrderDetail(order.items),
                             const SizedBox(height: 20),
                             _buildOrderSummary(),
@@ -699,6 +701,68 @@ class _DetailOrderViewState extends State<DetailOrderView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCustomerNotes(OrderDetailModel order) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x3F000000),
+            blurRadius: 4,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Catatan Pesanan',
+              style: TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 20,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.sticky_note_2_outlined,
+                  color: Color(0xFF426E55),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    order.notes.isNotEmpty &&
+                            order.notes.toLowerCase() != 'null'
+                        ? order.notes
+                        : 'Tidak ada catatan.',
+                    style: const TextStyle(
+                      color: Color(0xFF426E55),
+                      fontSize: 14,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w500,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

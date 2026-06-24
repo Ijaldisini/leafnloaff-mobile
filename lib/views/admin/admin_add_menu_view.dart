@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../viewmodels/admin/admin_add_menu_viewmodel.dart';
+import 'package:flutter/services.dart';
 
 class AdminAddMenuView extends StatefulWidget {
   const AdminAddMenuView({super.key});
@@ -70,7 +71,9 @@ class _AdminAddMenuViewState extends State<AdminAddMenuView> {
                     Expanded(
                       child: RefreshIndicator(
                         onRefresh: () async {
-                          await Future.delayed(const Duration(milliseconds: 500));
+                          await Future.delayed(
+                            const Duration(milliseconds: 500),
+                          );
                         },
                         color: const Color(0xFFCA748D),
                         backgroundColor: Colors.white,
@@ -101,13 +104,25 @@ class _AdminAddMenuViewState extends State<AdminAddMenuView> {
                               _buildLabel('Price'),
                               _buildTextField(
                                 controller: _viewModel.priceController,
-                                keyboardType: TextInputType.number,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d+\.?\d*'),
+                                  ),
+                                ],
                               ),
 
                               _buildLabel('Stock Amount'),
                               _buildTextField(
                                 controller: _viewModel.stockController,
                                 keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter
+                                      .digitsOnly,
+                                ],
                               ),
 
                               _buildLabel('Upload Photo'),
@@ -116,7 +131,8 @@ class _AdminAddMenuViewState extends State<AdminAddMenuView> {
                               const SizedBox(height: 40),
 
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: [
                                   _buildButton(
                                     text: 'Discard',
@@ -147,7 +163,9 @@ class _AdminAddMenuViewState extends State<AdminAddMenuView> {
                                               ScaffoldMessenger.of(
                                                 context,
                                               ).showSnackBar(
-                                                SnackBar(content: Text(errorMsg)),
+                                                SnackBar(
+                                                  content: Text(errorMsg),
+                                                ),
                                               );
                                             }
                                           },
@@ -324,6 +342,7 @@ class _AdminAddMenuViewState extends State<AdminAddMenuView> {
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
     String? hintText,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Container(
       width: double.infinity,
@@ -345,6 +364,7 @@ class _AdminAddMenuViewState extends State<AdminAddMenuView> {
         controller: controller,
         maxLines: maxLines,
         keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
         textAlignVertical: TextAlignVertical.center,
         style: const TextStyle(
           fontFamily: 'Poppins',

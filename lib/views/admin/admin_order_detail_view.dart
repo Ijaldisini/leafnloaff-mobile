@@ -168,6 +168,8 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                             const SizedBox(height: 16),
                             _buildCustomerInformation(order),
                             const SizedBox(height: 16),
+                            _buildCustomerNotes(order),
+                            const SizedBox(height: 16),
                             _buildOrderDetail(order.items),
                             const SizedBox(height: 20),
                             _buildOrderSummary(order),
@@ -407,11 +409,11 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
       decoration: BoxDecoration(
         color: const Color(0xFFFDFDFD),
         borderRadius: BorderRadius.circular(16.69),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0x3F000000),
+            color: Color(0x3F000000),
             blurRadius: 4,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -523,9 +525,9 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                   decoration: ShapeDecoration(
                     color: const Color(0xFFEED5DB),
                     shape: RoundedRectangleBorder(
-                      side: BorderSide(
+                      side: const BorderSide(
                         width: 1,
-                        color: const Color(0xFFCA748D),
+                        color: Color(0xFFCA748D),
                       ),
                       borderRadius: BorderRadius.circular(62.50),
                     ),
@@ -554,17 +556,79 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
     );
   }
 
+  Widget _buildCustomerNotes(OrderDetailModel order) {
+    return Container(
+      width: 338,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDFDFD),
+        borderRadius: BorderRadius.circular(16.69),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x3F000000),
+            blurRadius: 4,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Customer Notes',
+              style: TextStyle(
+                color: Color(0xFF2D4839),
+                fontSize: 20,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.sticky_note_2_outlined,
+                  color: Color(0xFF426E55),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    order.notes.isNotEmpty &&
+                            order.notes.toLowerCase() != 'null'
+                        ? order.notes
+                        : '-',
+                    style: const TextStyle(
+                      color: Color(0xFF426E55),
+                      fontSize: 14,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w500,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildOrderDetail(List<OrderItemModel> items) {
     return Container(
       width: 338,
       decoration: BoxDecoration(
         color: const Color(0xFFFDFDFD),
         borderRadius: BorderRadius.circular(16.69),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0x3F000000),
+            color: Color(0x3F000000),
             blurRadius: 4,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -610,7 +674,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
       decoration: ShapeDecoration(
         color: const Color(0xFFFDFDFD),
         shape: RoundedRectangleBorder(
-          side: BorderSide(width: 1, color: const Color(0xFFCA748D)),
+          side: const BorderSide(width: 1, color: Color(0xFFCA748D)),
           borderRadius: BorderRadius.circular(11.68),
         ),
       ),
@@ -629,7 +693,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                   ),
                   fit: BoxFit.cover,
                 ),
-                shape: RoundedRectangleBorder(
+                shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(11.68),
                     bottomLeft: Radius.circular(11.68),
@@ -671,7 +735,9 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                       ),
                     ),
                     TextSpan(
-                      text: item.notes ?? '-',
+                      text: (item.notes != null && item.notes!.isNotEmpty)
+                          ? item.notes
+                          : '-',
                       style: const TextStyle(
                         color: Color(0xFF426E55),
                         fontSize: 8,
@@ -764,12 +830,17 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
           const SizedBox(height: 15),
           _buildSummaryRow(
             'Sub Total',
-            _viewModel.formatCurrency(order.totalPrice),
+            _viewModel.formatCurrency(order.totalPrice + order.discountApplied),
           ),
           const SizedBox(height: 6),
           _buildSummaryRow('Shipping Cost', 'Rp. 0'),
           const SizedBox(height: 6),
-          _buildSummaryRow('Discount', 'Rp. 0'),
+          _buildSummaryRow(
+            'Discount',
+            order.discountApplied > 0
+                ? '- ${_viewModel.formatCurrency(order.discountApplied)}'
+                : 'Rp. 0',
+          ),
           const SizedBox(height: 15),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -858,7 +929,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
       }
     }
 
-    Widget _buildPill(String text, bool isHighlight) {
+    Widget buildPill(String text, bool isHighlight) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: ShapeDecoration(
@@ -915,7 +986,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              _buildPill(displayMethod, false),
+              buildPill(displayMethod, false),
             ],
           ),
           const SizedBox(height: 12),
@@ -931,7 +1002,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              _buildPill(isPaid ? 'Paid' : 'Unpaid', isPaid),
+              buildPill(isPaid ? 'Paid' : 'Unpaid', isPaid),
             ],
           ),
           if (isQris && order.paymentProofUrl != null) ...[
@@ -948,7 +1019,7 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
                     ),
                   );
                 },
-                child: _buildPill('See proof of payment', false),
+                child: buildPill('See proof of payment', false),
               ),
             ),
           ],
@@ -1092,25 +1163,24 @@ class _AdminOrderDetailViewState extends State<AdminOrderDetailView> {
         ],
 
         Expanded(
-          flex: isShipped
-              ? 1
-              : 6,
+          flex: isShipped ? 1 : 6,
           child: GestureDetector(
             onTap: () {
-              final order = _viewModel.orderDetail;
-              if (order == null) return;
+              final currentOrder = _viewModel.orderDetail;
+              if (currentOrder == null) return;
 
-              final action = _viewModel.getNextStatusValue(order.status);
+              final action = _viewModel.getNextStatusValue(currentOrder.status);
 
               if (action == 'View Review') {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => AdminOrderReviewView(orderId: order.id),
+                    builder: (_) =>
+                        AdminOrderReviewView(orderId: currentOrder.id),
                   ),
                 );
               } else if (action != null) {
-                _viewModel.changeOrderStatus(order.id, action);
+                _viewModel.changeOrderStatus(currentOrder.id, action);
               }
             },
             child: Container(

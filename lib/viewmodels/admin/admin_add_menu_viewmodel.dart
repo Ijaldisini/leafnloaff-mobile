@@ -67,6 +67,17 @@ class AdminAddMenuViewModel extends ChangeNotifier {
       return 'Nama, Harga, dan Stok wajib diisi!';
     }
 
+    final double? parsedPrice = double.tryParse(priceController.text.trim());
+    final int? parsedStock = int.tryParse(stockController.text.trim());
+
+    if (parsedPrice == null || parsedPrice < 0) {
+      return 'Harga tidak valid atau tidak boleh minus!';
+    }
+
+    if (parsedStock == null || parsedStock < 0) {
+      return 'Stok tidak valid atau tidak boleh minus!';
+    }
+
     _isLoading = true;
     notifyListeners();
 
@@ -76,8 +87,8 @@ class AdminAddMenuViewModel extends ChangeNotifier {
           id: _editMenuId!,
           name: nameController.text.trim(),
           description: descController.text.trim(),
-          price: double.parse(priceController.text.trim()),
-          stock: int.parse(stockController.text.trim()),
+          price: parsedPrice,
+          stock: parsedStock,
           category: _selectedCategory,
           newImageFile: _selectedImage,
           existingImageUrl: _existingImageUrl,
@@ -86,8 +97,8 @@ class AdminAddMenuViewModel extends ChangeNotifier {
         await _service.addMenu(
           name: nameController.text.trim(),
           description: descController.text.trim(),
-          price: double.parse(priceController.text.trim()),
-          stock: int.parse(stockController.text.trim()),
+          price: parsedPrice,
+          stock: parsedStock,
           category: _selectedCategory,
           imageFile: _selectedImage,
         );
